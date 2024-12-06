@@ -1,0 +1,312 @@
+import { Fragment, useState } from "react"
+import { dataFormatada } from "../../../utils/dataFormatada";
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import Accordion from 'react-bootstrap/Accordion';
+import { ButtonTable } from "../../ButtonsTabela/ButtonTable";
+import { formatMoeda } from "../../../utils/formatMoeda";
+import { MdOutlineAttachMoney } from "react-icons/md";
+import { FaProductHunt } from "react-icons/fa";
+import { GrView } from "react-icons/gr";
+import { ColumnGroup } from "primereact/columngroup";
+import { Row } from "primereact/row";
+import { toFloat } from "../../../utils/toFloat";
+import { get } from "../../../api/funcRequest";
+import { ActionDetalheVendaModal } from "../Components/ActionsModaisVendas/actionDetalheVendaModal";
+import { ActionDetalheVendaProdutosModal } from "../Components/ActionsModaisVendas/actionDetalheVendaProdutosModal";
+import { ActionRelacaoRecebimentosModal } from "../Components/ActionsModaisVendas/actionRelacaoRecebimentosModal";
+
+export const ActionListaVendasAtivas = ({ dadosVendasAtivas, empresaSelecionada }) => {
+  const [modalVendaVisivel, setModalVendaVisivel] = useState(false);
+  const [modalProdutoVisivel, setModalProdutoVisivel] = useState(false);
+  const [modalPagamentoVisivel, setModalPagamentoVisivel] = useState(false);
+  const [dadosVendas, setDadosVendas] = useState([]);
+  const [dadosProdutoModal, setDadosProdutoModal] = useState([]);
+  const [dadosPagamentoModal, setDadosPagamentoModal] = useState([]);
+  const dadosAtivasVendas = dadosVendasAtivas.map((item, index) => {
+    let contador = index + 1;
+
+    return {
+      IDCAIXAWEB: item.IDCAIXAWEB,
+      DSCAIXA: item.DSCAIXA,
+      IDVENDA: item.IDVENDA,
+      NFE_INFNFE_IDE_NNF: item.NFE_INFNFE_IDE_NNF,
+      DTHORAFECHAMENTO: item.DTHORAFECHAMENTO,
+      NOFUNCIONARIO: item.NOFUNCIONARIO,
+      STCONFERIDO: item.STCONFERIDO,
+      VRTOTALPAGO: parseFloat(item.VRTOTALPAGO),
+      VRTOTALDESCONTO: parseFloat(item.VRTOTALDESCONTO),
+      VRTOTALVENDA: parseFloat(item.VRTOTALVENDA),
+      STCONTINGENCIA: item.STCONTINGENCIA,
+      contador
+    };
+  });
+
+  const calcularTotalValorBruto = () => {
+    let total = 0;
+    for(let dados of dadosAtivasVendas){
+      total += parseFloat(dados.VRTOTALVENDA);
+    }
+    return total;
+  }
+
+  const calcullarTotalDesconto = () => {
+    let total = 0;
+    for(let dados of dadosAtivasVendas){
+      total += parseFloat(dados.VRTOTALDESCONTO);
+    }
+    return total;
+  }
+
+  const calcullarTotalPago = () => {
+    let total = 0;
+    for(let dados of dadosAtivasVendas){
+      total += parseFloat(dados.VRTOTALPAGO);
+    }
+    return total;
+  }
+
+  const colunaVendasAtivas = [
+    {
+      field: 'contador',
+      header: 'Nº',
+      body: row => <th>{row.contador}</th>,
+      sortable: true,
+      width: "5%"
+    },
+    {
+      field: 'IDCAIXAWEB',
+      header: 'Caixa',
+      body: row => <th>{row.IDCAIXAWEB + row.DSCAIXA}</th>,
+      sortable: true,
+    },
+    {
+      field: 'IDVENDA',
+      header: 'Nº Venda',
+      body: row => <th>{toFloat(row.IDVENDA)}</th>,
+      sortable: true,
+    },
+    {
+      field: 'NFE_INFNFE_IDE_NNF',
+      header: 'NFCe',
+      body: row => <th>{row.NFE_INFNFE_IDE_NNF}</th>,
+      sortable: true,
+    },
+    {
+      field: 'DTHORAFECHAMENTO',
+      header: 'Abertura',
+      body: row => <th>{row.DTHORAFECHAMENTO}</th>,
+      sortable: true,
+    },
+    {
+      field: 'NOFUNCIONARIO',
+      header: 'Operador',
+      body: row => <th>{row.NOFUNCIONARIO}</th>,
+      footer: 'Total Vendas',
+      sortable: true,
+    },
+    {
+      field: 'VRTOTALVENDA',
+      header: 'Vl. Bruto',
+      body: row => <th>{formatMoeda(row.VRTOTALVENDA)}</th>,
+      footer: formatMoeda(calcularTotalValorBruto()),
+      sortable: true,
+    },
+    {
+      field: 'VRTOTALDESCONTO',
+      header: 'Vl. Desconto',
+      body: row => <th>{formatMoeda(row.VRTOTALDESCONTO)}</th>,
+      footer: formatMoeda(calcullarTotalDesconto()),
+      sortable: true,
+    },
+    {
+      field: 'VRTOTALPAGO',
+      header: 'Vl. Pago',
+      body: row => <th>{formatMoeda(row.VRTOTALPAGO)}</th>,
+      footer: formatMoeda(calcullarTotalPago()),
+      sortable: true,
+    },
+    {
+      field: 'STCONTINGENCIA',
+      header: 'Nota',
+      body: row => (
+        <th style={{ color: row.STCONTINGENCIA == 'True' ? 'blue' : 'red' }}>
+          {row.STCONTINGENCIA == 'True' ? 'Contigência' : 'Emitida'}
+        </th>
+      ),
+      sortable: true,
+    },
+    {
+      header: 'Opções',
+      body: (row) => (
+        <div className="p-1 "
+          style={{ justifyContent: "space-between", display: "flex" }}
+        >
+          <div className="p-1">
+            <ButtonTable
+              titleButton={"Detalhar Venda"}
+              onClickButton={() => handleClickVenda(row)}
+              Icon={GrView}
+              iconSize={18}
+              cor={"info"}
+            />
+          </div>
+          <div className="p-1">
+            <ButtonTable
+              titleButton={"Detalhar Produtos"}
+              onClickButton={() => handleClickProduto(row)}
+              Icon={FaProductHunt}
+              iconSize={18}
+              cor={"warning"}
+            />
+          </div>
+          <div className="p-1">
+            <ButtonTable
+              titleButton={"Detalhar Recebimentos"}
+              onClickButton={() => handleClickPagamento(row)}
+              Icon={MdOutlineAttachMoney}
+              iconSize={18}
+              cor={"success"}
+            />
+          </div>
+        </div>
+      ),
+    },
+
+  ]
+
+  const handleEditProduto = async (IDVENDA, empresaSelecionada) => {
+    try {
+      const response = await get(`/detalhe-venda?idVenda=${IDVENDA}&idEmpresa=${empresaSelecionada}`)
+      if (response.data) {
+        setDadosProdutoModal(response.data)
+        setModalProdutoVisivel(true)
+      }
+    } catch (error) {
+      console.log(error, "não foi possivel pegar os dados da tabela ")
+    }
+  }
+
+  const handleClickProduto = async (row) => {
+    if (row && row.IDVENDA && empresaSelecionada) {
+      handleEditProduto(row.IDVENDA, empresaSelecionada)
+    }
+  }
+
+  const handleClickVenda = async (row) => {
+    if (row && row.IDVENDA && empresaSelecionada) {
+      handleEditVenda(row.IDVENDA, empresaSelecionada);
+    }
+  }
+
+  const handleEditVenda = async (IDVENDA, empresaSelecionada) => {
+   
+    try {
+      const response = await get(`/resumo-venda-caixa-detalhado?idVenda=${IDVENDA}&idEmpresa=${empresaSelecionada}`);
+      if (response.data) {
+        setDadosVendas(response.data);
+        setModalVendaVisivel(true);
+      }
+    } catch (error) {
+      console.log(error, "não foi possivel pegar os dados da tabela ");
+    }
+  }
+
+  const handleEditPagamento = async (IDVENDA) => {
+    try {
+      const response = await get(`/vendas-recebimentos?idVenda=${IDVENDA}`)
+      if (response.data) {
+        setDadosPagamentoModal(response.data)
+        setModalPagamentoVisivel(true)
+      }
+    } catch (error) {
+      console.log(error, 'não foi possivel pegar os dados da tabela')
+    }
+  }
+  const handleClickPagamento = (row) => {
+    if (row && row.IDVENDA) {
+      handleEditPagamento(row.IDVENDA)
+    }
+  }
+  
+  const footerGroup = (
+    <ColumnGroup>
+      <Row> 
+        <Column footer="Total Vendas" colSpan={6} footerStyle={{textAlign: 'center', color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={formatMoeda(calcularTotalValorBruto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+        <Column footer={formatMoeda(calcullarTotalDesconto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+        <Column footer={formatMoeda(calcullarTotalPago())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+        <Column footer={""} colSpan={4} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+      </Row>
+    </ColumnGroup>
+  )
+  return (
+    <Fragment>
+      <div className="row" >
+    
+            <header className="panel-hdr tituloListVendasCaixa" >
+              <h2 id="TituloLoja" >
+                Lista de Vendas Ativas
+              </h2>
+            </header>
+      
+              <div className="card">
+                <DataTable
+                  title="Vendas por Loja"
+                  value={dadosAtivasVendas}
+                  sortField="VRTOTALPAGO"
+                  footerColumnGroup={footerGroup}
+                  sortOrder={-1}
+                  paginator={true}
+                  rows={10}
+                  rowsPerPageOptions={[5, 10, 20, 50]}
+                  showGridlines
+                  stripedRows
+                  emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+                >
+                  {colunaVendasAtivas.map(coluna => (
+                    <Column
+                      key={coluna.field}
+                      field={coluna.field}
+                      header={coluna.header}
+                      body={coluna.body}
+                      // footer={coluna.footer}
+                      sortable={coluna.sortable}
+                      headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                      footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                      bodyStyle={{ fontSize: '0.8rem' }}
+
+                    />
+                  ))}
+                </DataTable>
+              </div>
+      
+      </div>
+
+      {modalVendaVisivel && (
+        <ActionDetalheVendaModal
+          show={modalVendaVisivel}
+          handleClose={() => setModalVendaVisivel(false)}
+          dadosVendas={dadosVendas}
+        />
+      )}
+
+      {modalProdutoVisivel && ( 
+
+        <ActionDetalheVendaProdutosModal 
+          show={modalProdutoVisivel}
+          handleClose={() => setModalProdutoVisivel(false)}
+          dadosProdutoModal={dadosProdutoModal}
+        />
+      )}
+
+      {modalPagamentoVisivel && (
+        <ActionRelacaoRecebimentosModal
+          show={modalPagamentoVisivel}
+          handleClose={() => setModalPagamentoVisivel(false)}
+          dadosPagamentoModal={dadosPagamentoModal}
+        />
+      )}
+    </Fragment>
+  )
+}

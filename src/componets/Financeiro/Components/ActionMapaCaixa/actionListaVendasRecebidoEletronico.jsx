@@ -1,0 +1,407 @@
+import { Fragment, useEffect, useRef, useState } from "react"
+import { get } from "../../../../api/funcRequest"
+import { formatMoeda } from "../../../../utils/formatMoeda"
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
+import { ColumnGroup } from "primereact/columngroup";
+import { Row } from 'primereact/row';
+import { GrView } from "react-icons/gr";
+import { toFloat } from "../../../../utils/toFloat";
+import { useNavigate } from "react-router-dom";
+import { ActionVendaRecebimentoModal } from "../ActionModaisVendas/actionVendaRecebimentoModal";
+import HeaderTable from "../../../Tables/headerTable"
+import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+
+
+export const ActionListaVendasRecebidoEletronico = ({ dadosTotalRecebidoEletronico, dadosTotalRecebidoPeriodo, dataPesquisaInicio, dataPesquisaFim }) => {
+  const [usuarioLogado, setUsuarioLogado] = useState(null);
+  const [dadosDetalheRecebimentosEletronico, setDadosDetalheRecebimentosEletronico] = useState([]);
+  const [modalDetalheRecebimentos, setModalDetalheRecebimento] = useState(false);
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const [size, setSize] = useState('small')
+  const dataTableRef = useRef();
+  const navigate = useNavigate();
+
+  const onGlobalFilterChange = (e) => {
+    setGlobalFilterValue(e.target.value);
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => dataTableRef.current,
+    documentTitle: 'Adiantamento Salarial das Lojas',
+    onAfterPrint: () => {
+      console.log("Printed successfully!");
+    },
+  });
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Vendas Form Pag','Parcelas', 'Qtd Pagamento', 'Vr.Venda']],
+      body: dados.map(item => [
+        item.NOTEF, 
+        item.NPARCELAS, 
+        item.QTDPGTOS, 
+        item.VALORRECEBIDO
+      ]),
+      horizontalPageBreak: true,
+      horizontalPageBreakBehaviour: 'immediately'
+    });
+    doc.save('adiantamento_salarial.pdf');
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(dados);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Adiantamento Salarial das Lojas');
+    XLSX.writeFile(workbook, 'adiantamento_salarial.xlsx');
+  };
+
+
+  useEffect(() => {
+    const usuarioArmazenado = localStorage.getItem('usuario');
+
+    if (usuarioArmazenado) {
+      try {
+        const parsedUsuario = JSON.parse(usuarioArmazenado);
+        setUsuarioLogado(parsedUsuario);;
+      } catch (error) {
+        console.error('Erro ao parsear o usuário do localStorage:', error);
+      }
+    } else {
+      navigate('/');
+    }
+  }, [navigate]);
+
+  const calcularTotalRecebidoMapaVenda = (item) => {
+    return (
+      toFloat(item.VALORTOTALCONVENIO) +
+      toFloat(item.VALORTOTALDINHEIRO)
+    )
+  }
+
+  const calcularTotalRecebidoMapaDespesas = (item) => {
+    return (
+      toFloat(item.VALORTOTALDESPESA) +
+      toFloat(item.VALORTOTALADIANTAMENTOSALARIAL)
+    )
+  }
+
+  const calcularTotalDinheiro = () => {
+    let total = 0;
+    for (let resultado of dadosTotalRecebidoPeriodo) {
+      total += parseFloat(resultado.VALORTOTALDINHEIRO)
+    }
+    return total;
+  }
+
+  const calcularTotalConvenio = () => {
+    let total = 0;
+    for (let resultado of dadosTotalRecebidoPeriodo) {
+      total += parseFloat(resultado.VALORTOTALCONVENIO)
+    }
+    return total;
+  }
+
+  const calcularTotalFatura = () => {
+    let total = 0;
+    for (let resultado of dadosTotalRecebidoPeriodo) {
+      total += parseFloat(resultado.VALORTOTALFATURA)
+    }
+    return total;
+  }
+  
+  const dadosPeriodo = Array.isArray(dadosTotalRecebidoPeriodo) ? dadosTotalRecebidoPeriodo.map((item, index) => {
+    const valorTotalRecebidoMapaVenda = calcularTotalRecebidoMapaVenda(item);
+    const valorTotalPagamentoMapaDespesas = calcularTotalRecebidoMapaDespesas(item);
+    const valorTotalDisponivelMapaDinheiro = calcularTotalDinheiro() - valorTotalPagamentoMapaDespesas;
+    const valorTotalDisponivelMapaDinheiroFatura = valorTotalDisponivelMapaDinheiro + calcularTotalFatura();
+
+    return {
+
+      VALORTOTALCONVENIO: item.VALORTOTALCONVENIO,
+      VALORTOTALDINHEIRO: item.VALORTOTALDINHEIRO,
+      VALORTOTALFATURA: item.VALORTOTALFATURA,
+      VALORTOTALDESPESA: item.VALORTOTALDESPESA,
+      VALORTOTALADIANTAMENTOSALARIAL: item.VALORTOTALADIANTAMENTOSALARIAL,
+      valorTotalPagamentoMapaDespesas: valorTotalPagamentoMapaDespesas,
+      valorTotalRecebidoMapaVenda: valorTotalRecebidoMapaVenda,
+      valorTotalDisponivelMapaDinheiro: valorTotalDisponivelMapaDinheiro,
+      valorTotalDisponivelMapaDinheiroFatura: parseFloat(valorTotalDisponivelMapaDinheiroFatura),
+
+    }
+  }) : [];
+
+
+
+  const dados = Array.isArray(dadosTotalRecebidoEletronico) ? dadosTotalRecebidoEletronico.map((item, index) => {
+    console.log(item, 'item')
+    if (item.DSTIPOPAGAMENTO != 'VALE FUNCIONÁRIO') {     
+      return {
+        NOTEF: item.NOTEF,
+        NPARCELAS: item.NPARCELAS,
+        QTDPGTOS: item.QTDPGTOS,
+        VALORRECEBIDO: item.VALORRECEBIDO,
+
+        NOAUTORIZADOR: item.NOAUTORIZADOR,
+        DSTIPOPAGAMENTO: item.DSTIPOPAGAMENTO,
+        QTDE: item.QTDE,
+      }
+    }
+  }) : [];
+
+  const calcularTotalValorRecebido = () => {
+    let total = 0;
+    for (let resultado of dados) {
+      total += parseFloat(resultado.VALORRECEBIDO);
+    }
+    return total;
+  }
+
+  const calcularValorTotalRecebidoMapaVenda = () => {
+    let total = 0;
+    for (let resultado of dadosPeriodo) {
+      total += parseFloat(resultado.valorTotalDisponivelMapaDinheiroFatura);
+    }
+    return total;
+  }
+
+  // como fazer os calculos de headerGroup e footerGroup
+  const calculoValorTotalRecebidoMapaVenda = dadosPeriodo[0]?.valorTotalRecebidoMapaVenda + calcularTotalValorRecebido();
+
+  const headerGroup = (
+    <ColumnGroup style={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}>
+
+      <Row >
+        <Column header="Vendas Formas de Pagamentos" style={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }} sortable />
+        <Column header="Parcelas" style={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }} sortable />
+        <Column header="Qtd Pagamento" style={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }} sortable />
+        <Column header="Vr.Venda" style={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }} sortable />
+        <Column header="Opções" style={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }} sortable />
+      </Row>
+      <Row>
+        <Column header="CONVÊNIO"  />
+        <Column header="" />
+        <Column header="" />
+        <Column header={formatMoeda(calcularTotalConvenio())} />
+        
+
+      </Row>
+      <Row>
+        <Column header="DINHEIRO"  />
+        <Column header="" />
+        <Column header="" />
+        <Column header={formatMoeda(calcularTotalDinheiro())} />
+
+
+      </Row>
+
+    </ColumnGroup>
+  )
+
+  const calcularTotalDisponivel = dadosPeriodo[0]?.valorTotalDisponivelMapaDinheiroFatura + calcularValorTotalRecebidoMapaVenda()
+  
+  const footerGroup = (
+    <ColumnGroup>
+
+      <Row>
+        <Column footer="Total das Vendas:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer={formatMoeda(calculoValorTotalRecebidoMapaVenda)} />
+        <Column footer="" />
+      </Row>
+      <Row>
+        <Column footer="Recebimento Cartões:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer={formatMoeda(calcularTotalValorRecebido())} />
+        <Column footer="" />
+      </Row>
+      <Row>
+        <Column footer="Recebimento Convênio:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer={formatMoeda(calcularTotalConvenio())} />
+        <Column footer="" />
+      </Row>
+      <Row>
+        <Column footer="Recebimento Dinheiro:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer={formatMoeda(calcularTotalDinheiro())} />
+        <Column footer="" />
+      </Row>
+      <Row>
+        <Column footer="Pagamento das Despesas:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer={formatMoeda(dadosPeriodo[0]?.valorTotalPagamentoMapaDespesas)} />
+        <Column footer="" />
+      </Row>
+      <Row>
+        <Column footer="Total Dispónivel em Dinheiro:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer={formatMoeda(dadosPeriodo[0]?.valorTotalDisponivelMapaDinheiro)} />
+        <Column footer="" />
+      </Row>
+      <Row>
+        <Column footer="Recebimento Faturas:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer={formatMoeda(calcularTotalFatura())} />
+        <Column footer="" />
+      </Row>
+      <Row>
+        <Column footer="Total Dispónivel (Dinheiro + Fatura):" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer={formatMoeda(dadosPeriodo[0]?.valorTotalDisponivelMapaDinheiroFatura)} />
+        <Column footer="" />
+      </Row>
+    </ColumnGroup>
+  )
+
+  const calcularTotalDespesas = () => {
+    let total = 0;
+    for (let resultado of dados) {
+      total += parseFloat(resultado.VRDESPESA);
+    }
+    return total;
+  }
+
+  const colunasEmpresas = [
+    {
+      field: 'NOTEF',
+      body: row => <p>{row.NOTEF} - {row.DSTIPOPAGAMENTO}</p>,
+
+    },
+    {
+      field: 'NPARCELAS',
+      body: row => <p > {row.NPARCELAS}  </p>,
+
+    },
+    {
+      field: 'QTDPGTOS',
+      body: row => <p > {row.QTDPGTOS}  </p>,
+      footer: 'Total'
+    },
+    {
+      field: 'VALORRECEBIDO',
+      body: row => <p > {formatMoeda(row.VALORRECEBIDO)}  </p>,
+      footer: formatMoeda(calcularTotalValorRecebido()),
+      sortable: true,
+    },
+
+    {
+      field: 'QTDE',
+      header: 'Opções',
+
+      body: row => {
+
+        return (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-around",
+              alignItems: "center",
+              width: '100px'
+
+            }}
+          >
+            <div>
+              <ButtonTable
+                titleButton={"Detalhar Vendas"}
+                onClickButton={() => handleClickEditar(row)}
+                Icon={GrView}
+                iconSize={18}
+                iconColor={"#fff"}
+                cor={"success"}
+              />
+
+            </div>
+          </div>
+        )
+
+
+      }
+    }
+  ]
+
+  const handleEditar = async (NOTEF, NOAUTORIZADOR, NPARCELAS) => {
+    try {
+      const response = await get(`/vendaDetalheRecebimentoEletronico?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&nomeTef=${NOTEF}&nomeAutorizador=${NOAUTORIZADOR}&numeroParcelas=${NPARCELAS}`);
+
+      if (response.data) {
+        setDadosDetalheRecebimentosEletronico(response.data)
+        setModalDetalheRecebimento(true);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar detalhes da despesa: ', error);
+    }
+  };
+
+
+  const handleClickEditar = (row) => {
+
+    if (row && row.NOTEF && row.NOAUTORIZADOR && row.NPARCELAS) {
+      handleEditar(row.NOTEF, row.NOAUTORIZADOR, row.NPARCELAS);
+    }
+  };
+
+  return (
+
+    <Fragment>
+      <div className="panel">
+        <div className="panel-hdr mb-4">
+          <h2>
+            Lista de Vendas Por Período - Recebimentos
+
+            <span className="fw-300">
+              Por Marca
+            </span>
+          </h2>
+        </div>
+        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <HeaderTable
+            globalFilterValue={globalFilterValue}
+            onGlobalFilterChange={onGlobalFilterChange}
+            handlePrint={handlePrint}
+            exportToExcel={exportToExcel}
+            exportToPDF={exportToPDF}
+          />
+        </div>
+
+     
+        <div className="panel-container">
+          <div className="panel-content" ref={dataTableRef}>
+
+          <DataTable
+            title="Recebimentos "
+            value={dados}
+            globalFilter={globalFilterValue}
+            size={size}
+            sortField="VRTOTALPAGO"
+            sortOrder={-1}
+            headerColumnGroup={headerGroup}
+            footerColumnGroup={footerGroup}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+          >
+            {colunasEmpresas.map(coluna => (
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                body={coluna.body}
+                sortable={coluna.sortable}
+                bodyStyle={{ fontSize: '0.8rem', border: '1px solid #ccc' }}
+              />
+            ))}
+            
+          </DataTable>
+
+
+          </div>
+        </div>
+      </div>
+      <ActionVendaRecebimentoModal
+        show={modalDetalheRecebimentos}
+        handleClose={() => setModalDetalheRecebimento(false)}
+        dadosDetalheRecebimentosEletronico={dadosDetalheRecebimentosEletronico}
+      />
+    </Fragment>
+  )
+}
