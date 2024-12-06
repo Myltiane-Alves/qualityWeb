@@ -250,7 +250,7 @@ export const ActionPesquisaFaturasVendasPixDTW = () => {
         optionsMarcas={[
           ...optionsMarcas.map((empresa) => ({
             value: empresa.IDGRUPOEMPRESARIAL,
-            label: empresa.GRUPOEMPRESARIAL,
+            label: empresa.DSGRUPOEMPRESARIAL,
 
           }))
         ]}

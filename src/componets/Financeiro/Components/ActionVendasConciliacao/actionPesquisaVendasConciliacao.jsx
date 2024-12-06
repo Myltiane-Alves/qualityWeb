@@ -169,7 +169,7 @@ export const ActionPesquisaVendasConciliacao = () => {
           { value: '0', label: 'Selecione uma Marca' },
           ...optionsMarcas.map((item) => ({
             value: item.IDGRUPOEMPRESARIAL,
-            label: item.GRUPOEMPRESARIAL,
+            label: item.DSGRUPOEMPRESARIAL,
 
           }))
         ]}

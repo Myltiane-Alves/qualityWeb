@@ -277,7 +277,7 @@ export const ActionPesquisaDescontoVendas = () => {
           // { value: '', label: 'Selecione uma loja' },
           ...optionsMarcas.map((marca) => ({
             value: marca.IDGRUPOEMPRESARIAL,
-            label: marca.GRUPOEMPRESARIAL
+            label: marca.DSGRUPOEMPRESARIAL
           }))
         ]}
         valueSelectGrupo={marcaSelecionada}
