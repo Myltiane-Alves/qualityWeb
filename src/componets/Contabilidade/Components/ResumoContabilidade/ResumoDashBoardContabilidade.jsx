@@ -67,7 +67,6 @@ export const ResumoDashBoardContabilidade = () => {
     let contador = index + 1;
     const totalDespesasAdiantamento = calcularTotalDespesasAdiantamento(item) ;
     const totalRealizado = calcularTotalRealizado(item);
-    console.log('totalDespesasAdiantamento', totalDespesasAdiantamento)
     return {
       VALORTOTALADIANTAMENTOSALARIAL: parseFloat(item.VALORTOTALADIANTAMENTOSALARIAL),
       VALORTOTALCARTAO: item.VALORTOTALCARTAO,
