@@ -75,6 +75,7 @@ export const ResumoDashBoardAdministrativo = () => {
     }
   }
 
+  
   const getListaAdiantamentoSalaria = async (empresaSelecionada) => {
     try {
       const response = await get(`/adiantamentos-salarial?idEmpresa=${empresaSelecionada}&dataPesquisa=${dataPesquisa}`);
