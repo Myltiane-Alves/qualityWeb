@@ -112,7 +112,7 @@ export const ActionPesquisaVendasMarca = () => {
         optionsMarcas={optionsMarcas.map((empresa) => ({
 
           value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.GRUPOEMPRESARIAL,
+          label: empresa.DSGRUPOEMPRESARIAL,
 
         }))}
         labelSelectMarcas={"Marcas"}

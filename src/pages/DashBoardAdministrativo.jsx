@@ -16,6 +16,7 @@ const ActionPesquisaVendasCanceladas = lazy(() => import("../componets/Administr
 const ActionPesquisaVendasContigencia = lazy(() => import("../componets/Administrativo/Components/ActionVendasContigencia/actionPesquisaVendasContigencia").then(module => ({ default: module.ActionPesquisaVendasContigencia })));
 const ActionPesquisaVendasDescontoFuncionario = lazy(() => import("../componets/Administrativo/Components/ActionDescontoFuncionario/actionPesquisaVendasDescontoFuncionario").then(module => ({ default: module.ActionPesquisaVendasDescontoFuncionario })));
 const ActionPesquisaQuebraCaixaLoja = lazy(() => import("../componets/Administrativo/Components/ActionQuebraCaixaLoja/actionPesquisaQuebraCaixaLoja").then(module => ({ default: module.ActionPesquisaQuebraCaixaLoja })));
+
 const ActionPesquisaEstoqueLoja = lazy(() => import("../componets/Administrativo/Components/ActionEstoqueLoja/actionPesquisaEstoqueLoja").then(module => ({ default: module.ActionPesquisaEstoqueLoja })));
 const ActionPesquisaPrimeiroBalanco = lazy(() => import("../componets/Administrativo/Components/ActionListaPrimeiroBalanco/actionPesquisaPrimeiroBalanco").then(module => ({ default: module.ActionPesquisaPrimeiroBalanco })));
 const ActionPesquisaBalancoPorLoja = lazy(() => import("../componets/Administrativo/Components/ActionListaBalancoPorLoja/actionPesquisaBalancoPorLoja").then(module => ({ default: module.ActionPesquisaBalancoPorLoja })));
