@@ -174,7 +174,7 @@ export const ActionPesquisaVendasVouchers = () => {
             return {
               
               value: marca.IDGRUPOEMPRESARIAL,
-              label: marca.GRUPOEMPRESARIAL,
+              label: marca.DSGRUPOEMPRESARIAL,
             }
           })
         ]}

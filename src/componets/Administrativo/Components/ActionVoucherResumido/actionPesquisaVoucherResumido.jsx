@@ -19,12 +19,6 @@ export const ActionPesquisaVoucherResumido = () => {
   const [pageSize, setPageSize] = useState(1000);
   const [isLoading, setIsLoading] = useState(false);
 
-  // useEffect(() => {
-  //   const dataInicial = getDataAtual();
-  //   const dataFinal = getDataAtual();
-  //   setDataPesquisaInicio(dataInicial);
-  //   setDataPesquisaFim(dataFinal);
-  // }, [])
 
   const fetchListaResumoVoucher = async ( ) => {
     try {
