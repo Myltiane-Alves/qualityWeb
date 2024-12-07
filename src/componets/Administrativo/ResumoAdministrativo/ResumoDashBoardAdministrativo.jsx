@@ -344,18 +344,18 @@ export const ResumoDashBoardAdministrativo = () => {
           <ResultadoResumo
             nomeVendas="Vendas Loja"
             cardVendas={true}
-            valorVendas={formatMoeda(dados[0]?.totalVenda) }
+            valorVendas={formatMoeda(toFloat(dados[0]?.totalVenda)) }
             IconVendas={AiOutlineUser}
             // IconVendas={MdOutlinePayment}
             
             nomeTicketMedio="Ticket Médio"
             cardTicketMedio={true}
-            valorTicketMedio={formatMoeda(dados[0]?.VRTICKETWEB) }
+            valorTicketMedio={formatMoeda(toFloat(dados[0]?.VRTICKETWEB)) }
             IconTicketMedio={FaRegLightbulb}
             
             nomeCliente="Clientes"
             cardCliente={true}
-            numeroCliente={dados[0]?.QTDVENDAS }
+            numeroCliente={toFloat(dados[0]?.QTDVENDAS)}
             IconNumeroCliente={BsGem}
     
             valorDespesas={formatMoeda(toFloat(dadosDespesaLoja[0]?.VRDESPESA))}
