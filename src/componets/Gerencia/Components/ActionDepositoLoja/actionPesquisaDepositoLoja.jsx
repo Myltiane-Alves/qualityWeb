@@ -48,7 +48,7 @@ export const ActionPesquisaDepositoLoja = () => {
   const fetchDepositos = async () => {
     try {
       
-      const urlApi = `/deposito-loja-empresa?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/deposito-loja?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
