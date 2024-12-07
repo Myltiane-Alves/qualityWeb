@@ -339,7 +339,7 @@ export const ResumoDashBoardAdministrativo = () => {
 
     
       {resumoVisivel && ( 
-        <Fragment>
+        <div style={{marginTop: '6rem'}}>
 
           <ResultadoResumo
             nomeVendas="Vendas Loja"
@@ -416,7 +416,7 @@ export const ResumoDashBoardAdministrativo = () => {
             <ActionListaVendasConvenioDesconto dadosVendasConvenioDesconto={dadosVendasConvenioDesconto} />
             <ActionListaVendasDescontoFuncionario dadosVendasConvenioFuncionario={dadosVendasConvenioFuncionario} />
           
-        </Fragment>
+        </div>
       )}
     </Fragment>
   )
