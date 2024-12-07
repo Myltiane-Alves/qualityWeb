@@ -5,6 +5,7 @@ import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
 import { SidebarProvider } from "../componets/Sidebar/SidebarContext";
+
 const ResumoDashBoardGerencia = lazy(() => import("../componets/Gerencia/ResumoGerencia/ResumoDashBoardGerencia").then(module => ({ default: module.ResumoDashBoardGerencia })));
 const ActionPesquisaProdutosQuality = lazy(() => import("../componets/Gerencia/Components/ActionProdutosQuality/actionPesquisaProdutosQuality").then(module => ({ default: module.ActionPesquisaProdutosQuality })));
 const ActionPesquisaProdutosSap = lazy(() => import("../componets/Gerencia/Components/ActionProdutosSAP/actionPesquisaProdutosSap").then(module => ({ default: module.ActionPesquisaProdutosSap })));

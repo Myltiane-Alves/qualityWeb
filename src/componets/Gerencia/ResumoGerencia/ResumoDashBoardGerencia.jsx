@@ -88,6 +88,7 @@ export const ResumoDashBoardGerencia = ({ }) => {
     { enabled: !!usuarioLogado, staleTime: 5 * 60 * 1000 }
   );
   
+  
   const { data: dadosAdiantamento = [], error: errorAdiantamento, isLoading: isLoadingAdiantamento, refetch: refetchAdiantamento } = useQuery(
     'adiantamentos-salarial',
     async () => {
