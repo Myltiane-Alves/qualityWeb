@@ -92,7 +92,7 @@ export const ActionPesquisaDespesaLoja = () => {
   };
 
   const { data: dadosDespesasLoja = [], error: erroQuality, isLoading: isLoadingQuality, refetch: refetchDespesas } = useQuery(
-    'produtoQuality',
+    'despesas-loja-empresa',
     () => fetchDespesas(usuarioLogado.IDEMPRESA,  currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
