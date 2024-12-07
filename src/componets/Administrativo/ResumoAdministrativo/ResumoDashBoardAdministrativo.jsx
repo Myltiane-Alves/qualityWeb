@@ -339,7 +339,7 @@ export const ResumoDashBoardAdministrativo = () => {
 
     
       {resumoVisivel && ( 
-        <div style={{marginTop: '6rem'}}>
+        <div style={{marginTop: '8rem'}}>
 
           <ResultadoResumo
             nomeVendas="Vendas Loja"
