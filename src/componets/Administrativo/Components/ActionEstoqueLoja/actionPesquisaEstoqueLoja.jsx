@@ -54,6 +54,7 @@ export const ActionPesquisaEstoqueLoja = () => {
     {enabled: false, staleTime: 5 * 60 * 1000, }
   );
 
+  
   const { data: dadosGrupos = [], error: errorGrupos, isLoading: isLoadingGrupos, refetch: refetchGrupos } = useQuery(
     'grupo-produto',
     async () => {
