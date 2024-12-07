@@ -38,8 +38,6 @@ export const ActionPesquisaConferenciaCaixa = () => {
 
 
 
-
-
   useEffect(() => {
     const dataInicio = getDataAtual()
     const dataFinal = getDataAtual()
