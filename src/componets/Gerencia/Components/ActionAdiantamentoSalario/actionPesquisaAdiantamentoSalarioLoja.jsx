@@ -47,6 +47,7 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
   }, [usuarioLogado]);
 
 
+  
   const fetchAdiantamentos = async () => {
     try {
       
