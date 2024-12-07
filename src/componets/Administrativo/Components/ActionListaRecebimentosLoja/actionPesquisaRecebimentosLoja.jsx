@@ -39,6 +39,7 @@ export const ActionPesquisaRecebimentosLoja = () => {
   const { data: optionsEmpresas = [],} = useFetchEmpresas(marcaSelecionada);
   const {  data: dadosFormaPagamento = [], error: errorFormaPagamentos, isLoading: isLoadingFormaPagamentos, } = useFetchData('forma-pagamentos', '/forma-pagamentos');
 
+  
 
   const { data: dadosFuncionarios = [], error: errorFuncionarios, isLoading: isLoadingFuncionarios, refetch: refetchFuncionarios } = useQuery(
     'funcionario-recebimento',

@@ -151,7 +151,7 @@ export const ActionPesquisaVendasContigencia = () => {
         labelSelectMarcas={"Marcas"}
         optionsMarcas={optionsMarcas.map((empresa) => ({
           value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.GRUPOEMPRESARIAL,
+          label: empresa.DSGRUPOEMPRESARIAL,
 
         }))}
         valueSelectMarca={marcaSelecionada}

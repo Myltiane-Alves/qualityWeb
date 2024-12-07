@@ -37,7 +37,7 @@ export const ActionPesquisaVendasDescontoFuncionario = () => {
   );
   
   const { data: dadosFuncionarios = [], error: errorFuncionarios, isLoading: isLoadingFuncionarios, refetch: refetchFuncionarios } = useQuery(
-    'listaFuncionarioVendasDesconto',
+    'funcionarios',
     async () => {
       const response = await get(`/funcionarios?idEmpresa=${empresaSelecionada}`);
       
