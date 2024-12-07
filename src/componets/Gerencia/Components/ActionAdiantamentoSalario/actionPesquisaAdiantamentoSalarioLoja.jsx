@@ -47,7 +47,7 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
   }, [usuarioLogado]);
 
 
-  
+
   const fetchAdiantamentos = async () => {
     try {
       
@@ -90,20 +90,16 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
   };
 
   const { data: dadosAdiantamentoFuncionarios = [], error: erroQuality, isLoading: isLoadingQuality, refetch: refetchAdiantamentos } = useQuery(
-    'produtoQuality',
+    'adiantamento-funcionarios',
     () => fetchAdiantamentos(usuarioLogado.IDEMPRESA, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 
 
-
-
   const handleClick = () => {
-  
     setCurrentPage(prevPage => prevPage + 1);
     refetchAdiantamentos(usuarioLogado.IDEMPRESA);
     setTabelaVisivel(true);
-    
   }
 
 
@@ -114,7 +110,6 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
 
   const handleCloseModal = () => {
     setModalVisivel(false);
-
   };
 
 
