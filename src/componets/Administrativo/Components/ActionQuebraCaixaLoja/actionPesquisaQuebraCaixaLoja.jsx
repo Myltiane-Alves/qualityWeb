@@ -324,7 +324,7 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
           // { value: 0, label: 'Selecione uma loja' },
           ...optionsMarcas.map((marca) => ({
             value: marca.IDGRUPOEMPRESARIAL,
-            label: marca.GRUPOEMPRESARIAL
+            label: marca.DSGRUPOEMPRESARIAL
           }))
         ]}
         valueSelectMarca={marcaSelecionada}
