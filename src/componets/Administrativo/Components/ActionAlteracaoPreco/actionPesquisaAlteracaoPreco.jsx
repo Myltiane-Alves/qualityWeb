@@ -137,7 +137,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
       // enabled: true, 
     }
   );
-  console.log(dadosAlteracaoPreco, 'dadosAlteracaoPreco')
+
 
   const handleChangeGrupos = (selectedOptions) => {
     const values = selectedOptions.map(option => option.value);
@@ -205,7 +205,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
         labelSelectGrupo={"Marca"}
         optionsGrupos={dadosMarcas.map((marca) => ({
           value: marca.IDGRUPOEMPRESARIAL,
-          label: marca.GRUPOEMPRESARIAL,
+          label: marca.DSGRUPOEMPRESARIAL,
 
         }))}
         valueSelectGrupo={marcaSelecionada}
