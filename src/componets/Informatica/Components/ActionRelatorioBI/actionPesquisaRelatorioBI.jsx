@@ -31,7 +31,7 @@ export const ActionPesquisaRelatorioBI = () => {
     <Fragment>
       <ActionMain
         linkComponentAnterior={["Home"]}
-        linkComponent={["Relatório BI"]}
+        linkComponent={["Link Relatório BI"]}
         title="Listagem dos Relatórios do BI"
      
 

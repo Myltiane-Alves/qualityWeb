@@ -78,7 +78,7 @@ export const ActionPesquisaLinkRelatorioBi = () => {
   };
 
   const { data: dadosBI = [], error: erroCliente, isLoading: isLoadingCliente, refetch: refetchListaRelatorio } = useQuery(
-    'lista-cliente',
+    'linkRelatorioBI',
     () => fetchListaRelatorio(relatorioSelecionado, empresaSelecionada, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
