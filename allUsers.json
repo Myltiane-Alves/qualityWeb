@@ -733,35 +733,7 @@
 				}
 			]
 		},
-		{
-			"id": 10,
-			"nome": "Expedicao",
-			"url": "/DashBoardExpedicao",
-			"src": "./public/img/icons/expedicao.png",
-			"alt": "Imagem modulo expedicao",
-			"sideBar": [
-				{
-					"id": 1,
-					"title": "Ordem de Transferência",
-					"linkText": "Ordem de Transferência",
-					"action": "ActionPesquisaOT",
-					"url": "/expedicao/ActionPesquisaOT"
-				},
-				{
-					"id": 2,
-					"title": "Status Divergência",
-					"linkText": "Status Divergência",
-					"url": "/expedicao/ExpedicaoActionStatusDivergencia"
-				},
-				{
-					"id": 3,
-					"title": "Faturamento O.T.",
-					"linkText": "Faturamento O.T.",
-					"action": "ActionPesquisaFaturamentoOT",
-					"url": "/expedicao/ActionPesquisaFaturamentoOT"
-				}
-			]
-		},
+	
 		{
 			"id": 11,
 			"nome": "ConferenciaCega",

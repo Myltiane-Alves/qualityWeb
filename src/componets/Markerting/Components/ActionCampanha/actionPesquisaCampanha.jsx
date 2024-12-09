@@ -159,7 +159,6 @@ export const ActionPesquisaCampanha = () => {
       />
 
 
-
       <ActionListaCampanha dadosListaCampanha={dadosListaCampanha} />
 
       <ActionCadastrarCampanhaModal 
