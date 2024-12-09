@@ -193,6 +193,7 @@ export const ActionPesquisaHome = () => {
 
   const fetchPedidosCriados = async () => {
     try {
+      
       const urlApi = `/listaProdutoCriadoPedidoCompra?dataPesquisaInicio=${dataInicio}&dataPesquisaFim=${dataFim}`;
       const response = await get(urlApi);
       
