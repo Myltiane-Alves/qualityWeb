@@ -208,7 +208,7 @@ export const ActionPesquisaProdutosPreco = () => {
           { value: '', label: 'Selecione uma Marca' },          
           ...optionsMarcas.map((empresa) => ({
           value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.GRUPOEMPRESARIAL,
+          label: empresa.DSGRUPOEMPRESARIAL,
 
           }))
         ]}
