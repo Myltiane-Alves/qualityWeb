@@ -236,18 +236,18 @@ export const ActionPesquisaVendasEstrutura = () => {
 
   const handleChangeGrupos = (selectedOptions) => {
     const values = selectedOptions.map(option => option.value);
-    console.log('grupo', values)
+
     setGrupoSelecionado(values);
   };
   const handleChangeSubGrupos = (selectedOptions) => {
     const values = selectedOptions.map(option => option.value);
-    console.log('subgrupo', values)
+
     setSubGrupoSelecionado(values);
   };
   
   const handleChangeFornecedor = (selectedOptions) => {
     const values = selectedOptions.map(option => option.value);
-    console.log('fornecedor', values)
+
     setFornecedorSelecionado(values);
   };
   const handleChangeMarca = (selectedOptions) => {
