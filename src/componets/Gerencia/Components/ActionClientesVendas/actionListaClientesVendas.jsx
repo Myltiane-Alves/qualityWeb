@@ -264,11 +264,12 @@ export const ActionListaClientesVendas = ({ dadosClientes }) => {
 
   const handleEditPagamento = async (IDVENDA) => {
     try {
-      const response = await get(`/recebimento?idVenda=${IDVENDA}`)
+      const response = await get(`/vendas-recebimentos?idVenda=${IDVENDA}`)
       if (response.data) {
         setDadosPagamentoModal(response.data)
         setModalPagamentoVisivel(true)
       }
+
     } catch (error) {
       console.log(error, 'não foi possivel pegar os dados da tabela')
     }
