@@ -44,6 +44,7 @@ export const InformaticaActionHome = () => {
   }
 
 
+
   const { data: dadosEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch } = useQuery(
     'listaEmpresasIformatica',
     async () => {
@@ -74,7 +75,7 @@ export const InformaticaActionHome = () => {
     }
 
 
-    const responseLog = await post('/logWeb', postData)
+    const responseLog = await post('/log-web', postData)
     try {
       Swal.fire({
         position: 'top-end',
