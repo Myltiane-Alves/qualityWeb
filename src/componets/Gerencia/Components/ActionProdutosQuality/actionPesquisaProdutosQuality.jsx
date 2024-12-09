@@ -37,7 +37,7 @@ export const ActionPesquisaProdutosQuality = () => {
   const fetchProdutosQuality = async () => {
     try {
       
-      const urlApi = `produtoQuality?descricaoProduto=${descricaoProduto}&idEmpresa=${usuarioLogado.IDEMPRESA}&{idListaLoja=${usuarioLogado.ID_LISTA_LOJA}`;
+      const urlApi = `/produtoQuality?descricaoProduto=${descricaoProduto}&idEmpresa=${usuarioLogado.IDEMPRESA}&{idListaLoja=${usuarioLogado.ID_LISTA_LOJA}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {

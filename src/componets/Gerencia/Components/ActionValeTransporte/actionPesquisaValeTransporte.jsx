@@ -17,6 +17,8 @@ export const ActionPesquisaValeTransporte = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const dataAtual = getDataAtual()
+    setDataPesquisaInicio(dataAtual)
     const usuarioArmazenado = localStorage.getItem('usuario');
 
     if (usuarioArmazenado) {
@@ -39,10 +41,10 @@ export const ActionPesquisaValeTransporte = () => {
   const { data: dadosDespesasLoja = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch } = useQuery(
     'despesas-loja-empresa',
     async () => {
-      const response = await get(`/despesas-loja-empresa?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisa=${dataPesquisaInicio}`);
+      const response = await get(`/despesas-loja-empresa?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}`);
       return response.data;
     },
-    { staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+    { enabled: Boolean((usuarioLogado?.IDEMPRESA)), staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
   );
 
   const handlShowModal = () => {
