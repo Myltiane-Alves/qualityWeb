@@ -6,7 +6,7 @@ export const ActionListaAjusteExtratos = ({dadosExtratoLojaPeriodo, dados}) => {
   const dadosExtrato = dadosExtratoLojaPeriodo.flatMap((item) => 
     item.ajusteextrato.map((ajusteextrato) => {
     // let saldoAnterior = toFloat(dados[0].saldoAnteriorDepositos) 
-    let saldoAnterior = toFloat(dados[0].totalSaldoAnteriorExtrato) 
+    let saldoAnterior = toFloat(dados[0]?.totalSaldoAnteriorExtrato) 
 
     // if(ajusteextrato.STCANCELADO == 'False')  {
     //   if (ajusteextrato.VRCREDITO > 0) {

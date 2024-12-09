@@ -11,7 +11,7 @@ export const ActionListaDepositos = ({ dadosExtratoLojaPeriodo, dados }) => {
   const dadosDepositos = dadosExtratoLojaPeriodo.flatMap((item) =>
     item.totalDepositos.map((deposito) => {
       // const saldoAnteriorDepositos = toFloat(dados[0].saldoAnteriorQuebra) - toFloat(deposito?.VRDEPOSITO);
-      const saldoAnteriorDepositos = toFloat(dados[0].saldoAnteriorDepositos)
+      const saldoAnteriorDepositos = toFloat(dados[0]?.saldoAnteriorDepositos)
 
       return {
         IDDEPOSITOLOJA: deposito.IDDEPOSITOLOJA,

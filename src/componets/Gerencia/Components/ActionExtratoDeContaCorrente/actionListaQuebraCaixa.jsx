@@ -6,7 +6,7 @@ export const ActionListaQuebraCaixa = ({ dadosExtratoLojaPeriodo, dados }) => {
   const [dadosQuebra, setDadosQuebra] = useState([]);
 
   useEffect(() => {
-    let saldoAnteriorAdiantamentos = dados[0].saldoAnteriorAdiantamentos;
+    let saldoAnteriorAdiantamentos = dados[0]?.saldoAnteriorAdiantamentos;
     const dadosCalculados = dadosExtratoLojaPeriodo.flatMap((item) =>
       item.quebracaixa.map((quebracaixa) => {
         const calcularTotalDinheiroInformado = () => {
