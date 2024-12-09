@@ -41,7 +41,7 @@ export const ActionPesquisaValeTransporte = () => {
   const { data: dadosDespesasLoja = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch } = useQuery(
     'despesas-loja-empresa',
     async () => {
-      const response = await get(`/despesas-loja-empresa?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}`);
+      const response = await get(`/despesasEmpresas?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisa=${dataPesquisaInicio}`);
       return response.data;
     },
     { enabled: Boolean((usuarioLogado?.IDEMPRESA)), staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
