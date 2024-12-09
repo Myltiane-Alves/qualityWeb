@@ -48,7 +48,7 @@ export const ActionPesquisaQuebraCaixa = () => {
   const fetchQuebraCaixa = async () => {
     try {
       
-      const urlApi = `lista-quebra-caixa?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/lista-quebra-caixa?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
