@@ -4,7 +4,7 @@
 			"id": 1,
 			"nome": "ADMINISTRATIVO",
 			"url": "/ADMINISTRATIVO",
-			"src": "./public/img/icons/administrativo.png",
+			"src": "/img/icons/administrativo.png",
 			"alt": "Imagem modulo administrativo",
 			"users": [
 				{
@@ -186,7 +186,7 @@
 			"id": 6,
 			"nome": "FINANCEIRO",
 			"url": "/FINANCEIRO",
-			"src": "./public/img/icons/financeiro.png",
+			"src": "/img/icons/financeiro.png",
 			"alt": "Imagem modulo financeiro",
 			"sideBar": [
 				{
@@ -383,7 +383,7 @@
 			"id": 3,
 			"nome": "GERENCIA",
 			"url": "/GERENCIA",
-			"src": "./public/img/icons/gerencia.png",
+			"src": "/img/icons/gerencia.png",
 			"alt": "Imagem modulo gerencia",
 			"sideBar": [
 				{
@@ -542,7 +542,7 @@
 			"id": 2,
 			"nome": "INFORMATICA",
 			"url": "/INFORMATICA",
-			"src": "./public/img/icons/informatica.png",
+			"src": "/img/icons/informatica.png",
 			"alt": "Imagem modulo informatica",
 			"sideBar": [
 				{
@@ -621,7 +621,7 @@
 			"id": 4,
 			"nome": "INFORMATICA",
 			"url": "/RECURSOSHUMANOS",
-			"src": "./public/img/icons/rh.png",
+			"src": "/img/icons/rh.png",
 			"alt": "Imagem modulo Recursos Humanos",
 			"sideBar": [
 				{
@@ -637,7 +637,7 @@
 			"id": 5,
 			"nome": "MARKETING",
 			"url": "/MARKETING",
-			"src": "./public/img/icons/marketing.png",
+			"src": "/img/icons/marketing.png",
 			"alt": "Imagem modulo marketing",
 			"sideBar": [
 				{
@@ -688,7 +688,7 @@
 			"id": 9,
 			"nome": "Contabilidade",
 			"url": "/DashBoardContabilidade",
-			"src": "./public/img/icons/contabilidade.png",
+			"src": "/img/icons/contabilidade.png",
 			"alt": "Imagem modulo contabilidade",
 			"sideBar": [
 				{
@@ -768,7 +768,7 @@
 			"id": 12,
 			"nome": "Cadastro",
 			"url": "/DashBoardCadastro",
-			"src": "./public/img/icons/cadastro.png",
+			"src": "/img/icons/cadastro.png",
 			"alt": "Imagem modulo cadastro",
 			"sideBar": [
 				{
