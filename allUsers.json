@@ -721,7 +721,7 @@
 			"id": 4,
 			"nome": "Vouchers",
 			"url": "/Vouchers",
-			"src": "./public/img/icons/voucher.png",
+			"src": "/img/icons/voucher.png",
 			"alt": "Imagem modulo Vouchers",
 			"sideBar": [
 				{
@@ -737,7 +737,7 @@
 		{
 			"id": 11,
 			"nome": "ConferenciaCega",
-			"src": "./public/img/icons/conferenciaCega.png",
+			"src": "/img/icons/conferenciaCega.png",
 			"url": "/DashBoardConferenciaCega",
 			"alt": "Imagem modulo conferencia cega",
 			"sideBar": [
