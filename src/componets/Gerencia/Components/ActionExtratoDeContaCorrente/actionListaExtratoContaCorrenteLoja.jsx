@@ -1,284 +1,337 @@
-import { Fragment, useState } from "react";;
-import { Accordion } from "react-bootstrap";
-import { toFloat } from "../../../../utils/toFloat";
+import { Fragment, useEffect, useState } from "react";
 import { formatMoeda } from "../../../../utils/formatMoeda";
+import { ActionThead } from "./actionThead";
+import { HeaderTable } from "./headerTable";
 import { FaLockOpen } from "react-icons/fa";
+import { ButtonType } from "../../../Buttons/ButtonType";
 import { CiEdit } from "react-icons/ci";
 import { MdAdd } from "react-icons/md";
-import { ButtonType } from "../../../Buttons/ButtonType";
-import { ModalCadastroDeDepositoDaLoja } from "./modalCadastroDeDepositoDaLoja";
-// import { ModalAjusteExtratoModal } from "./actionCadastroAjusteExtratoModal";
-import { ActionListaDespesas } from "./actionListaDespesas";
-import { ActionListaVendas } from "./actionListaVendas";
-import { ActionListaFaturas } from "./actionListaFaturas";
-import { ActionListaAdiantamentos } from "./actionListaAdiantamentos";
-import { ActionListaQuebraCaixa } from "./actionListaQuebraCaixa";
-import { ActionListaDepositos } from "./actionListaDepositos";
-import { ActionListaAjusteExtratos } from "./actionListaAjusteExtratos";
-
+import { toFloat } from "../../../../utils/toFloat";
 export const ActionListaExtratoContaCorrenteLoja = ({
   dadosExtratoLojaPeriodo,
 }) => {
-  const [modalCadastro, setModalCadastro] = useState(false)
-  const [modalAjuste, setModalAjuste] = useState(false)
-
-  const dados = Array.isArray(dadosExtratoLojaPeriodo) ? dadosExtratoLojaPeriodo.map((item) => {
-    let saldoAnterior = 0
-    const saldoAnterior2 = toFloat(item.primeiraVendaSaldo.SALDO) + toFloat(item.primeiraVendaSaldo.TOTALQUEBRA);
-    const saldoAnteriorVendas = saldoAnterior2 + toFloat(item.venda.VRRECDINHEIRO)
-
-    const totalFaturas = item.totalFaturas.reduce((acc, fatura) => {
-        return acc + toFloat(fatura.VRRECEBIDO);
-    }, 0);
-    const saldoAnteriorFaturas = toFloat(saldoAnteriorVendas) + totalFaturas;
-
-    const totalDespesas = item.despesas.reduce((acc, despesa) => {
-        return acc + toFloat(despesa.VRDESPESA);
-    }, 0);
-    const saldoAnteriorDespesas = toFloat(saldoAnteriorFaturas)  - totalDespesas;
-    const saldoAnteriorAdiantamentos = toFloat(saldoAnteriorDespesas) - toFloat(item.adiantamentos.VRVALORDESCONTO)
-    
-    const calcularTotalDinheiroInformado = () => {
-        const totalVRAJUSTDINHEIRO = item.quebracaixa.reduce((acc, quebracaixa) => {
-          return acc + toFloat(quebracaixa.VRAJUSTDINHEIRO);
-        }, 0);
-  
-        const totalVRRECDINHEIRO = item.quebracaixa.reduce((acc, quebracaixa) => {
-          return acc + toFloat(quebracaixa.VRRECDINHEIRO);
-        }, 0);
-  
-        return totalVRAJUSTDINHEIRO > 0 ? totalVRAJUSTDINHEIRO : totalVRRECDINHEIRO;
-    };
-    
-    const totalQuebra = item.quebracaixa.reduce((acc, quebracaixa) => {
-        return acc + toFloat(quebracaixa.VRFISICODINHEIRO);
-    }, 0);
-
-    const dinheiroInformado = calcularTotalDinheiroInformado()
-    const totalQuebraCaixa = calcularTotalDinheiroInformado() - totalQuebra;
-
-    const totalDepositos = item.totalDepositos.reduce((acc, deposito) => {
-        return acc + toFloat(deposito.VRDEPOSITO);
-    }, 0);
-    const saldoAnteriorQuebra = toFloat(saldoAnteriorAdiantamentos) + toFloat(totalQuebraCaixa);
-    const saldoAnteriorDepositos = saldoAnteriorQuebra - totalDepositos;
-
-    const calcularSaldoExtrato = () => {
-      const totalVRCREDITO = item.ajusteextrato.reduce((acc, ajuste) => {
-        return acc + toFloat(ajuste.VRCREDITO);
-      }, 0);
-      
-      const totalVRDEBITO = item.ajusteextrato.reduce((acc, ajuste) => {
-        return acc + toFloat(ajuste.VRDEBITO);
-      }, 0);
-      
-        if(item.STCANCELADO == 'False') {
-         return totalVRCREDITO 
-        } else {
-          return totalVRDEBITO;
-        }
-        // return totalVRCREDITO - totalVRDEBITO;
-    };
-    const totalSaldoAnteriorExtrato = calcularSaldoExtrato();
-
-    return {
-
-      VRRECDINHEIRO: toFloat(item.venda.VRRECDINHEIRO),
-      DTHORAFECHAMENTOFORMATADA: item.venda.DTHORAFECHAMENTOFORMATADA,
-
-      DTPROCESSAMENTOFORMATADA: item.totalFaturas[0]?.DTPROCESSAMENTOFORMATADA,
-      VRRECEBIDO: toFloat(item.totalFaturas[0]?.VRRECEBIDO),
-      
-      IDAJUSTEEXTRATO: item.ajusteextrato[0]?.IDAJUSTEEXTRATO,
-      DTCADASTROFORMATADA: item.ajusteextrato[0]?.DTCADASTROFORMATADA,
-      VRDEBITO: item.ajusteextrato[0]?.VRDEBITO,
-      VRCREDITO: item.ajusteextrato[0]?.VRCREDITO,
-      HISTORICO: item.ajusteextrato[0]?.HISTORICO,
-      STCANCELADO: item.ajusteextrato[0]?.STCANCELADO,
-      
-      DTDESPESAFORMATADA: item.despesas[0]?.DTDESPESAFORMATADA,
-      DSHISTORIO: item.despesas[0]?.DSHISTORIO,
-      DSCATEGORIA: item.despesas[0]?.DSCATEGORIA,
-      VRDESPESA: toFloat(item.despesas[0]?.VRDESPESA),
-      DSPAGOA:  toFloat(item.despesas[0]?.DSPAGOA),
-      
-      DTLANCAMENTOADIANTAMENTO: item.adiantamentos.DTLANCAMENTOADIANTAMENTO,
-      NOFUNCIONARIO: item.adiantamentos.NOFUNCIONARIO,
-      DSMOTIVO: item.adiantamentos.DSMOTIVO,
-      VRVALORDESCONTO: toFloat(item.adiantamentos.VRVALORDESCONTO),
-      
-      IDMOV: item.quebracaixa[0]?.IDMOV,
-      DTMOVCAIXA: item.quebracaixa[0]?.DTMOVCAIXA,
-      FUNCIONARIOMOV: item.quebracaixa[0]?.FUNCIONARIOMOV,
-      VRFISICODINHEIRO: toFloat(item.quebracaixa[0]?.VRFISICODINHEIRO),
-      VRRECDINHEIROQUEBRA: toFloat(item.quebracaixa[0]?.VRRECDINHEIRO),
-      VRAJUSTDINHEIRO: toFloat(item.quebracaixa[0]?.VRAJUSTDINHEIRO),
-      
-      IDDEPOSITOLOJA: item.totalDepositos[0]?.IDDEPOSITOLOJA,
-      DTDEPOSITOFORMATADA: item.totalDepositos[0]?.DTDEPOSITOFORMATADA,
-      DTMOVIMENTOCAIXAFORMATADA: item.totalDepositos[0]?.DTMOVIMENTOCAIXAFORMATADA,
-      FUNCIONARIO: item.totalDepositos[0]?.FUNCIONARIO,
-      VRDEPOSITO: toFloat(item.totalDepositos[0]?.VRDEPOSITO),
-      DSBANCO: item.totalDepositos[0]?.DSBANCO,
-      STCANCELADO: item.totalDepositos[0]?.STCANCELADO,
-      STCONFERIDO: item.totalDepositos[0]?.STCONFERIDO,
-      NUDOCDEPOSITO: item.totalDepositos[0]?.NUDOCDEPOSITO,
-      
-      dinheiroInformado: toFloat(dinheiroInformado),
-      totalQuebraCaixa: toFloat(totalQuebraCaixa),
-      saldoAnterior2: toFloat(saldoAnterior2),
-      saldoAnteriorVendas: toFloat(saldoAnteriorVendas),
-      saldoAnteriorFaturas: toFloat(saldoAnteriorFaturas),
-      saldoAnteriorDespesas: toFloat(saldoAnteriorDespesas),
-      saldoAnteriorAdiantamentos: toFloat(saldoAnteriorAdiantamentos),
-      saldoAnteriorQuebra: toFloat(saldoAnteriorQuebra),
-      saldoAnteriorDepositos: toFloat(saldoAnteriorDepositos),
-      totalSaldoAnteriorExtrato: toFloat(totalSaldoAnteriorExtrato),
-    }
-  }) : []
-
+  let saldoAnterior = 0;
+  const venda = dadosExtratoLojaPeriodo[0]?.primeiraVendaSaldo.SALDO;
+  const totalQuebra = dadosExtratoLojaPeriodo[0]?.primeiraVendaSaldo.TOTALQUEBRA;
+  saldoAnterior = toFloat(venda) + toFloat(totalQuebra);
+  let saldoAnteriorVenda = saldoAnterior + toFloat(dadosExtratoLojaPeriodo[0]?.venda.VRRECDINHEIRO);
+  let saldoAnteriorFatura = saldoAnteriorVenda + toFloat(dadosExtratoLojaPeriodo[0]?.totalFaturas[0]?.VRRECEBIDO);
+  let saldoAnteriorDespesa = saldoAnteriorFatura;
+  let saldoAnteriorAdiantamento = saldoAnteriorDespesa;
+  let saldoAnteriorQuebra = saldoAnteriorAdiantamento;
+  let saldoAnteriorDeposito = saldoAnteriorQuebra;
+  let saldoAnteriorAjuste = saldoAnteriorDeposito;
   return (
-    <Fragment>
-      <div className="row">
-        <Accordion defaultActiveKey="0" className="col-xl-12">
-          <Accordion.Item eventKey="0" id="panel-1" className="panel">
-            <header>
-              <div style={{ padding: "10px" }}>
+    <div>
+      <table className="table table-bordered table-hover table-responsive-lg table-striped w-100">
 
-                <h1 style={{ textAlign: 'center', color: '#7a59ad' }}>INFORMATIVO</h1>
-              </div>
+        <thead style={{ width: '100%' }}>
+          <tr>
+            <th>Informativo</th>
+          </tr>
+          <tr>
+            <td colspan="9"><b >Extrato a partir do dia 11 de dezembro de 2020</b ></td>
+          </tr>
+        </thead>
+        <tbody>
 
-              <div style={{ display: 'flex', marginBottom: '20px' }}>
+          <tr class="table-primary" style={{ width: '100%' }}>
+            <td colspan="4" style={{ textAlign: "right", fontSize: "12px" }}><b>Saldo Anterior</b></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style={{ textAlign: "right", fontSize: "12px" }}><b> {`${formatMoeda(saldoAnterior)}`}</b></td>
+            <td colSpan={2}></td>
+          </tr>
 
-                <ButtonType
-                  type="button"
-                  className="btn btn-success"
-                  title="Extrato Loja"
-                  onClickButtonType={() => setModalCadastro(true)}
-                  textButton="Cadastrar Depósitos"
-                  Icon={MdAdd}
-                  iconSize={18}
-                  style={{ marginRight: '10px' }}
-                />
-                <ButtonType
-                  type="button"
-                  className="btn btn-danger"
-                  title="Extrato Loja"
-                  onClickButtonType={() => setModalAjuste(true)}
-                  textButton="Ajustar Extrato"
-                  Icon={CiEdit}
-                  iconSize={18}
-                />
+          <tr>
+            <td colspan="9"></td>
+          </tr>
 
-
-                <ButtonType
-                  type="button"
-                  className="btn btn-success "
-                  title="Extrato Loja"
-                  onClick={() => { }}
-                  textButton="Bloquear Data Depósito"
-                  Icon={FaLockOpen}
-                  iconSize={18}
-                />
+          <tr>
+            <td colspan="9"></td>
+          </tr>
+        </tbody>
 
 
+        <tbody className="bg-primary-700 w-100">
+          <tr>
+            <th>
+              Dt. Lançamento
+            </th>
+            <th>
+              Histórico
+            </th>
+            <th>
+              Pago A
+            </th>
+            <th>
+              Despesa
+            </th>
+            <th>
+              Débito
+            </th>
+            <th>
+              Crédito
+            </th>
+            <th>
+              Saldo
+            </th>
+            <th>
+              Situação
+            </th>
+            <th>
+              Opção
+            </th>
+          </tr>
+        </tbody>
+        <tbody id="resultadoExtratoLoja">
 
-              </div>
-            </header>
-            <div className="panel-hdr">
-              <h2>Lista de Extrato do Dia</h2>
-            </div>
-
-            <table id="dt-buttons-saldoconta" class="table table-bordered table-hover table-responsive-lg table-striped w-100" width="100%">
-              <thead>
-
-                <tr>
+          {dadosExtratoLojaPeriodo.map((ret, i) => {
+            return (
+              <Fragment key={i}>
+                <tr className="table-success">
+                  <td style={{ fontSize: '12px' }}>{ret['venda']['DTHORAFECHAMENTOFORMATADA']}</td>
+                  <td style={{ fontSize: '12px' }}>Mov. Dinheiro do Caixa {ret['venda']['DTHORAFECHAMENTOFORMATADA']}</td>
+                  <td style={{ fontSize: '12px' }}>Vendas Dinheiro</td>
+                  <td></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}><b>0,00</b></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}><b>{formatMoeda(toFloat(ret['venda']['VRRECDINHEIRO']).toFixed(2))}</b></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}><b>{formatMoeda(saldoAnteriorVenda)}</b></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
                 </tr>
-                <tr>
-                  <td colSpan="5"><b>Saldos a partir do dia 11 de dezembro de 2020</b></td>
-                </tr>
 
-              </thead>
-              <tbody>
+                {ret['totalFaturas'].length > 0 && (
+                  <tr className="table-success">
+                    <td style={{ fontSize: '12px' }}>{ret['totalFaturas'][0]['DTPROCESSAMENTOFORMATADA']}</td>
+                    <td style={{ fontSize: '12px' }}>Mov. Fatura {ret['totalFaturas'][0]['DTPROCESSAMENTOFORMATADA']}</td>
+                    <td style={{ fontSize: '12px' }}>Recebimento de Faturas</td>
+                    <td></td>
+                    <td style={{ textAlign: 'right', fontSize: '12px' }}><b>0,00</b></td>
+                    <td style={{ textAlign: 'right', fontSize: '12px' }}><b>{formatMoeda(toFloat(ret['totalFaturas'][0]['VRRECEBIDO']).toFixed(2))}</b></td>
+                    <td style={{ textAlign: 'right', fontSize: '12px' }}><b>{formatMoeda(saldoAnteriorFatura)}</b></td>
+                    <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                    <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                  </tr>
+                )}
 
-                <tr class="table-primary">
-                  <td colspan="4" style={{ textAlign: "right", fontSize: "12px" }}><b>Saldo Anterior</b></td>
-                  
-                  <td style={{ textAlign: "right", fontSize: "12px" }}><b> {`${formatMoeda(dados[0]?.saldoAnterior2)}`}</b></td>
-                </tr>
+                {ret['despesas'].length > 0 && ret['despesas'].map((despesa, j) => {
+                  saldoAnteriorDespesa -= toFloat(despesa['VRDESPESA']);
 
-                <tr>
-                  <td colspan="5"></td>
-                </tr>
-
-                <tr>
-                  <td colspan="5"></td>
-                </tr>
-              </tbody>
-            </table>
-            <Accordion.Body className="panel-container show">
-
-
-              <Fragment>
-                <table className="table table-bordered table-hover table-responsive-lg table-striped w-100">
-                  <thead className="bg-primary-700">
-                    <tr>
-                      <th>
-                        Dt. Lançamento 
-                      </th>
-                      <th>
-                        Histórico 
-                      </th>
-                      <th>
-                        Pago A 
-                      </th>
-                      <th>
-                        Despesa 
-                      </th>
-                      <th>
-                        Débito 
-                      </th>
-                      <th>
-                        Crédito 
-                      </th>
-                      <th>
-                        Saldo 
-                      </th>
-                      <th>
-                        Situação
-                      </th>
-                      <th>
-                        Opção
-                      </th>
+                  return (
+                    <tr className="table-danger" key={j}>
+                      <td style={{ fontSize: '12px' }}>{despesa['DTDESPESAFORMATADA']}</td>
+                      <td style={{ fontSize: '12px' }}>{despesa['DSHISTORIO']}</td>
+                      <td style={{ fontSize: '12px' }}>{despesa['DSPAGOA']}</td>
+                      <td style={{ textAlign: 'center', fontSize: '12px' }}>{despesa['DSCATEGORIA']}</td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-red"><b>{formatMoeda(toFloat(despesa['VRDESPESA']).toFixed(2))}</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}><b>0,00</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}><b>{formatMoeda(saldoAnteriorDespesa)}</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    
-                    <ActionListaVendas dadosExtratoLojaPeriodo={dadosExtratoLojaPeriodo} dados={dados} />
-                    <ActionListaFaturas dadosExtratoLojaPeriodo={dadosExtratoLojaPeriodo} dados={dados} />                 
-                    <ActionListaDespesas dadosExtratoLojaPeriodo={dadosExtratoLojaPeriodo} dados={dados} />
-                    <ActionListaAdiantamentos dadosExtratoLojaPeriodo={dadosExtratoLojaPeriodo} dados={dados} />                
-                    <ActionListaQuebraCaixa dadosExtratoLojaPeriodo={dadosExtratoLojaPeriodo} dados={dados} />
-                    <ActionListaDepositos  dadosExtratoLojaPeriodo={dadosExtratoLojaPeriodo} dados={dados} />
-                    <ActionListaAjusteExtratos dadosExtratoLojaPeriodo={dadosExtratoLojaPeriodo} dados={dados} />
-                  
-                    
-                  </tbody>
-                </table>
-              </Fragment>            
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-      </div>
-      <ModalCadastroDeDepositoDaLoja
-        show={modalCadastro}
-        handleClose={() => setModalCadastro(false)}
-      />
+                  );
+                })}
 
-      {/* <ModalAjusteExtratoModal
-        show={modalAjuste}
-        handleClose={() => setModalAjuste(false)}
-      /> */}
-    </Fragment>
+                {ret['adiantamentos'].length > 0 && ret['adiantamentos'].map((adiantamento, j) => {
+                  saldoAnteriorAdiantamento -= toFloat(adiantamento['VRVALORDESCONTO']); // Atualiza o saldoAnteriorAdiantamento
+
+                  return (
+                    <tr className="table-danger" key={j}>
+                      <td style={{ fontSize: '12px' }}>{adiantamento['DTLANCAMENTOADIANTAMENTO']}</td>
+                      <td style={{ fontSize: '12px' }}>Adiantamento de Salário</td>
+                      <td style={{ fontSize: '12px' }}>{adiantamento['NOFUNCIONARIO']}</td>
+                      <td style={{ textAlign: 'center', fontSize: '12px' }}>{adiantamento['DSMOTIVO']}</td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-red">
+                        <b>{formatMoeda(toFloat(adiantamento['VRVALORDESCONTO']).toFixed(2))}</b>
+                      </td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}><b>0,00</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}>
+                        <b>{formatMoeda(saldoAnteriorAdiantamento)}</b>
+                      </td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                    </tr>
+                  );
+                })}
+
+
+                {/* {ret['adiantamentos'].length > 0 && ret['adiantamentos'].map((adiantamento, j) => {
+              toFloat(saldoAnteriorAdiantamento) - toFloat(adiantamento['VRVALORDESCONTO']);
+              console.log(toFloat(saldoAnteriorAdiantamento) - toFloat(adiantamento['VRVALORDESCONTO']));
+              console.log('saldoAnteriorAdiantamento', saldoAnteriorAdiantamento);
+              return (
+                <tr className="table-danger" key={j}>
+                  <td style={{ fontSize: '12px' }}>{adiantamento['DTLANCAMENTOADIANTAMENTO']}</td>
+                  <td style={{ fontSize: '12px' }}>Adiantamento de Salário</td>
+                  <td style={{ fontSize: '12px' }}>{adiantamento['NOFUNCIONARIO']}</td>
+                  <td style={{ textAlign: 'center', fontSize: '12px' }}>{adiantamento['DSMOTIVO']}</td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-red"><b>{formatMoeda(toFloat(adiantamento['VRVALORDESCONTO']).toFixed(2))}</b></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}><b>0,00</b></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}><b>{formatMoeda(saldoAnteriorAdiantamento)}</b></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                </tr>
+              );
+            })} */}
+
+                {ret['quebracaixa'].length > 0 && ret['quebracaixa'].map((quebra, j) => {
+                  let totalDinheiroInformado = 0;
+
+
+                  if (toFloat(quebra['VRAJUSTDINHEIRO']) > 0) {
+                    totalDinheiroInformado = toFloat(quebra['VRAJUSTDINHEIRO']);
+                  } else {
+                    totalDinheiroInformado = toFloat(quebra['VRRECDINHEIRO']);
+                  }
+
+
+                  const totalQuebraCaixa = totalDinheiroInformado - toFloat(quebra['VRFISICODINHEIRO']);
+
+
+                  if (totalQuebraCaixa > 0) {
+                    saldoAnteriorQuebra += totalQuebraCaixa;
+                  } else {
+                    saldoAnteriorQuebra += totalQuebraCaixa;
+                  }
+
+
+                  const tagQuebraDebito = totalQuebraCaixa > 0
+                    ? <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-blue"><b>0,00</b></td>
+                    : <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-blue"><b>{formatMoeda(totalQuebraCaixa)}</b></td>;
+
+                  const tagQuebraCredito = totalQuebraCaixa > 0
+                    ? <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-blue"><b>{formatMoeda(totalQuebraCaixa)}</b></td>
+                    : <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-blue"><b>0,00</b></td>;
+
+                  const tagQuebraSaldo = (
+                    <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-blue">
+                      <b>{formatMoeda(saldoAnteriorQuebra)}</b>
+                    </td>
+                  );
+
+                  // Renderização da linha
+                  return (
+                    <tr className="table-primary" key={j}>
+                      <td style={{ fontSize: '12px' }}>{quebra?.DTMOVCAIXA}</td>
+                      <td style={{ fontSize: '12px' }}>Quebra Caixa Mov.: {quebra?.IDMOV}</td>
+                      <td colSpan="2" style={{ fontSize: '12px' }}>Operador: {quebra.FUNCIONARIOMOV}</td>
+                      {tagQuebraDebito}
+                      {tagQuebraCredito}
+                      {tagQuebraSaldo}
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                    </tr>
+                  );
+                })}
+
+
+                {/* {ret['quebracaixa'].length > 0 && ret['quebracaixa'].map((quebra, j) => {
+              let totalDinheiroInformado = 0;
+              if(toFloat(quebra['VRAJUSTDINHEIRO']) > 0) {
+                totalDinheiroInformado = toFloat(quebra['VRAJUSTDINHEIRO']);
+              } else {
+                totalDinheiroInformado = toFloat(quebra['VRRECDINHEIRO']);
+              }
+              let totalQuebraCaixa = totalDinheiroInformado - toFloat(quebra['VRFISICODINHEIRO']);
+              console.log('totalQuebraCaixa', totalQuebraCaixa);
+              console.log(saldoAnteriorQuebra,'saldoAnteriorQuebra');
+              saldoAnteriorQuebra + totalQuebraCaixa;
+              return (
+                <tr className="table-primary" key={j}>
+                  <td style={{ fontSize: '12px' }}>{quebra?.DTMOVCAIXA}</td>
+                  <td style={{ fontSize: '12px' }}>Quebra Caixa Mov.: {quebra?.IDMOV}</td>
+                  <td colSpan="2" style={{ fontSize: '12px' }}>Operador: {quebra.FUNCIONARIOMOV}</td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-blue"><b>{totalQuebraCaixa > 0 ? '0,00' : formatMoeda(totalQuebraCaixa)}</b></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-blue"><b>{totalQuebraCaixa > 0 ? formatMoeda(totalQuebraCaixa) : '0,00'}</b></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-blue"><b>{formatMoeda(saldoAnteriorQuebra)}</b></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                  <td style={{ textAlign: 'right', fontSize: '12px' }}></td>
+                </tr>
+              );
+            })} */}
+
+                {/* {ret['totalDepositos'].length > 0 && ret['totalDepositos'].map((deposito, j) => {
+                  if (deposito['STCANCELADO'] === 'False' && (deposito['STCONFERIDO'] === 'False' || deposito['STCONFERIDO'] == null || deposito['STCONFERIDO'] === '')) {
+                    saldoAnteriorDeposito = saldoAnteriorQuebra -= toFloat(deposito['VRDEPOSITO']);
+                    console.log(formatMoeda(saldoAnteriorDeposito), 'saldoAnteriorDeposito');
+                    console.log(formatMoeda(saldoAnteriorQuebra), 'saldoAnteriorQuebra');
+                    
+                  } else if (deposito['STCANCELADO'] === 'False' && deposito['STCONFERIDO'] === 'True') {
+                    saldoAnteriorDeposito = saldoAnteriorQuebra -= toFloat(deposito['VRDEPOSITO']);
+                  }
+                  return (
+                    <tr className="table-warning" key={j}>
+                      <td style={{ fontSize: '12px' }}><b>{deposito['DTDEPOSITOFORMATADA']}</b></td>
+                      <td style={{ fontSize: '12px' }}><b>{deposito['FUNCIONARIO']} Dep. Dinh {deposito['DTDEPOSITOFORMATADA']}</b></td>
+                      <td colSpan="2" style={{ fontSize: '12px' }}><b>{deposito['DSBANCO']} - {deposito['NUDOCDEPOSITO']}</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-red"><b>{formatMoeda(toFloat(deposito['VRDEPOSITO']).toFixed(2))}</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}><b>0,00</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-red"><b>{formatMoeda(saldoAnteriorDeposito)}</b></td>
+                      <td style={{ textAlign: 'center', fontSize: '12px' }}><label style={{ color: deposito['STCONFERIDO'] === 'False' || deposito['STCONFERIDO'] == null || deposito['STCONFERIDO'] === '' ? 'red' : 'blue' }}>{deposito['STCONFERIDO'] === 'False' || deposito['STCONFERIDO'] == null || deposito['STCONFERIDO'] === '' ? 'Sem Conferir' : 'Conferido'}</label></td>
+                      <td></td>
+                    </tr>
+                  );
+                })} */}
+
+                {ret['totalDepositos'].length > 0 && ret['totalDepositos'].map((deposito, j) => {
+                  let tagDepositoConferido = (
+                    <label style={{ color: deposito['STCONFERIDO'] === 'False' || deposito['STCONFERIDO'] == null || deposito['STCONFERIDO'] === '' ? 'red' : 'blue' }}>
+                      {deposito['STCONFERIDO'] === 'False' || deposito['STCONFERIDO'] == null || deposito['STCONFERIDO'] === '' ? 'Sem Conferir' : 'Conferido'}
+                    </label>
+                  );
+
+                  let tagDepositoAtivo = <td></td>;
+
+                  if (deposito['STCANCELADO'] === 'False') {
+                    if (deposito['STCONFERIDO'] === 'False' || deposito['STCONFERIDO'] == null || deposito['STCONFERIDO'] === '') {
+                      saldoAnteriorDeposito = saldoAnteriorQuebra -= toFloat(deposito['VRDEPOSITO']);
+                    } else if (deposito['STCONFERIDO'] === 'True') {
+                      saldoAnteriorDeposito = saldoAnteriorQuebra -= toFloat(deposito['VRDEPOSITO']);
+                    }
+                  }
+
+                  return (
+                    <tr className="table-warning" key={j}>
+                      <td style={{ fontSize: '12px' }}><b>{deposito['DTDEPOSITOFORMATADA']}</b></td>
+                      <td style={{ fontSize: '12px' }}><b>{deposito['FUNCIONARIO']} Dep. Dinh {deposito['DTDEPOSITOFORMATADA']}</b></td>
+                      <td colSpan="2" style={{ fontSize: '12px' }}><b>{deposito['DSBANCO']} - {deposito['NUDOCDEPOSITO']}</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-red"><b>{formatMoeda(toFloat(deposito['VRDEPOSITO']).toFixed(2))}</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }}><b>0,00</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-red"><b>{formatMoeda(saldoAnteriorDeposito)}</b></td>
+                      <td style={{ textAlign: 'center', fontSize: '12px' }}>{tagDepositoConferido}</td>
+                      {tagDepositoAtivo}
+                    </tr>
+                  );
+                })}
+
+                {ret['ajusteextrato'].length > 0 && ret['ajusteextrato'].map((ajuste, j) => {
+                  if (ajuste['STCANCELADO'] === 'False') {
+                    if (toFloat(ajuste['VRCREDITO']) > 0) {
+                      saldoAnteriorAjuste -= toFloat(ajuste['VRCREDITO']);
+                    } else {
+                      saldoAnteriorAjuste += toFloat(ajuste['VRDEBITO']);
+                    }
+                  }
+                  return (
+                    <tr className="table-secondary" key={j}>
+                      <td style={{ fontSize: '12px' }}><b>{ajuste['DTCADASTROFORMATADA']}</b></td>
+                      <td style={{ fontSize: '12px' }}><b>{ajuste['HISTORICO']}</b></td>
+                      <td colSpan="2" style={{ fontSize: '12px' }}><b>Ajuste de Extrato</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-red"><b>{formatMoeda(toFloat(ajuste['VRDEBITO']).toFixed(2))}</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-red"><b>{formatMoeda(toFloat(ajuste['VRCREDITO']).toFixed(2))}</b></td>
+                      <td style={{ textAlign: 'right', fontSize: '12px' }} className="txt-color-red"><b>{formatMoeda(saldoAnteriorAjuste)}</b></td>
+                      <td style={{ textAlign: 'center', fontSize: '12px' }}><label style={{ color: ajuste['STCANCELADO'] === 'False' ? 'blue' : 'red' }}>{ajuste['STCANCELADO'] === 'False' ? 'Ativo' : 'Cancelado'}</label></td>
+                      <td style={{ textAlign: 'center', fontSize: '12px' }}></td>
+                    </tr>
+                  );
+                })}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 };
