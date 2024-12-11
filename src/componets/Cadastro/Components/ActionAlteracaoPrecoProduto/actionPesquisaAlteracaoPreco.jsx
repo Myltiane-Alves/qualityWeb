@@ -20,7 +20,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
 
-  const [dadosAlteracaoPreco, setDadosAlteracaoPreco] = useState([]);
+  // const [dadosAlteracaoPreco, setDadosAlteracaoPreco] = useState([]);
   const [grupoSelecionado, setGrupoSelecionado] = useState(null);
   const [subGrupoSelecionado, setSubGrupoSelecionado] = useState(null);
   const [listaPrecoSelecionada, setListaPrecoSelecionada] = useState('');
@@ -45,6 +45,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
   const { data: dadosResponsaveisAlteracao = [] } = useFetchData('responsaveisAlteracaoPrecos', '/responsaveisAlteracaoPrecos');
   const { data: dadosMarcas = [] } = useFetchData('listaMarcaProduto', '/listaMarcaProduto');
+  const { data: dadosAlteracaoPreco = [] } = useFetchData('listaPreco', '/listaPreco');
 
   const fetchListaPreco = async () => {
     try {
@@ -95,20 +96,20 @@ export const ActionPesquisaAlteracaoPreco = () => {
   );
 
 
-  const getListaAlteraPreco = async () => {
+  // const getListaAlteraPreco = async () => {
 
-    try {
-      // idEmpresa=${idEmpresa}&idgrupo=${idGrupo}&idsubgrupo=${idSubGrupo}&descproduto${descricaoProduto}&dtinicial=${dataPesquisa}
-      const response = await get(`/listaPreco`)
-      if (response.data) {
-        setDadosAlteracaoPreco(response.data)
-      }
-      return response.data;
+  //   try {
+  //     // idEmpresa=${idEmpresa}&idgrupo=${idGrupo}&idsubgrupo=${idSubGrupo}&descproduto${descricaoProduto}&dtinicial=${dataPesquisa}
+  //     const response = await get(`/listaPreco`)
+  //     if (response.data) {
+  //       setDadosAlteracaoPreco(response.data)
+  //     }
+  //     return response.data;
 
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-  }
+  //   } catch (error) {
+  //     console.log('Erro ao buscar empresas: ', error)
+  //   }
+  // }
 
 
   const handleTabelaVisivel = () => {
