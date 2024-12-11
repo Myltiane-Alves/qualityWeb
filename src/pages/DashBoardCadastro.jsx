@@ -6,12 +6,13 @@ import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
 
-const ActionPesquisaHome = lazy(() => import("../componets/Cadastro/Components/ActionHome/actionPesquisaHome").then(module => ({ default: module.ActionPesquisaHome })));
 const ActionPesquisaNFE = lazy(() => import("../componets/Cadastro/Components/ActionNotasFiscais/actionPesquisaNostasNFE").then(module => ({ default: module.ActionPesquisaNFE })));
+const ActionPesquisaHome = lazy(() => import("../componets/Cadastro/Components/ActionHome/actionPesquisaHome").then(module => ({ default: module.ActionPesquisaHome })));
 const ActionPesquisaProdutosAvulso = lazy(() => import("../componets/Cadastro/Components/ActionProdutosAvulso/actionPesquisaProdutosAvulso").then(module => ({ default: module.ActionPesquisaProdutosAvulso })));
 const ActionPesquisaEstilos = lazy(() => import("../componets/Cadastro/Components/ActionEstilos/actionPesquisaEstilos").then(module => ({ default: module.ActionPesquisaEstilos })));
 const ActionPesquisaAlteracaoPreco = lazy(() => import("../componets/Cadastro/Components/ActionAlteracaoPrecoProduto/actionPesquisaAlteracaoPreco").then(module => ({ default: module.ActionPesquisaAlteracaoPreco })));
 const ActionPesquisaProdutoEtiqueta = lazy(() => import("../componets/Cadastro/Components/ActionProdutoEtiqueta/actionPesquisaProdutoEtiqueta").then(module => ({ default: module.ActionPesquisaProdutoEtiqueta })));
+const ActionPesquisaPreco = lazy(() => import("../componets/Cadastro/Components/ActionListaPreco/actionPesquisaPreco").then(module => ({ default: module.ActionPesquisaPreco })));
 
 export const DashBoardCadastro = ({ }) => {
   const [usuarioLogado, setUsuarioLogado] = useState(null);
@@ -28,18 +29,17 @@ export const DashBoardCadastro = ({ }) => {
       try {
         const parsedUsuario = JSON.parse(usuarioArmazenado);
         setUsuarioLogado(parsedUsuario);
-        // console.log(parsedUsuario, 'dashboardAdministrativo');
+    
       } catch (error) {
         console.error('Erro ao parsear o usuário do localStorage:', error);
       }
     } else {
-      // Navegar para a tela de login se não houver usuário armazenado
+
       navigate('/');
     }
   }, [navigate]);
 
   useEffect(() => {
-    // console.log(usuarioLogado, 'dashboardAdministrativo');
   }, [usuarioLogado]);
 
   function handleShowComponent(componentName) {
@@ -73,7 +73,7 @@ export const DashBoardCadastro = ({ }) => {
       component = <ActionPesquisaAlteracaoPreco />;
       break;
     case "/cadastro/ActionPesquisaPreco":
-      component;
+      component = <ActionPesquisaPreco />;
       break;
     default:
       component = null;
