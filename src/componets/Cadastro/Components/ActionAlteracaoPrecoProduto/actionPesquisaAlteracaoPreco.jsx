@@ -27,11 +27,8 @@ export const ActionPesquisaAlteracaoPreco = () => {
   const [numeroAlteracao, setNumeroAlteracao] = useState('');
   const [descricaoProduto, setDescricaoProduto] = useState('');
   const [idProduto, setIdProduto] = useState('');
-
-
-  const navigate = useNavigate();
-  const animatedComponents = makeAnimated();
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     const dataInicial = getDataAtual()
@@ -43,7 +40,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
   const { data: dadosResponsaveisAlteracao = [] } = useFetchData('responsaveisAlteracaoPrecos', '/responsaveisAlteracaoPrecos');
   const { data: dadosMarcas = [] } = useFetchData('listaMarcaProduto', '/listaMarcaProduto');
-  const { data: dadosAlteracaoPreco = [] } = useFetchData('listaPreco', '/listaPreco');
+  const { data: dadosListaAlteracaoPreco = [] } = useFetchData('listaPreco', '/listaPreco');
 
   const fetchListaPreco = async () => {
     try {
@@ -85,7 +82,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
     }
   };
    
-  const { data: dadosListaPedidos = [], error: errorEstilos, isLoading: isLoadingEstilos, refetch: refetchListaPreco } = useQuery(
+  const { data: dadosAlteracaoPreco = [], error: errorEstilos, isLoading: isLoadingEstilos, refetch: refetchListaPreco } = useQuery(
     ['alteracoes-de-precos-resumo', dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchListaPreco( currentPage, pageSize),
     {
