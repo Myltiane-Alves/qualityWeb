@@ -10,6 +10,8 @@ import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 import { ButtonType } from "../../../Buttons/ButtonType";
 import { getDataAtual } from "../../../../utils/dataAtual";
 import { get } from "../../../../api/funcRequest";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
 
 export const ActionPesquisaAlteracaoPreco = () => {
@@ -77,6 +79,57 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
   }
 
+  const { data: dadosEmpresas = [] } = useFetchData('empresas', '/empresas');
+
+  const fetchListaPreco = async () => {
+    try {
+      const urlApi = `/`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+       
+        return response.data;
+      }
+  
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
+    }
+  };
+   
+  const { data: dadosListaPedidos = [], error: errorEstilos, isLoading: isLoadingEstilos, refetch: refetchListaPreco } = useQuery(
+    ['listaPreco', dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    () => fetchListaPreco( currentPage, pageSize),
+    {
+      enabled: Boolean(dataPesquisaFim && dataPesquisaInicio)
+    }
+  );
+
+
   const getListaAlteraPreco = async () => {
 
     try {
@@ -122,8 +175,6 @@ export const ActionPesquisaAlteracaoPreco = () => {
   return (
 
     <Fragment>
-
-
       <ActionMain
         linkComponentAnterior={["Home"]}
         linkComponent={["Alteração de Preços"]}
