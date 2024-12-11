@@ -12,6 +12,7 @@ import { getDataAtual } from "../../../../utils/dataAtual";
 import { get } from "../../../../api/funcRequest";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { useFetchData } from "../../../../hooks/useFetchData";
 
 
 export const ActionPesquisaAlteracaoPreco = () => {
@@ -79,7 +80,8 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
   }
 
-  const { data: dadosEmpresas = [] } = useFetchData('empresas', '/empresas');
+  const { data: dadosResponsaveisAlteracao = [] } = useFetchData('responsaveisAlteracaoPrecos', '/responsaveisAlteracaoPrecos');
+  const { data: dadosMarcas = [] } = useFetchData('listaMarcaProduto', '/listaMarcaProduto');
 
   const fetchListaPreco = async () => {
     try {
