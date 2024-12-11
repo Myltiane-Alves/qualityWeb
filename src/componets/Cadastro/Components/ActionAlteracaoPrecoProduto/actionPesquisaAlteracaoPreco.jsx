@@ -17,8 +17,6 @@ import { useFetchData } from "../../../../hooks/useFetchData";
 
 export const ActionPesquisaAlteracaoPreco = () => {
   const [dadosGrupos, setDadosGrupos] = useState([]);
-  const [dadosResponsaveisAlteracao, setDadosResponsaveisAlteracao] = useState([]);
-  const [dadosMarcas, setDadosMarcas] = useState([]);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
 
@@ -43,42 +41,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
     setDataPesquisaInicio(dataInicial)
     setDataPesquisaFim(dataFim)
     
-    getListaResponsavel()
-    getListaMarca()
-
-
   }, []);
-
-
-
-  const getListaResponsavel = async () => {
-
-    try {
-      const response = await get('/responsaveisAlteracaoPrecos')
-      if (response && response.data) {
-        setDadosResponsaveisAlteracao(response.data)
-      }
-
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-
-  }
-
-  const getListaMarca = async () => {
-
-    try {
-      const response = await get('/listaMarcaProduto')
-      if (response && response.data) {
-        setDadosMarcas(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-
-  }
 
   const { data: dadosResponsaveisAlteracao = [] } = useFetchData('responsaveisAlteracaoPrecos', '/responsaveisAlteracaoPrecos');
   const { data: dadosMarcas = [] } = useFetchData('listaMarcaProduto', '/listaMarcaProduto');
