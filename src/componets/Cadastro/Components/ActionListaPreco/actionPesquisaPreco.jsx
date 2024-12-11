@@ -7,63 +7,88 @@ import { get } from "../../../../api/funcRequest"
 import { ButtonType } from "../../../Buttons/ButtonType"
 import { getDataAtual } from "../../../../utils/dataAtual"
 import { ActionListaPrecos } from "./actionListaPrecos"
+import { useQuery } from "react-query"
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
+import { useFetchData } from "../../../../hooks/useFetchData"
 
 
 export const ActionPesquisaPreco = () => {
-  const [dataInicio, setDataInicio] = useState('')
-  const [dataFim, setDataFim] = useState('')
-  const [clickContador, setClickContador] = useState(0);
+  const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
+  const [dataPesquisaFim, setDataPesquisaFim] = useState('')
   const [tabelaVisivel, setTabelaVisivel] = useState(true);
-  const [dadosListaPedidos, setDadosListaPedidos] = useState([]);
-  const [marcas, setMarcas] = useState([])
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
   const [numeroPedido, setNumeroPedido] = useState('')
   const [nomeLista, setNomeLista] = useState('')
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
   useEffect(() => {
     const dataPesquisaInicio = getDataAtual();
     const dataPesquisaFim = getDataAtual()
-    setDataInicio(dataPesquisaInicio)
-    setDataFim(dataPesquisaFim)
-    getGrupoMarca();
-    getListaPrecos();
+    setDataPesquisaInicio(dataPesquisaInicio)
+    setDataPesquisaFim(dataPesquisaFim)
+ 
   }, [])
 
+  const { data: dadosEmpresas = [] } = useFetchData('empresas', '/empresas');
 
-  const getGrupoMarca = async () => {
+  const fetchListaPreco = async () => {
     try {
-      const response = await get(`/empresas`)
-      if (response.data) {
-        setMarcas(response.data)
+      const urlApi = `/listaPreco?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLista=${numeroPedido}&nomeLista=${nomeLista}`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+       
+        return response.data;
       }
+  
     } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
-
-  const getListaPrecos = async () => {
-    try {
-      const response = await get(`/listaPreco?dataPesquisaInicio=${dataInicio}&dataPesquisaFim=${dataFim}&idLoja=${empresaSelecionada}&idLista=${numeroPedido}&nomeLista=${nomeLista}`)
-      if (response.data) {
-        setDadosListaPedidos(response.data)
-      }
-    } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
+  };
+   
+  const { data: dadosListaPedidos = [], error: errorEstilos, isLoading: isLoadingEstilos, refetch: refetchListaPreco } = useQuery(
+    ['listaPreco', dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, numeroPedido, nomeLista, currentPage, pageSize],
+    () => fetchListaPreco( currentPage, pageSize),
+    {
+      enabled: Boolean(dataPesquisaFim && dataPesquisaInicio)
     }
+  );
 
-  }
 
   const handleChangeMarca = (e) => {
     setEmpresaSelecionada(e.value);
   }
 
-
   const handleClick = () => {
-    setClickContador(prevContador => prevContador + 1);
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      getListaPrecos();
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchListaPreco();
+    setTabelaVisivel(true)
   }
 
 
@@ -77,14 +102,14 @@ export const ActionPesquisaPreco = () => {
         linkComponent={["Lista de Preços"]}
 
         InputFieldDTInicioComponent={InputField}
-        valueInputFieldDTInicio={dataInicio}
+        valueInputFieldDTInicio={dataPesquisaInicio}
         labelInputFieldDTInicio={"Data Início"}
-        onChangeInputFieldDTInicio={(e) => setDataInicio(e.target.value)}
+        onChangeInputFieldDTInicio={(e) => setDataPesquisaInicio(e.target.value)}
 
         InputFieldDTFimComponent={InputField}
         labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataFim}
-        onChangeInputFieldDTFim={(e) => setDataFim(e.target.value)}
+        valueInputFieldDTFim={dataPesquisaFim}
+        onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
 
         InputFieldCodBarraComponent={InputField}
         labelInputFieldCodBarra={"N° da Lista"}
@@ -103,7 +128,7 @@ export const ActionPesquisaPreco = () => {
         labelSelectEmpresa={"Lojas"}
         optionsEmpresas={[
           { value: 0, label: "Selecione..." },
-          ...marcas.map((marca) => ({
+          ...dadosEmpresas.map((marca) => ({
             value: marca.IDEMPRESA,
             label: marca.NOFANTASIA,
           }))]}
