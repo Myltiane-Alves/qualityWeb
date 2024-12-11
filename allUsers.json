@@ -810,7 +810,7 @@
 					"id": 10,
 					"title": "Lista de Preço",
 					"linkText": "Lista de Preço",
-					"action": "ActionPesquisaPreco",
+						"action": "ActionPesquisaPreco",
 					"url": "/cadastro/ActionPesquisaPreco"
 				},
 				{
