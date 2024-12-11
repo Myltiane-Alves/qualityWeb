@@ -19,8 +19,6 @@ export const ActionPesquisaAlteracaoPreco = () => {
   const [dadosGrupos, setDadosGrupos] = useState([]);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-
-  // const [dadosAlteracaoPreco, setDadosAlteracaoPreco] = useState([]);
   const [grupoSelecionado, setGrupoSelecionado] = useState(null);
   const [subGrupoSelecionado, setSubGrupoSelecionado] = useState(null);
   const [listaPrecoSelecionada, setListaPrecoSelecionada] = useState('');
@@ -49,7 +47,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
   const fetchListaPreco = async () => {
     try {
-      const urlApi = `/`;
+      const urlApi = `/alteracoes-de-precos-resumo?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLista=${grupoSelecionado}&idUsuario=${responsavelSelcionado}&descproduto${descricaoProduto}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -128,7 +126,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
     }
   };
 
-
+  
   const handleChangeGrupos = (e) => {
     setGrupoSelecionado(e.value);
   };
@@ -197,8 +195,8 @@ export const ActionPesquisaAlteracaoPreco = () => {
           value: item.IDFUNCIONARIO,
           label: item.NOFUNCIONARIO,
         }))}
-        valueSelectGrupo={subGrupoSelecionado}
-        onChangeSelectGrupo={handleChangeSubGrupos}
+        valueSelectGrupo={responsavelSelcionado}
+        onChangeSelectGrupo={(e) => setResponsavelSelecionado(e.value)}
 
 
         ButtonSearchComponent={ButtonType}
