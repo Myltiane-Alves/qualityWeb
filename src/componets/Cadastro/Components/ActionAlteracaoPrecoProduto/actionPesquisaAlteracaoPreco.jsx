@@ -179,7 +179,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
         InputSelectEmpresaComponent={InputSelectAction}
         labelSelectEmpresa={"Lista de Preço"}
-        optionsEmpresas={dadosGrupos.map((item) => ({
+        optionsEmpresas={dadosMarcas.map((item) => ({
           value: item.IDEMPRESA,
           label: item.NOFANTASIA,
         }))}
