@@ -172,14 +172,14 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
   ]
 
   const clickEditar = (row) => {
-    if (row && row.ID_ESTILOS) {
-      handleEditar(row.ID_ESTILOS);
+    if (row && row.IDRESUMOALTERACAOPRECOPRODUTO) {
+      handleEditar(row.IDRESUMOALTERACAOPRECOPRODUTO);
     }
   };
 
-  const handleEditar = async (ID_ESTILOS) => {
+  const handleEditar = async (IDRESUMOALTERACAOPRECOPRODUTO) => {
     try {
-      const response = await get(`/listaEstilos?idEstilo=${ID_ESTILOS}`);
+      const response = await get(`/listaEstilos?idEstilo=${IDRESUMOALTERACAOPRECOPRODUTO}`);
       setDadosDetalheEstilos(response.data);
       setModalEditar(true)
     } catch (error) {
