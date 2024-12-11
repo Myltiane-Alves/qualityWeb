@@ -13,7 +13,7 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 
-export const ActionListaPrecos = ({dadosListaPedidos}) => {
+export const ActionListaPrecos = ({ dadosListaPedidos }) => {
   const [modalVisualizar, setModalVisualizar] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
   const [dadosListaLoja, setDadosListaLoja] = useState([]);
@@ -61,7 +61,7 @@ export const ActionListaPrecos = ({dadosListaPedidos}) => {
       { wpx: 100, caption: 'Data Criação' },
       { wpx: 100, caption: 'Data Alteração' },
       { wpx: 100, caption: 'Situação' },
-  
+
     ];
     XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Lista de Preço');
@@ -70,7 +70,7 @@ export const ActionListaPrecos = ({dadosListaPedidos}) => {
 
   const dados = dadosListaPedidos.map((item, index) => {
     let contador = index + 1;
-  
+
     return {
       contador,
       IDRESUMOLISTAPRECO: item.listaPreco?.IDRESUMOLISTAPRECO,
@@ -102,7 +102,7 @@ export const ActionListaPrecos = ({dadosListaPedidos}) => {
         return (
           <th>{row.NOMELISTA}</th>
         )
-        
+
       },
       sortable: true,
     },
@@ -129,12 +129,12 @@ export const ActionListaPrecos = ({dadosListaPedidos}) => {
       header: 'Situação',
       body: row => {
         return (
-          <th style={{color: row.STATIVO == 'True' ? 'blue' : 'red'}} >{row.STATIVO == 'True' ? 'ATIVA' : 'INATIVA'}</th>
+          <th style={{ color: row.STATIVO == 'True' ? 'blue' : 'red' }} >{row.STATIVO == 'True' ? 'ATIVA' : 'INATIVA'}</th>
         )
       },
       sortable: true,
     },
-  
+
     {
       field: 'IDRESUMOLISTAPRECO',
       header: 'Opções',
@@ -180,7 +180,7 @@ export const ActionListaPrecos = ({dadosListaPedidos}) => {
   const handleVisualizar = async (IDRESUMOLISTAPRECO) => {
     try {
       const response = await get(`/listaPreco?idLista=${IDRESUMOLISTAPRECO}`);
-      if(response && response.data) {
+      if (response && response.data) {
         setDadosListaLoja(response.data);
         setModalVisualizar(true)
       }
@@ -198,7 +198,7 @@ export const ActionListaPrecos = ({dadosListaPedidos}) => {
   const handleEditar = async (IDRESUMOLISTAPRECO) => {
     try {
       const response = await get(`/listaPreco?idLista=${IDRESUMOLISTAPRECO}`);
-      if(response && response.data) {
+      if (response && response.data) {
         setDadosListaLoja(response.data);
         setModalEditar(true)
       }
@@ -223,8 +223,8 @@ export const ActionListaPrecos = ({dadosListaPedidos}) => {
           />
 
         </div>
-          <div className="card mb-4" ref={dataTableRef}>
-        
+        <div className="card mb-4" ref={dataTableRef}>
+
           <DataTable
             title="Vendas por Loja"
             value={dados}
@@ -262,7 +262,7 @@ export const ActionListaPrecos = ({dadosListaPedidos}) => {
         dadosListaLoja={dadosListaLoja}
       />
 
-      <ActionEditarListasPrecosModal 
+      <ActionEditarListasPrecosModal
         show={modalEditar}
         handleClose={() => setModalEditar(false)}
         dadosListaLoja={dadosListaLoja}

@@ -86,7 +86,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
   };
    
   const { data: dadosListaPedidos = [], error: errorEstilos, isLoading: isLoadingEstilos, refetch: refetchListaPreco } = useQuery(
-    ['listaPreco', dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    ['alteracoes-de-precos-resumo', dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchListaPreco( currentPage, pageSize),
     {
       enabled: Boolean(dataPesquisaFim && dataPesquisaInicio)

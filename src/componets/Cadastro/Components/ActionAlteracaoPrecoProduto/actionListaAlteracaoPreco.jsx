@@ -1,15 +1,71 @@
-import { Fragment, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { CiEdit } from "react-icons/ci";
 import { get } from "../../../../api/funcRequest";
-
+import { toFloat } from "../../../../utils/toFloat";
+import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import HeaderTable from "../../../Tables/headerTable";
 
 export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
   const [modalEditar, setModalEditar] = useState(false);
   const [dadosDetalheEstilos, setDadosDetalheEstilos] = useState([]);
- 
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const dataTableRef = useRef();
+
+
+  const onGlobalFilterChange = (e) => {
+    setGlobalFilterValue(e.target.value);
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => dataTableRef.current,
+    documentTitle: 'Lista de Preço',
+  });
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Nº', 'Número Lista', 'Nome', 'QTD Lojas', 'Data Criação', 'Data Alteração', 'Situação']],
+      body: dados.map(item => [
+        item.contador,
+        item.IDRESUMOLISTAPRECO,
+        item.NOMELISTA,
+        item.detalheLista,
+        item.DATACRIACAO,
+        item.DATAALTERACAO,
+        item.STATIVO == 'True' ? 'ATIVA' : 'INATIVA'
+      ]),
+      horizontalPageBreak: true,
+      horizontalPageBreakBehaviour: 'immediately'
+    });
+    doc.save('lista_preco.pdf');
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(dados);
+    const workbook = XLSX.utils.book_new();
+    const header = ['Nº', 'Número Lista', 'Nome', 'QTD Lojas', 'Data Criação', 'Data Alteração', 'Situação'];
+    worksheet['!cols'] = [
+      { wpx: 70, caption: 'Nº' },
+      { wpx: 100, caption: 'Número Lista' },
+      { wpx: 300, caption: 'Nome' },
+      { wpx: 100, caption: 'QTD Lojas' },
+      { wpx: 100, caption: 'Data Criação' },
+      { wpx: 100, caption: 'Data Alteração' },
+      { wpx: 100, caption: 'Situação' },
+  
+    ];
+    XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Lista de Preço');
+    XLSX.writeFile(workbook, 'lista_preco.xlsx');
+  };
+
+
   const dados = dadosAlteracaoPreco.map((item, index) => {
     let contador = index + 1;
  
@@ -22,7 +78,7 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
       DATACRIACAOFORMATADA: item.DATACRIACAOFORMATADA,
       AGENDAMENTOALTERACAO: item.AGENDAMENTOALTERACAO,
       AGENDAMENTOALTERACAOFORMATADO: item.AGENDAMENTOALTERACAOFORMATADO,
-      QTDITENS: item.QTDITENS,
+      QTDITENS: toFloat(item.QTDITENS),
 
       contador
     }
@@ -32,13 +88,13 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
     {
       field: 'contador',
       header: 'Nº',
-      body: row => row.contador,
+      body: row => <th>{row.contador}</th>,
       sortable: true,
     },
     {
       field: 'IDRESUMOALTERACAOPRECOPRODUTO',
       header: 'ID Alteração',
-      body: row => row.IDRESUMOALTERACAOPRECOPRODUTO,
+      body: row => <th>{row.IDRESUMOALTERACAOPRECOPRODUTO}</th>,
       sortable: true,
     },
     {
@@ -46,7 +102,7 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
       header: 'Lista de Preço',
       body: row => {
         return (
-          <p> {row.NOMELISTA || row.NOFANTASIA}</p>
+          <th> {row.NOMELISTA || row.NOFANTASIA}</th>
         )
       
       },
@@ -57,7 +113,7 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
       header: 'Responsável',
       body: row => {
         return (
-          <p >{row.NOFUNCIONARIO || ''}</p>
+          <th>{row.NOFUNCIONARIO || ''}</th>
         )
       },
       sortable: true,
@@ -67,7 +123,7 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
       header: 'Qtd. Produtos',
       body: row => {
         return (
-          <p >{row.QTDITENS || ''}</p>
+          <th>{row.QTDITENS}</th>
         )
       },
       sortable: true,
@@ -77,7 +133,7 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
       header: 'Data Criação',
       body: row => {
         return (
-          <p >{row.DATACRIACAOFORMATADA || ''}</p>
+          <th>{row.DATACRIACAOFORMATADA || ''}</th>
         )
       },
       sortable: true,
@@ -87,7 +143,7 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
       header: 'Data Agendamento',
       body: row => {
         return (
-          <p >{row.AGENDAMENTOALTERACAOFORMATADO || row.DATACRIACAOFORMATADA}</p>
+          <th>{row.AGENDAMENTOALTERACAOFORMATADO || row.DATACRIACAOFORMATADA}</th>
         )
       },
       sortable: true,
@@ -133,39 +189,52 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
 
   return (
     <Fragment>
-      <div className="card">
-        <DataTable
-          title="Vendas por Loja"
-          value={dados}
-          // header={header}
-          sortField="VRTOTALPAGO"
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50, 100]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
-        >
-          {colunasAlteracoesPreco.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
+      <div className="panel">
+        <div className="panel-hdr">
+          <h2>Lista de Notas Fiscais</h2>
+        </div>
+        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <HeaderTable
+            globalFilterValue={globalFilterValue}
+            onGlobalFilterChange={onGlobalFilterChange}
+            handlePrint={handlePrint}
+            exportToExcel={exportToExcel}
+            exportToPDF={exportToPDF}
+          />
 
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
+        </div>
+        <div className="card mb-4" ref={dataTableRef}>
+          <DataTable
+            title="Lista de Preço"
+            value={dados}
+            globalFilter={globalFilterValue}
+            size="small"
+            sortOrder={-1}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
+          >
+            {colunasAlteracoesPreco.map(coluna => (
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                header={coluna.header}
 
-            />
-          ))}
-        </DataTable>
+                body={coluna.body}
+                footer={coluna.footer}
+                sortable={coluna.sortable}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '0.8rem' }}
+
+              />
+            ))}
+          </DataTable>
+        </div>
       </div>
-
-    
     </Fragment>
   )
 }
