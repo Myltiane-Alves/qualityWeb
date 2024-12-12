@@ -1,13 +1,13 @@
 import { Fragment, useEffect, useState } from "react"
 import { Modal } from "react-bootstrap"
-import { get, put } from "../../../../api/funcRequest"
+import { get, put } from "../../../../../api/funcRequest"
 import { useForm } from "react-hook-form"
 import Select from 'react-select';
 import Swal from 'sweetalert2'
-import { ButtonTypeModal } from "../../../Buttons/ButtonTypeModal"
-import { FooterModal } from "../../../Modais/FooterModal/footerModal";
-import { InputFieldModal } from "../../../Buttons/InputFieldModal";
-import { HeaderModal } from "../../../Modais/HeaderModal/HeaderModal";
+import { ButtonTypeModal } from "../../../../Buttons/ButtonTypeModal"
+import { FooterModal } from "../../../../Modais/FooterModal/footerModal";
+import { InputFieldModal } from "../../../../Buttons/InputFieldModal";
+import { HeaderModal } from "../../../../Modais/HeaderModal/HeaderModal";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
