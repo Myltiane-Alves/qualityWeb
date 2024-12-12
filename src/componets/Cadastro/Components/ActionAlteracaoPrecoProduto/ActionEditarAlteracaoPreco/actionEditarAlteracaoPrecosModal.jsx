@@ -13,7 +13,7 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
 
-export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosListaLoja }) => {
+export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosDetalheAlteracao }) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [descricao, setDescricao] = useState('')
   const [statusSelecionado, setStatusSelecionado] = useState([])
@@ -122,34 +122,96 @@ export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosLista
     setStatusSelecionado(e.value)
   }
 
-  const dados = dadosEmpresas.map((item, index) => {
+  const dados = dadosDetalheAlteracao.map((item, index) => {
     let contador = index + 1;
     return {
 
-      IDEMPRESA: item.IDEMPRESA,
-      NOFANTASIA: item.NOFANTASIA,
-      STATIVO: item.STATIVO,
-      contador
-
+      contador,
+      IDRESUMOALTERACAOPRECOPRODUTO: item.produto.IDRESUMOALTERACAOPRECOPRODUTO,
+      IDRESUMOALTERACAOPRECOPRODUTO: item.produto.IDRESUMOALTERACAOPRECOPRODUTO,
+      IDPRODUTO: item.produto.IDPRODUTO,
+      DTCADASTRO: item.produto.DTCADASTRO,
+      DSNOME: item.produto.DSNOME,
+      NUCODBARRAS: item.produto.NUCODBARRAS,
+      STATIVO: item.STATIVO == 'True' ? true : false,
+      PRECOVENDAANTERIOR: item.produto.PRECOVENDAANTERIOR,
+      PRECOVENDANOVO: item.produto.PRECOVENDANOVO,
+      QTDESTOQUEAOCADASTRAR: item.produto.QTDESTOQUEAOCADASTRAR,
+      QTDESTOQUEATUAL: item.produto.QTDESTOQUEATUAL,
+      quantidadeEstoque: item.STEXECUTADO != 'False' ? true : false ? item.produto.QTDESTOQUEAOCADASTRAR : item.produto.QTDESTOQUEATUAL,
     }
   })
 
-  const colunasEmpresas = [
+  const colunasDetalhes = [
     {
       field: 'contador',
       header: 'Nº',
-      body: row => row.contador,
+      body: row => <th>{row.contador}</th>,
       sortable: true,
     },
     {
-      field: 'IDEMPRESA',
-      header: 'ID Loja',
-      body: row => row.IDEMPRESA,
+      field: 'DTCADASTRO',
+      header: 'Dt. Cadastro',
+      body: row => <th>{row.DTCADASTRO}</th>,
+      sortable: true,
+    },
+    {
+      field: 'IDPRODUTO',
+      header: 'ID Produto',
+      body: row => {
+        return (
+          <th>{row.IDPRODUTO}</th>
+        )
+
+      },
+      sortable: true,
+    },
+    {
+      field: 'DSNOME',
+      header: 'Descriçao Produto',
+      body: row => {
+        return (
+          <th>{row.DSNOME}</th>
+        )
+      },
+      sortable: true,
+    },
+    {
+      field: 'NUCODBARRAS',
+      header: 'Cod. Barras',
+      body: row => {
+        return (
+          <th>{row.NUCODBARRAS}</th>
+        )
+
+      },
+      sortable: true,
+    },
+    {
+      field: 'PRECOVENDAANTERIOR',
+      header: 'Preço Antigo',
+      body: row => {
+        return (
+          <p>{row.PRECOVENDAANTERIOR}</p>
+        )
+
+      },
       sortable: true,
     },
     {
       field: 'NOFANTASIA',
-      header: 'Nome Loja',
+      header: 'Preço Novo',
+      body: row => {
+        return (
+          <p>{row.NOFANTASIA}</p>
+        )
+
+      },
+      sortable: true,
+    },
+    {
+      field: 'NOFANTASIA',
+      header: 'Estoque',
       body: row => {
         return (
           <p>{row.NOFANTASIA}</p>
@@ -160,7 +222,7 @@ export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosLista
     },
     {
       field: 'STATIVO',
-      header: 'Situação',
+      header: 'Status',
       body: row => {
         return (
           <p style={{ color: row.STATIVO == 'True' ? 'blue' : 'red' }} >{row.STATIVO == 'True' ? 'ATIVA' : 'INATIVA'}</p>
@@ -168,13 +230,7 @@ export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosLista
       },
       sortable: true,
     },
-    {
-      header: 'Selecione',
-      selectionMode: 'multiple',
-      selection: empresaSelecionada,
-      width: '10px',
-      sortable: true,
-    },
+
 
   ]
 
@@ -197,8 +253,8 @@ export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosLista
       >
 
         <HeaderModal
-          title={"Edição de Lista de Preços"}
-          subTitle={`Lista de Lojas: `}
+            title={"Edição de Alteração de Preços"}
+            subTitle={`Alteração de Preço Nº: ${dadosDetalheAlteracao[0]?.alteracaoPreco.IDRESUMOALTERACAOPRECOPRODUTO}`}
           handleClose={handleClose}
         />
 
@@ -261,7 +317,7 @@ export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosLista
                     type={"text"}
 
                     id={"idListaPreco"}
-                    value={dadosListaLoja[0]?.listaPreco.IDRESUMOLISTAPRECO}
+                    value={dadosDetalheAlteracao[0]?.listaPreco.IDRESUMOLISTAPRECO}
                     onChangeModal={""}
 
                     {...register("idListaPreco", { required: "Campo obrigatório Informe a Descrição do Grupo Estrutura Mercadológica", })}
@@ -274,7 +330,7 @@ export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosLista
                     type={"text"}
 
                     id={"nomeListaPreco"}
-                    value={dadosListaLoja[0]?.listaPreco.NOMELISTA}
+                    value={dadosDetalheAlteracao[0]?.listaPreco.NOMELISTA}
                     onChangeModal={""}
 
                     {...register("nomeListaPreco", { required: "Campo obrigatório Informe a Descrição do Grupo Estrutura Mercadológica", })}
