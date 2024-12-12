@@ -191,7 +191,7 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
     <Fragment>
       <div className="panel">
         <div className="panel-hdr">
-          <h2>Lista de Notas Fiscais</h2>
+          <h2>Lista Alteração Preço</h2>
         </div>
         <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
           <HeaderTable
