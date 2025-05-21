@@ -101,7 +101,6 @@ export const useCreatePromocaoAtiva = ({ usuarioLogado  }) => {
     refetchMarcas()
   }, [marcaSelecionada, refetchEmpresas]);
 
-  
 
   const optionsFatorPromocao = [
     { value: 0, label: "Por Valor Final" },
