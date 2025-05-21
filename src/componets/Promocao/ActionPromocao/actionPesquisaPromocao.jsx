@@ -201,7 +201,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         labelSelectMarcas={"Marca"}
         optionsMarcas={[
           { value: "all", label: "Selecionar Todas" },
-          ...optionsMarcas.map((marca) => ({ value: marca.IDGRUPOEMPRESARIAL, label: marca.GRUPOEMPRESARIAL }))
+          ...optionsMarcas.map((marca) => ({ value: marca.IDGRUPOEMPRESARIAL, label: marca.DSGRUPOEMPRESARIAL }))
         ]}
         valueSelectMarca={marcaSelecionada}
         onChangeSelectMarcas={(e) => {
