@@ -77,14 +77,7 @@ export const ActionPesquisaPromocao = ({ }) => {
   const styleVrFim = useMemo(() => (mecanicaSelecionada == 2 ? { display: "block" } : {display: "none"}), [mecanicaSelecionada]);
   const styleDesconto2 = useMemo(() => (mecanicaSelecionada == 2 ? { display: "block" } : {display: "none"}), [mecanicaSelecionada]);
   
-  const { data: optionsPromocao = [], error: errorPromocao, isLoading: isLoadingPromocao, refetch: refetchPromocao } = useQuery(
-    'promocoes-ativas',
-    async () => {
-      const response = await get(`/promocoes-ativas`);
-      return response.data;
-    },
-    { enabled: true, staleTime: 60 * 60 * 1000,}
-  );
+
   
   const customStyles = {
     option: (provided, state) => ({
