@@ -54,8 +54,9 @@ export const RoutesMain = () => {
 
   return (
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<DashBoardPromocao componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> }  />
         
+        {/* <Route path="/" element={<Home />} />
         <Route path="/modulo" element={usuarioLogado ? <ModuloTeste usuarioLogado={usuarioLogado}  /> : <Navigate to="/"  />} />
         <Route path="/DashBoardPermissoes" element={usuarioLogado ? <Permissoes usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } />
         <Route path="/DashBoardFinanceiro" element={usuarioLogado ? <DashBoardFinanceiro componentToShow={componentToShow} handleShowComponent={handleShowComponent}  usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } />
@@ -67,19 +68,18 @@ export const RoutesMain = () => {
         <Route path="/DashBoardMarketing" element={usuarioLogado ? <DashBoardMarketing componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/>} />
         <Route path="/DashBoardMalotes" element={usuarioLogado ? <DashBoardMalotes componentToShow={componentToShow} handleShowComponent={handleShowComponent}  usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } />
         
-        <Route path="/DashBoardVouchers" element={usuarioLogado ? <DashBoardVoucher componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/>} />
-        <Route path="/DashBoardPromocao" element={<DashBoardPromocao componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> }  />
+        <Route path="/DashBoardVouchers" element={usuarioLogado ? <DashBoardVoucher componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/>} /> */}
         {/* <Route path="/DashBoardPromocao" element={usuarioLogado ? <DashBoardPromocao componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/>}  /> */}
 
 
-        <Route path="/DashBoardExpedicao" element={usuarioLogado ? <DashBoardExpedicao componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } />
+        {/* <Route path="/DashBoardExpedicao" element={usuarioLogado ? <DashBoardExpedicao componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } />
         <Route path="/DashBoardConferenciaCega" element={usuarioLogado ? <DashBoardConferenciaCega componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/>} />
         <Route path="/DashBoardCadastro" element={usuarioLogado ? <DashBoardCadastro componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/>} />
         <Route path="/DashBoardCompras" element={usuarioLogado ? <DashBoardCompras componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } />
         <Route path="/ResumoVendas" element={usuarioLogado ? <DashBoardResumoVendas componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } />
         <Route path="/DashBoardComprasDM" element={usuarioLogado ? <DashBoardComprasDM componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } />
         <Route path="/DashBoardComercial" element={usuarioLogado ? <DashBoardComercial componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } />
-        <Route path="/DashBoardEtiquetagem" element={usuarioLogado ? <DashBoardEtiquetagem componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } />
+        <Route path="/DashBoardEtiquetagem" element={usuarioLogado ? <DashBoardEtiquetagem componentToShow={componentToShow} handleShowComponent={handleShowComponent} usuarioLogado={usuarioLogado} /> : <Navigate to="/"/> } /> */}
 
       </Routes>
   );

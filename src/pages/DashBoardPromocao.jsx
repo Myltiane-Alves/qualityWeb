@@ -63,9 +63,9 @@ export const DashBoardPromocao = ({ }) => {
     case "/promocoes/ActionPesquisaPromocao":
       component = <ActionPesquisaPromocao usuarioLogado={usuarioLogado} ID={ID} />;
       break;
-    case "/promocoes/ActionPesquisaPromocoesAtivas":
-      component = <ActionPesquisaPromocoesAtivas usuarioLogado={usuarioLogado} ID={ID}/>;
-      break;
+    // case "/promocoes/ActionPesquisaPromocoesAtivas":
+    //   component = <ActionPesquisaPromocoesAtivas usuarioLogado={usuarioLogado} ID={ID}/>;
+    //   break;
     default:
       component = null;
       break;
@@ -79,12 +79,12 @@ export const DashBoardPromocao = ({ }) => {
 
           <div className="page-wrapper">
             <div className="page-inner">
-              <MenuSidebarAdmin
+              {/* <MenuSidebarAdmin
                 componentToShow={componentToShow}
                 handleShowComponent={handleShowComponent}
-              />
+              /> */}
               <div className="page-content-wrapper">
-                <HeaderMain optionsModulos={optionsModulos} />
+                {/* <HeaderMain optionsModulos={optionsModulos} /> */}
 
                 <main id="js-page-content" role="main" className="page-content">
                   <div className="row">
@@ -107,10 +107,10 @@ export const DashBoardPromocao = ({ }) => {
                   </div>
                 </main>
 
-                <Fragment>
+                {/* <Fragment>
                   <MenuButton />
                   <FooterMain />
-                </Fragment>
+                </Fragment> */}
               </div>
             </div>
           </div>
