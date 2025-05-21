@@ -4,7 +4,6 @@ import { get, post } from "../../../../api/funcRequest"
 import { useQuery } from "react-query"
 import Swal from "sweetalert2"
 import { getDataAtual } from "../../../../utils/dataAtual"
-import { useFetchData } from "../../../../hooks/useFetchData"
 import * as XLSX from 'xlsx';
 import { optionsMecanica } from "../../../../../mecanica"
 
@@ -482,9 +481,3 @@ export const useCreatePromocaoAtiva = ({ usuarioLogado  }) => {
     onSubmit
   }
 }
-
-// aplicação da amecanica já tem que trazer aplicação de destino e o tipo de desconto
-// dividir a action o que for da mecanica trazer em baixa da mecanica 
-//  o que for da empresa destino trazer os campos de destino a mesma coisa para origem
-//  aumentar o tamanho do campos de input
-// trazer o nome da promoção
