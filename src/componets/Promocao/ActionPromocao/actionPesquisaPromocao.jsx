@@ -119,24 +119,11 @@ export const ActionPesquisaPromocao = ({usuarioLogado }) => {
 
   const styleDesconto1 = useMemo(() => (mecanicaSelecionada == 2 && aplicacaoDestinoSelecionada == 1 && tipoDescontoSelecionado == 2 ? { display: "none" } : {}), [mecanicaSelecionada]);
 
-  const permissao = optionsModulos[0]?.ALTERAR == 'False';
+
 
   const handleCadastrar = () => {
-    if (permissao) {
-      Swal.fire({
-        position: 'center',
-        icon: 'error',
-        title: 'Você não tem permissão para cadastrar!',
-        customClass: {
-          container: 'custom-swal',
-        },
-        showConfirmButton: false,
-        timer: 3000,
-      })
-      return;
-    } else {
       onSubmit();
-    }
+    
   }
 
   const empresasFiltradas = useMemo(() => {
