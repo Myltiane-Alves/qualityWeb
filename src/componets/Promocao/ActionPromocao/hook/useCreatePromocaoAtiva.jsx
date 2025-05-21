@@ -8,7 +8,7 @@ import { useFetchData } from "../../../../hooks/useFetchData"
 import * as XLSX from 'xlsx';
 import { optionsMecanica } from "../../../../../mecanica"
 
-export const useCreatePromocaoAtiva = ({ usuarioLogado, optionsModulos }) => {
+export const useCreatePromocaoAtiva = ({ usuarioLogado  }) => {
   const [mecanicaSelecionada, setMecanicaSelecionada] = useState(0)
   const [aplicacaoDestinoSelecionada, setAplicacaoDestinoSelecionada] = useState('')
   const [tipoDescontoSelecionado, setTipoDescontoSelecionado] = useState(0)
@@ -261,19 +261,7 @@ export const useCreatePromocaoAtiva = ({ usuarioLogado, optionsModulos }) => {
 
   
   const onSubmit = async (data) => {
-    if (optionsModulos[0]?.ALTERAR == 'False') {
-      Swal.fire({
-        position: 'center',
-        icon: 'error',
-        title: 'Você não tem permissão para cadastrar!',
-        customClass: {
-          container: 'custom-swal',
-        },
-        showConfirmButton: false,
-        timer: 3000,
-      })
-      return;
-    }
+
 
     if (!mecanicaSelecionada) {
       Swal.fire({

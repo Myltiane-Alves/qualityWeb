@@ -15,19 +15,6 @@ import { IoIosSend } from "react-icons/io";
 
 
 export const ActionPesquisaPromocao = ({usuarioLogado }) => {
-  const renderCount = useRef(0);
-  renderCount.current += 1;
-  // console.log("esse componente re-renderizou", renderCount.current, "vezes");
-  
-  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
-    'menus-usuario-excecao',
-    async () => {
-      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=143`);
-
-      return response.data;
-    },
-    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
-  );
 
   const  {
     mecanicaSelecionada,
@@ -82,7 +69,7 @@ export const ActionPesquisaPromocao = ({usuarioLogado }) => {
     handleFileUpload, 
     mostrarProdutosSelecionados,
     onSubmit
-  } = useCreatePromocaoAtiva({ usuarioLogado, optionsModulos });
+  } = useCreatePromocaoAtiva({ usuarioLogado });
 
   const styleQTDInicio = useMemo(() => (mecanicaSelecionada == 1 ? { display: "none" } : {}), [mecanicaSelecionada]);
   const styleQTDFim = useMemo(() => (mecanicaSelecionada == 1 ? { display: "none" } : {}), [mecanicaSelecionada]);
