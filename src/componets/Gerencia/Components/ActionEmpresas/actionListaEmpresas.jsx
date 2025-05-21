@@ -6,39 +6,21 @@ import { useNavigate } from "react-router-dom";
 import { GrFormView } from "react-icons/gr";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { get } from "../../../../api/funcRequest";
-import { ActionDetalharEmpresaModal } from "./actionDetalharEmpresaModal";
 import { useReactToPrint } from 'react-to-print';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
-import { ActionEditarEmpresaModal } from "./actionEditarEmpresaModal";
+import { ActionDetalharEmpresaModal } from "./ActionDetalharEmpresa/actionDetalharEmpresaModal";
+import { ActionEditarEmpresaModal } from "./ActionEditarEmpresa/actionEditarEmpresaModal";
+import Swal from "sweetalert2";
 
-export const ActionListaEmpresas = ({ dadosEmpresas }) => {
+export const ActionListaEmpresas = ({ dadosEmpresas, usuarioLogado, optionsModulos }) => {
   const [modalDetalheEmpresa, setModalDetalheEmpresa] = useState(false);
   const [modalEditarEmpresa, setModalEditarEmpresa] = useState(false);
   const [dadosEmpresasDetalhe, setDadosEmpresasDetalhe] = useState([]);
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
-  const navigate = useNavigate();
-
-
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -97,7 +79,9 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
                 titleButton="Detalhar"
                 onClickButton={() => handleClickDetalhar(row)}
                 Icon={GrFormView}
-                iconSize={18}
+                iconSize={30}
+                width="35px"
+                height="35px"
                 iconColor="#fff"
                 cor="success"
               />
@@ -111,7 +95,9 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
                   titleButton="Editar"
                   onClickButton={() => handleClickEditar(row)}
                   Icon={CiEdit}
-                  iconSize={18}
+                  iconSize={30}
+                  width="35px"
+                  height="35px"
                   iconColor="#fff"
                   cor="primary"
                 />
@@ -120,7 +106,9 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
                 titleButton="Detalhar"
                 onClickButton={() => handleClickDetalhar(row)}
                 Icon={GrFormView}
-                iconSize={18}
+                iconSize={30}
+                width="35px"
+                height="35px"
                 iconColor="#fff"
                 cor="success"
               />
@@ -145,9 +133,22 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
   };
 
   const handleClickDetalhar = (row) => {
-    if (row && row.IDEMPRESA) {
-      handleDetalhar(row.IDEMPRESA);
-    }
+    if(optionsModulos[0].ALTERAR == 'True') {
+      if (row && row.IDEMPRESA) {
+        handleDetalhar(row.IDEMPRESA);
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para acessara tela.',
+        confirmButtonColor: '#7352A5',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    } 
   };
 
   const handleEditar = async (IDEMPRESA) => {
@@ -163,15 +164,28 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
   };
 
   const handleClickEditar = (row) => {
-    if (row && row.IDEMPRESA) {
-      handleEditar(row.IDEMPRESA);
-    }
+    if(optionsModulos[0].ALTERAR == 'True') {
+      if (row && row.IDEMPRESA) {
+        handleEditar(row.IDEMPRESA);
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para acessara tela.',
+        confirmButtonColor: '#7352A5',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    } 
   };
 
   
   return (
     <Fragment>
-      <div className="panel mt-6">
+      <div className="panel">
         <div className="panel-hdr">
           <h2>Lista de Empresas</h2>
         </div>
@@ -192,6 +206,9 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 30, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -203,9 +220,9 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
                 header={coluna.header}
                 body={coluna.body}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
                 footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
               />
             ))}
           </DataTable>

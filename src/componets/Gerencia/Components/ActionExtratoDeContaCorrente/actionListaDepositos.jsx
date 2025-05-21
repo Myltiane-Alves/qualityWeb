@@ -8,25 +8,24 @@ import { CiEdit } from "react-icons/ci";
 
 export const ActionListaDepositos = ({ dadosExtratoLojaPeriodo, dados }) => {
  
-  const dadosDepositos = dadosExtratoLojaPeriodo.flatMap((item) =>
-    item.totalDepositos.map((deposito) => {
+  const dadosDepositos = dadosExtratoLojaPeriodo.map((item) => {
       // const saldoAnteriorDepositos = toFloat(dados[0].saldoAnteriorQuebra) - toFloat(deposito?.VRDEPOSITO);
-      const saldoAnteriorDepositos = toFloat(dados[0]?.saldoAnteriorDepositos)
+      const saldoAnteriorDepositos = toFloat(dados[0].saldoAnteriorDepositos)
 
       return {
-        IDDEPOSITOLOJA: deposito.IDDEPOSITOLOJA,
-        DTDEPOSITOFORMATADA: deposito.DTDEPOSITOFORMATADA,
-        DTMOVIMENTOCAIXAFORMATADA: deposito.DTMOVIMENTOCAIXAFORMATADA,
-        FUNCIONARIO: deposito.FUNCIONARIO,
-        VRDEPOSITO: toFloat(deposito.VRDEPOSITO),
-        DSBANCO: deposito.DSBANCO,
-        STCANCELADO: deposito.STCANCELADO,
-        STCONFERIDO: deposito.STCONFERIDO,
-        NUDOCDEPOSITO: deposito.NUDOCDEPOSITO,
+        IDDEPOSITOLOJA: item.totalDepositos[0]?.IDDEPOSITOLOJA,
+        DTDEPOSITOFORMATADA: item.totalDepositos[0]?.DTDEPOSITOFORMATADA,
+        DTMOVIMENTOCAIXAFORMATADA: item.totalDepositos[0]?.DTMOVIMENTOCAIXAFORMATADA,
+        FUNCIONARIO: item.totalDepositos[0]?.FUNCIONARIO,
+        VRDEPOSITO: toFloat(item.totalDepositos[0]?.VRDEPOSITO),
+        DSBANCO: item.totalDepositos[0]?.DSBANCO,
+        STCANCELADO: item.totalDepositos[0]?.STCANCELADO,
+        STCONFERIDO: item.totalDepositos[0]?.STCONFERIDO,
+        NUDOCDEPOSITO: item.totalDepositos[0]?.NUDOCDEPOSITO,
         saldoAnteriorDepositos: toFloat(saldoAnteriorDepositos),
       };
     })
-  );
+
 
   const renderButtons = (item) => {
     if (

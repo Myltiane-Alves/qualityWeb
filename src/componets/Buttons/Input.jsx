@@ -1,7 +1,7 @@
 import React, { Fragment } from "react"
 import { useForm } from "react-hook-form"
 
-export const InputField = ({ label, type, id, nome, value, readOnly, placeHolder, onChange }) => {
+export const InputField = ({ label, type, id, nome, value, readOnly, placeHolder, onChange, onKeyDown }) => {
   const {
     register,
     formState: { errors },
@@ -25,7 +25,7 @@ export const InputField = ({ label, type, id, nome, value, readOnly, placeHolder
           readOnly={readOnly}
           placeHolder={placeHolder}
           onChange={onChange}
-          
+          onKeyDown={onKeyDown}
         />
       </div>
     </Fragment>

@@ -15,8 +15,14 @@ import { ButtonTypeModal } from "../../../Buttons/ButtonTypeModal";
 
 export const ActionPreviaBalancoModal = ({ show, handleClose, dadosPreviaBalancoModal }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
   const dataTableRef = useRef();
+
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  };
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -82,31 +88,48 @@ export const ActionPreviaBalancoModal = ({ show, handleClose, dadosPreviaBalanco
       TOTALVENDA: item.TOTALVENDA,
     }
   })
+ const calcularTotalPagina = (field) => {
+    return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
+  };
 
-  const calcularTotalQtdFinal  = () => {
-    return dados.reduce((total, dados) => total + toFloat(dados.QTDFINAL), 0);
-  }
- 
+  const calcularTotal = (field) => {
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dados.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + toFloat(item[field] || 0), 0);
+  };
+
+  const calcularTotalQtdFinal = () => {
+    const totalPagina = calcularTotal('QTDFINAL');
+    const total = calcularTotalPagina('QTDFINAL' );
+    return `${totalPagina}   (${total} total)`;
+  };
   const calcularTotalQtd = () => {
-    return dados.reduce((total, dados) => total + toFloat(dados.QTD), 0);
-  }
- 
+    const totalPagina = calcularTotal('QTD');
+    const total = calcularTotalPagina('QTD' );
+    return `${totalPagina}   (${total} total)`;
+  };
   const calcularTotalQtdSobra = () => {
-    return dados.reduce((total, dados) => total + toFloat(dados.QTDSOBRA), 0);
-  }
-  
+    const totalPagina = calcularTotal('QTDSOBRA');
+    const total = calcularTotalPagina('QTDSOBRA' );
+    return `${totalPagina}   (${total} total)`;
+  };
   const calcularTotalQtdFalta = () => {
-    return dados.reduce((total, dados) => total + toFloat(dados.QTDFALTA), 0);
-  }
-
+    const totalPagina = calcularTotal('QTDFALTA');
+    const total = calcularTotalPagina('QTDFALTA' );
+    return `${totalPagina}   (${total} total)`;
+  };
   const calcularTotalPrecoVenda = () => {
-    return dados.reduce((total, dados) => total + toFloat(dados.PRECOVENDA), 0);
-  }
-
+    const totalPagina = calcularTotal('PRECOVENDA');
+    const total = calcularTotalPagina('PRECOVENDA' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
   const calcularTotalVenda = () => {
-    return dados.reduce((total, dados) => total + toFloat(dados.TOTALVENDA), 0);
-  }
-
+    const totalPagina = calcularTotal('TOTALVENDA');
+    const total = calcularTotalPagina('TOTALVENDA' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
+ 
 
   const colunasColetor = [
     {
@@ -159,14 +182,14 @@ export const ActionPreviaBalancoModal = ({ show, handleClose, dadosPreviaBalanco
       field: 'PRECOVENDA',
       header: 'R$ Venda',
       body: row => <th>{formatMoeda(row.PRECOVENDA)}</th>,
-      footer: formatMoeda(calcularTotalPrecoVenda()),
+      footer: calcularTotalPrecoVenda(),
       sortable: true,
     },
     {
       field: 'TOTALVENDA',
       header: 'R$ Total',
       body: row => <th>{formatMoeda(row.TOTALVENDA)}</th>,
-      footer: formatMoeda(calcularTotalVenda()),
+      footer: calcularTotalVenda(),
       sortable: true,
     },
   ]
@@ -192,6 +215,10 @@ export const ActionPreviaBalancoModal = ({ show, handleClose, dadosPreviaBalanco
           handleClose={handleClose}
         />
         <Modal.Body>
+        <div className="panel">
+            <div className="panel-hdr">
+              <h2>Lista Relação dos Produtos</h2>
+            </div>
           <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
             <HeaderTable
               globalFilterValue={globalFilterValue}
@@ -204,13 +231,15 @@ export const ActionPreviaBalancoModal = ({ show, handleClose, dadosPreviaBalanco
           </div>
           <div className="card" ref={dataTableRef}>
             <DataTable
-              title="Vendas por Loja"
+              title="Relação dos Produtos"
               value={dados}
-              size={size}
+              size="small"
               globalFilter={globalFilterValue}
               sortOrder={-1}
-              paginator={true}
-              rows={10}
+              paginator
+              rows={rows}
+              first={first}
+              onPage={onPageChange}
               rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
               showGridlines
               stripedRows
@@ -234,7 +263,7 @@ export const ActionPreviaBalancoModal = ({ show, handleClose, dadosPreviaBalanco
             </DataTable>
 
           </div>
-
+        </div>
           <FooterModal 
             ButtonTypeFechar={ButtonTypeModal}
             onClickButtonFechar={handleClose}

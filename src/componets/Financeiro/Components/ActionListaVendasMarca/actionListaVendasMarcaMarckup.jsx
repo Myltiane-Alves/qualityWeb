@@ -10,10 +10,7 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { formatarPorcentagem } from "../../../../utils/formatarPorcentagem";
 
-export const ActionListaVendasMarcaMarckup = ({
-  dadosListaVendasMarcaMarckup,
-}) => {
-  const [size, setSize] = useState('small')
+export const ActionListaVendasMarcaMarckup = ({dadosListaVendasMarcaMarckup}) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
 
@@ -50,10 +47,10 @@ export const ActionListaVendasMarcaMarckup = ({
         item.IDEMPRESA,
         item.NOFANTASIA,
         formatMoeda(item.valorVendaBrutaMarckup),
-        formatMoeda(item.valorDesconto),
+        formatMoeda(item.valorDesconto.vrTotalDesconto),
         formatarPorcentagem(item.percentualDesconto),
-        formatMoeda(item.valorPago),
-        formatMoeda(item.voucher),
+        formatMoeda(item.valorPago.vrTotalPago),
+        formatMoeda(item.voucher.vrTotalVoucher),
         formatarPorcentagem(item.percentualVoucher),
         formatMoeda(item.valorTotalVendaLiquida),
         formatMoeda(item.TOTALCUSTO),
@@ -118,62 +115,62 @@ export const ActionListaVendasMarcaMarckup = ({
 
   const calcularValorTotalVendaLiquida = (item) => {
     return (
-      toFloat(item.valorPago) - toFloat(item.voucher)
+      toFloat(item.valorPago.vrTotalPago) - toFloat(item.voucher.vrTotalVoucher)
     )
   }
 
   const calcularValorVendaBrutaMarckup = (item) => {
     return (
-      (toFloat(item.valorPago) + toFloat(item.valorDesconto))
+      (toFloat(item.valorPago.vrTotalPago) + toFloat(item.valorDesconto.vrTotalDesconto))
     )
   }
 
   const calcularMarckup = (item) => {
     return (
-      ((toFloat(item.valorPago) / toFloat(item.vendaMarca.TOTALCUSTO)) - 1) * 100
+      ((toFloat(item.valorPago.vrTotalPago) / toFloat(item.vendaMarca.TOTALCUSTO)) - 1) * 100
     )
   }
 
   const calcularIndicadorVenda = (item) => {
     return (
-      ((toFloat(item.valorPago) / toFloat(item.vendaMarca.TOTALCUSTO)))
+      ((toFloat(item.valorPago.vrTotalPago) / toFloat(item.vendaMarca.TOTALCUSTO)))
     )
   }
   const calcularMargem = (item) => {
     return (
-      ((toFloat(item.valorPago) - toFloat(item.vendaMarca.TOTALCUSTO)))
+      ((toFloat(item.valorPago.vrTotalPago) - toFloat(item.vendaMarca.TOTALCUSTO)))
     )
   }
   const calcularCustoPercentual = (item) => {
     return (
-      ((toFloat(item.vendaMarca.TOTALCUSTO) * 100) / toFloat(item.valorPago))
+      ((toFloat(item.vendaMarca.TOTALCUSTO) * 100) / toFloat(item.valorPago.vrTotalPago))
     )
   }
   const calcularMargemPercentual = (item) => {
     return (
-      100 - ((toFloat(item.vendaMarca.TOTALCUSTO) * 100) / toFloat(item.valorPago))
+      100 - ((toFloat(item.vendaMarca.TOTALCUSTO) * 100) / toFloat(item.valorPago.vrTotalPago))
     )
   }
 
   const calcularPercentualDesconto = (item) => {
     return (
-      ((toFloat(item.valorDesconto) * 100) / (toFloat(item.valorPago) + toFloat(item.valorDesconto)))
+      ((toFloat(item.valorDesconto.vrTotalDesconto) * 100) / (toFloat(item.valorPago.vrTotalPago) + toFloat(item.valorDesconto.vrTotalDesconto)))
     )
   }
   const calcularPercentualVoucherMarckup = (item) => {
     return (
-      ((toFloat(item.voucher) * 100) / (toFloat(item.valorPago)))
+      ((toFloat(item.voucher.vrTotalVoucher) * 100) / (toFloat(item.valorPago.vrTotalPago)))
     )
   }
   const calcularTotalPercentualVoucher = (item) => {
     return (
-      ((toFloat(item.voucher) * 100) / (toFloat(item.valorPago)))
+      ((toFloat(item.voucher.vrTotalVoucher) * 100) / (toFloat(item.valorPago.vrTotalPago)))
     )
   }
 
   const calcularTotalPercentualDesconto = (item) => {
     return (
-      ((toFloat(item.valorDesconto) * 100) / (toFloat(item.valorPago) + toFloat(item.valorDesconto)))
+      ((toFloat(item.valorDesconto.vrTotalDesconto) * 100) / (toFloat(item.valorPago.vrTotalPago) + toFloat(item.valorDesconto.vrTotalDesconto)))
     )
   }
 
@@ -192,10 +189,10 @@ export const ActionListaVendasMarcaMarckup = ({
       IDEMPRESA: item.vendaMarca.IDEMPRESA,
       NOFANTASIA: item.vendaMarca.NOFANTASIA,
       valorVendaBrutaMarckup: valorVendaBrutaMarckup,
-      valorDesconto: item.valorDesconto,
+      valorDesconto: item.valorDesconto.vrTotalDesconto,
       percentualDesconto: percentualDesconto,
-      valorPago: item.valorPago,
-      voucher: item.voucher,
+      valorPago: item.valorPago.vrTotalPago,
+      voucher: item.voucher.vrTotalVoucher,
       percentualVoucher: percentualVoucher,
       valorTotalVendaLiquida: valorTotalVendaLiquida,
       TOTALCUSTO: item.vendaMarca.TOTALCUSTO,
@@ -229,9 +226,9 @@ export const ActionListaVendasMarcaMarckup = ({
       VRTOTALLIQUIDO: item.vendaMarca.VRTOTALLIQUIDO,
       TOTALCUSTO: item.vendaMarca.TOTALCUSTO,
 
-      valorPago: item.valorPago,
-      voucher: item.voucher,
-      valorDesconto: item.valorDesconto,
+      valorPago: item.valorPago.vrTotalPago,
+      voucher: item.voucher.vrTotalVoucher,
+      valorDesconto: item.valorDesconto.vrTotalDesconto,
 
       valorTotalVendaLiquida: valorTotalVendaLiquida,
       valorVendaBrutaMarckup: valorVendaBrutaMarckup,
@@ -364,7 +361,7 @@ export const ActionListaVendasMarcaMarckup = ({
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: (row) => <th style={{ color: 'blue', width: 100 }}> {row.NOFANTASIA} </th>,
+      body: (row) => <p style={{ color: 'blue', fontWeight: 600, width: '200px', margin: '0px' }}> {row.NOFANTASIA} </p>,
       footer: 'Total',
       sortable: true,
     },
@@ -401,12 +398,12 @@ export const ActionListaVendasMarcaMarckup = ({
     {
       field: 'percentualDesconto',
       header: 'Desconto (%)',
-      body: (row) => <th style={{ color: 'green' }}> {formatarPorcentagem(row.percentualDesconto)}</th>,
+      body: (row) => <th style={{ color: 'green' }}> {formatarPorcentagem(row.percentualDesconto, 4)}</th>,
       footer: () => {
         return (
           <div>
             <th style={{ color: 'green' }}>
-              {formatarPorcentagem(calcularTotalPercentualDescontoMarckup())}
+              {formatarPorcentagem(calcularTotalPercentualDescontoMarckup(), 4)}
             </th>
           </div>
         )
@@ -416,12 +413,12 @@ export const ActionListaVendasMarcaMarckup = ({
     {
       field: 'valorPago',
       header: 'Venda Bruta Desconto (%)',
-      body: (row) => <th style={{ color: 'blue' }}>  {formatMoeda(row.valorPago)} </th>,
+      body: (row) => <th style={{ color: 'blue' }}>  {formatarPorcentagem(row.valorPago, 2)} </th>,
       footer: () => {
         return (
           <div>
             <th style={{ color: 'blue' }}>
-              {formatMoeda(calcularTotalValorPagoMarckup())}
+              {formatarPorcentagem(calcularTotalValorPagoMarckup(), 2)}
             </th>
           </div>
         )
@@ -446,12 +443,12 @@ export const ActionListaVendasMarcaMarckup = ({
     {
       field: 'percentualVoucher',
       header: 'Voucher (%)',
-      body: (row) => <th style={{ color: 'green' }}>  {formatarPorcentagem(row.percentualVoucher)} </th>,
+      body: (row) => <th style={{ color: 'green' }}>  {formatarPorcentagem(row.percentualVoucher, 4)} </th>,
       footer: () => {
         return (
           <div>
             <th style={{ color: 'green' }}>
-              {formatarPorcentagem(calcularTotalPercentualVoucherMarckup())}
+              {formatarPorcentagem(calcularTotalPercentualVoucherMarckup(), 4)}
             </th>
           </div>
         )
@@ -491,7 +488,7 @@ export const ActionListaVendasMarcaMarckup = ({
     {
       field: 'custoPercentual',
       header: 'Custo (%)',
-      body: (row) => <th style={{ color: 'green' }}> {formatarPorcentagem(row.custoPercentual)}</th>,
+      body: (row) => <th style={{ color: 'green' }}> {formatarPorcentagem(row.custoPercentual, 2)}</th>,
       footer: () => {
         return (
           <div>
@@ -508,9 +505,9 @@ export const ActionListaVendasMarcaMarckup = ({
       header: 'Marckup (%)',
       body: (row) => {
         return (
-          <div style={{ color: row.marckup < 0 ? 'red' : 'green' }}>
+          <th style={{ color: row.marckup < 0 ? 'red' : 'green' }}>
             {formatarPorcentagem(row.marckup)}
-          </div>
+          </th>
         )
       },
       footer: () => {
@@ -529,9 +526,9 @@ export const ActionListaVendasMarcaMarckup = ({
       header: 'Indicador',
       body: (row) => {
         return (
-          <div style={{ color: row.indicadorVenda < 0 ? 'red' : 'green' }}>
+          <th style={{ color: row.indicadorVenda < 0 ? 'red' : 'green' }}>
             {parseFloat(row.indicadorVenda).toFixed(2)}
-          </div>
+          </th>
         )
       },
       footer: () => {
@@ -550,9 +547,9 @@ export const ActionListaVendasMarcaMarckup = ({
       header: 'Margem Bruta (R$)',
       body: (row) => {
         return (
-          <div style={{ color: row.margem < 0 ? 'red' : 'blue' }}>
+          <th style={{ color: row.margem < 0 ? 'red' : 'blue' }}>
             {formatMoeda(row.margem)}
-          </div>
+          </th>
         )
       },
       footer: () => {
@@ -571,9 +568,9 @@ export const ActionListaVendasMarcaMarckup = ({
       header: 'Margem (%)',
       body: (row) => {
         return (
-          <div style={{ color: row.margemPercentual < 0 ? 'red' : 'green' }}>
+          <th style={{ color: row.margemPercentual < 0 ? 'red' : 'green' }}>
             {formatarPorcentagem(row.margemPercentual)}
-          </div>
+          </th>
         )
       },
       footer: () => {
@@ -620,10 +617,13 @@ export const ActionListaVendasMarcaMarckup = ({
             title="Vendas Por Período - Indicadores"
             value={dadosVendasMarcaMarckup}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             rows={10}
             rowsPerPageOptions={[10, 20, 30, 50, 100, dadosVendasMarcaMarckup.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

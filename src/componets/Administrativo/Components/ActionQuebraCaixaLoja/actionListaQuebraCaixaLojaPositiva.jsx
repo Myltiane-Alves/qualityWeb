@@ -3,7 +3,6 @@ import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { MdOutlineLocalPrintshop } from "react-icons/md";
-import { AiOutlineDelete } from "react-icons/ai";
 import { dataFormatada } from "../../../../utils/dataFormatada";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import HeaderTable from "../../../Tables/headerTable";
@@ -14,18 +13,14 @@ import * as XLSX from 'xlsx';
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { FaCheck, FaRegTrashAlt } from "react-icons/fa";
 import { post, put } from "../../../../api/funcRequest";
 
-export const ActionListaQuebraCaixaLojaPositiva = ({ dadosQuebraDeCaixaPositiva, handleClick }) => {
+export const ActionListaQuebraCaixaLojaPositiva = ({ dadosQuebraDeCaixaPositiva, handleClick, optionsModulos, usuarioLogado }) => {
   const { register, handleSubmit, errors } = useForm();
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [ipUsuario, setIpUsuario] = useState('');
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
-  const navigate = useNavigate();
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
   };
@@ -148,6 +143,8 @@ export const ActionListaQuebraCaixaLojaPositiva = ({ dadosQuebraDeCaixaPositiva,
                   cor={"danger"}
                   Icon={FaRegTrashAlt}
                   iconSize={18}
+                  width="35px"
+                  height="35px"
                   onClickButton={() => handleClickCancelar(row)}
                 />
 
@@ -158,6 +155,8 @@ export const ActionListaQuebraCaixaLojaPositiva = ({ dadosQuebraDeCaixaPositiva,
                   cor={"primary"}
                   Icon={MdOutlineLocalPrintshop}
                   iconSize={18}
+                  width="35px"
+                  height="35px"
                   onClickButton={() => handleClickImprimir(row)}
                 />
 
@@ -174,6 +173,8 @@ export const ActionListaQuebraCaixaLojaPositiva = ({ dadosQuebraDeCaixaPositiva,
                 cor={"success"}
                 Icon={FaCheck}
                 iconSize={18}
+                width="35px"
+                height="35px"
                 onClickButton={() => handleClickAtivar(row)}
               />
 
@@ -185,25 +186,6 @@ export const ActionListaQuebraCaixaLojaPositiva = ({ dadosQuebraDeCaixaPositiva,
     },
   ]
 
-  const onSubmit = async () => {
-
-    let textFuncao = `QUEBRA DE CAIXA Nº ${dados[0]?.IDQUEBRACAIXA} DO MOVIMENTO: ${dados[0]?.IDMOVIMENTOCAIXA} FUNCIONARIO: ${dados[0]?.NOMEOPERADOR}`;
-
-    const postData = {  
-      IDFUNCIONARIO: usuarioLogado.id,
-      PATHFUNCAO:  'FINANCEIRO/IMPRESSÃO QUEBRA DE CAIXA',
-      DADOS: textFuncao,
-      IP: ipUsuario
-    }
-   
-    const response = await post('/logWeb', postData)
-    .then(response => { 
-      console.log(response, 'Log de usuário salvo com sucesso!')
-    })
-    .catch (error => {
-      console.log(error, 'erro ao salvar os log de usuário')
-    })    
-  }
 
   const handleImprimir = async (IDQUEBRACAIXA) => {
     try {
@@ -218,9 +200,17 @@ export const ActionListaQuebraCaixaLojaPositiva = ({ dadosQuebraDeCaixaPositiva,
   };
 
   const handleClickImprimir = (row) => {
-    if (row && row.IDQUEBRACAIXA) {
-      handleSubmit(onSubmit)()
-      handleImprimir(row.IDQUEBRACAIXA);
+    if (optionsModulos[0]?.IMPRIMIR == 'True') {
+      if (row && row.IDQUEBRACAIXA) {
+        handleImprimir(row.IDQUEBRACAIXA);
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção',
+        text: 'Você não tem permissão para imprimir a quebra de caixa!',
+        timer: 3000,
+      });
     }
   };
 
@@ -257,9 +247,18 @@ export const ActionListaQuebraCaixaLojaPositiva = ({ dadosQuebraDeCaixaPositiva,
   }
 
   const handleClickCancelar = (row) => {
-    if (row && row.IDQUEBRACAIXA) {
-      handleCancelar(row.IDQUEBRACAIXA);
-      
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.IDQUEBRACAIXA) {
+        handleCancelar(row.IDQUEBRACAIXA);
+        
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção',
+        text: 'Você não tem permissão para cancelar a quebra de caixa!',
+        timer: 3000,
+      });
     }
   };
 
@@ -323,11 +322,14 @@ export const ActionListaQuebraCaixaLojaPositiva = ({ dadosQuebraDeCaixaPositiva,
           title="Quebra Negativas de Caixa das Lojas"
           value={dadosPositiva}
           globalFilter={globalFilterValue}
-          size={size}
+          size="small"
           sortOrder={-1}
           paginator={true}
           rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50]}
+          rowsPerPageOptions={[10, 20, 50, 100, dadosPositiva.length]}
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+          filterDisplay="menu"
           showGridlines
           stripedRows
           emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado positiva</div>}

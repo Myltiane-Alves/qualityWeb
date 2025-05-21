@@ -19,17 +19,17 @@ export const ActionPesquisaVendasAlloc = () => {
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
   const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
   const [venda, setVenda] = useState('');
-  const [situacaoVenda, setSituacaoVenda] = useState('');
+  const [situacaoVenda, setSituacaoVenda] = useState('Todas');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
 
-  useEffect(() => {
-    const dataInicio = getDataAtual();
-    const dataFim = getDataAtual();
-    setDataPesquisaInicio(dataInicio);
-    setDataPesquisaFim(dataFim);
+  // useEffect(() => {
+  //   const dataInicio = getDataAtual();
+  //   const dataFim = getDataAtual();
+  //   setDataPesquisaInicio(dataInicio);
+  //   setDataPesquisaFim(dataFim);
     
-  }, []);
+  // }, []);
 
 
   const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch } = useQuery(
@@ -43,7 +43,6 @@ export const ActionPesquisaVendasAlloc = () => {
       staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000
     }
   );
-  
 
   const fetchListaVendasAlloc = async () => {
     try {

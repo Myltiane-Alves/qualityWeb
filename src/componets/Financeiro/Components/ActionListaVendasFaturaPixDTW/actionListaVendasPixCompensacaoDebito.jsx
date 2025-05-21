@@ -14,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 
 export const ActionListaVendasPIXCompensacaoDebito = ({ dadosVendasPixCompensacao }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [ipUsuario, setIpUsuario] = useState('');
@@ -264,12 +263,15 @@ export const ActionListaVendasPIXCompensacaoDebito = ({ dadosVendasPixCompensaca
                     title="Vendas por PIX"
                     value={dadosListaVendasPix}
                     globalFilter={globalFilterValue}
-                    size={size}
+                    size="small"
                     sortField="VRTOTALPAGO"
                     sortOrder={-1}
                     paginator={true}
                     rows={10}
                     rowsPerPageOptions={[10, 20, 50, 100, dadosListaVendasPix.length]}
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                    filterDisplay="menu"
                     showGridlines
                     stripedRows
                     emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

@@ -11,7 +11,6 @@ import HeaderTable from "../../../Tables/headerTable";
 import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionListaVendas = ({ dadosVendas }) => {
-  const [size, setSize] = useState('small');
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [expandedRows, setExpandedRows] = useState([]);
   const dataTableRef = useRef();
@@ -332,12 +331,14 @@ export const ActionListaVendas = ({ dadosVendas }) => {
           <DataTable
             title="Vendas por Loja"
             value={dados}
-            size={size}
+            size="small"
             expandedRows={expandedRows}
             onRowToggle={(e) => setExpandedRows(e.data)}
             rowExpansionTemplate={(data) => <ExpandedCompenent data={data} />}
             sortOrder={-1}
-        
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

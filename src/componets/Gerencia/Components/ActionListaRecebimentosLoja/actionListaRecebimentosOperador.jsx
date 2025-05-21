@@ -9,11 +9,19 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { Row } from "primereact/row";
 import { ColumnGroup } from "primereact/columngroup";
+import { toFloat } from "../../../../utils/toFloat";
 
 
 export const ActionListaRecebimentosOperador = ({dadosRecebimentosOperador }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
   const dataTableRef = useRef();
+    
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  }  
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -81,14 +89,24 @@ export const ActionListaRecebimentosOperador = ({dadosRecebimentosOperador }) =>
       NOTEF: item.NOTEF,
     }
   });
-  const calcularTotal = (field) => {
+
+  const calcularTotalPagina = (field) => {
     return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
   };
-
+  
+  const calcularTotal = (field) => {
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dados.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + toFloat(item[field] || 0), 0);
+  };
+  
   const calcularTotalDinheiro = () => {
-    const total = calcularTotal('VALORRECEBIDO');
-    return total;
-  }
+    const totalPaginaDinheiro = calcularTotal('VALORRECEBIDO');
+    const totalVendas = calcularTotalPagina('VALORRECEBIDO' );
+    return `${formatMoeda(totalPaginaDinheiro)}   (${formatMoeda(totalVendas)} total)`;
+  };
+
 
   const colunasRecebimentosOperador = [
     {
@@ -149,7 +167,7 @@ export const ActionListaRecebimentosOperador = ({dadosRecebimentosOperador }) =>
 
       <Row> 
         <Column footer="Total " colSpan={4} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
-        <Column footer={formatMoeda(calcularTotalDinheiro())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalDinheiro()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
         <Column footer={""} colSpan={3}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
       </Row>
     </ColumnGroup>
@@ -181,7 +199,9 @@ export const ActionListaRecebimentosOperador = ({dadosRecebimentosOperador }) =>
             sortField="VRTOTALPAGO"
             sortOrder={-1}
             paginator={true}
-            rows={10}
+            first={first}
+            rows={rows}
+            onPage={onPageChange}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
             showGridlines
             stripedRows

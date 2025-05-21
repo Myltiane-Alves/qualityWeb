@@ -1,40 +1,39 @@
-import { Fragment, useEffect, useState } from "react"
-import { ActionMain } from "../../../Actions/actionMain"
-import { InputField } from "../../../Buttons/Input"
-import { ButtonType } from "../../../Buttons/ButtonType"
-import { getDataAtual } from "../../../../utils/dataAtual"
+import { Fragment, useEffect, useState } from "react";
+import { ActionMain } from "../../../Actions/actionMain";
+import { InputField } from "../../../Buttons/Input";
+import { ButtonType } from "../../../Buttons/ButtonType";
+import { calcularDataUmDiaMenos, getDataAtual } from "../../../../utils/dataAtual";
 import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 import { ActionListaSaldoLoja } from "./actionListaSaldoLoja";
 import { get } from "../../../../api/funcRequest";
-import { AiOutlineSearch } from "react-icons/ai"
+import { AiOutlineSearch } from "react-icons/ai";
 import { useQuery } from 'react-query';
-import { useFetchData } from "../../../../hooks/useFetchData"
+import { useFetchData } from "../../../../hooks/useFetchData";
 
 export const ActionPesquisaSaldoLoja = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [clickContador, setClickContador] = useState(0);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(1000)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
   useEffect(() => {
     const dataInicial = getDataAtual();
     setDataPesquisaInicio(dataInicial);
+  }, []);
 
-  }, [])
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', '/marcasLista');
 
-
   const getListaSaldoExtratoLoja = async () => {
-   
     try {
-      const urlApi = `/saldo-loja-por-grupo?idGrupoEmpresarial=${marcaSelecionada}&dataPesquisa=${dataPesquisaInicio}`;
+      const dataPesquisaFinal = calcularDataUmDiaMenos(dataPesquisaInicio);
+      const urlApi = `/saldo-loja-por-grupo?idGrupoEmpresarial=${marcaSelecionada}&dataPesquisa=${dataPesquisaFinal}`;
       const response = await get(urlApi);
-  
+
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
-  
+
         async function fetchNextPage(currentPage) {
           try {
             currentPage++;
@@ -50,25 +49,23 @@ export const ActionPesquisaSaldoLoja = () => {
             throw error;
           }
         }
-  
+
         await fetchNextPage(currentPage);
         return allData;
       } else {
-       
         return response.data;
       }
     } catch (error) {
       console.error('Erro ao buscar dados faturas loja:', error);
       throw error;
     }
-  }
+  };
 
   const { data: dadosSaldoExtratos = [], error: erroQuebra, isLoading: isLoadingQuebra, refetch: refetchListaSaldoExtratoLoja } = useQuery(
-    'lista-Quebra-Caixa',
+    'saldo-loja-por-grupo',
     () => getListaSaldoExtratoLoja(marcaSelecionada, dataPesquisaInicio, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
-
 
   const handleSelectMarca = (e) => {
     setMarcaSelecionada(e.value);
@@ -77,11 +74,11 @@ export const ActionPesquisaSaldoLoja = () => {
   const handleClick = () => {
     setClickContador(prevContador => prevContador + 1);
     if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      setCurrentPage(+1);
-      refetchListaSaldoExtratoLoja()
-    } 
-  }
+      setTabelaVisivel(true);
+      setCurrentPage(1);
+      refetchListaSaldoExtratoLoja();
+    }
+  };
 
   return (
     <Fragment>
@@ -100,8 +97,7 @@ export const ActionPesquisaSaldoLoja = () => {
         optionsMarcas={[
           ...optionsMarcas?.map((empresa) => ({
             value: empresa.IDGRUPOEMPRESARIAL,
-            label: empresa.DSGRUPOEMPRESARIAL,
-
+            label: empresa.GRUPOEMPRESARIAL,
           }))
         ]}
         valueSelectMarcas={marcaSelecionada}
@@ -116,9 +112,9 @@ export const ActionPesquisaSaldoLoja = () => {
 
       {tabelaVisivel && (
         <div className="mt-4 ">
-          <ActionListaSaldoLoja dadosSaldoExtratos={dadosSaldoExtratos}/> 
+          <ActionListaSaldoLoja dadosSaldoExtratos={dadosSaldoExtratos} />
         </div>
       )}
     </Fragment>
-  )
-}
+  );
+};

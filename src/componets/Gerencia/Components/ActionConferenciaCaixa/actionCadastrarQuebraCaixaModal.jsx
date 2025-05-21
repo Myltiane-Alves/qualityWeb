@@ -12,7 +12,7 @@ import Swal from "sweetalert2";
 import { getDataAtual } from "../../../../utils/dataAtual";
 import { dataFormatada } from "../../../../utils/dataFormatada";
 
-export const ActionCadastrarQuebraCaixaModal = ({ show, handleClose, dadosDetelheCaixa }) => {
+export const ActionCadastrarQuebraCaixaModal = ({ show, handleClose, dadosDetelheCaixa, usuarioLogado, optionsModulos }) => {
   const { register, handleSubmit, errors } = useForm();
   const [empresa, setEmpresa] = useState('')
   const [motivoAjuste, setMotivoAjuste] = useState('')
@@ -21,12 +21,12 @@ export const ActionCadastrarQuebraCaixaModal = ({ show, handleClose, dadosDetelh
   const [dinheiroInformado, setDinheiroInformado] = useState('')
   const [dinheiroAjuste, setDinheiroAjuste] = useState('')
   const [ipUsuario, setIpUsuario] = useState('')
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
+  
   const [dadosQuebraCaixasModal, setDadosQuebraCaixasModal] = useState([]);
   const [modalVisivelImprimir, setModalVisivelImprimir] = useState(false);
   const [modalQuebraVisivel, setModalQuebraVisivel] = useState(true);
   const dataTableRef = useRef();
-  const navigate = useNavigate();
+
 
   useEffect(() => {
     const dataAtual = getDataAtual();
@@ -35,23 +35,8 @@ export const ActionCadastrarQuebraCaixaModal = ({ show, handleClose, dadosDetelh
   }, [])
 
   useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
     getIPUsuario();
-  }, [usuarioLogado]);
+  }, []);
 
   const getIPUsuario = async () => {
     const response = await axios.get('http://ipwho.is/')
@@ -81,6 +66,19 @@ export const ActionCadastrarQuebraCaixaModal = ({ show, handleClose, dadosDetelh
 
   
   const onSubmit = async () => {
+    if(optionsModulos[0]?.ALTERAR == 'False') {
+      Swal.fire({
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para alterar este registro.',
+        icon: 'error',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        }
+      });
+      return;
+    }
+
     const TxTHistorico = 'Quebra de Caixa Automático';
     const postData = {
       IDCAIXAWEB: dadosDetelheCaixa[0].IDCAIXAFECHAMENTO,
@@ -98,6 +96,19 @@ export const ActionCadastrarQuebraCaixaModal = ({ show, handleClose, dadosDetelh
     try {
       const response = await post('/quebra-caixa-todos', postData)
 
+      const textDados = JSON.stringify(postData)
+      let textoFuncao = 'GERENCIA/CADASTRAR QUEBRA DE CAIXA';
+      
+      const createData = {
+        IDFUNCIONARIO: usuarioLogado.id,
+        PATHFUNCAO: textoFuncao,
+        DADOS: textDados,
+        IP: ipUsuario
+      }
+      
+      await post('/log-web', createData)
+      
+      await handleImprimir(dadosDetelheCaixa[0].ID);
       Swal.fire({
         title: 'Cadastro',
         text: 'Cadastro Realizada com Sucesso',
@@ -107,23 +118,20 @@ export const ActionCadastrarQuebraCaixaModal = ({ show, handleClose, dadosDetelh
           container: 'custom-swal',
         }
       });
-
-      const textDados = JSON.stringify(postData)
+      return response.data;
+    } catch (error) {
+        const textDados = JSON.stringify(postData)
       let textoFuncao = 'GERENCIA/CADASTRAR QUEBRA DE CAIXA';
-
-
+      
+      
       const createData = {
         IDFUNCIONARIO: usuarioLogado.id,
         PATHFUNCAO: textoFuncao,
         DADOS: textDados,
         IP: ipUsuario
       }
-
-      const responsePost = await post('/log-web', createData)
       
-      await handleImprimir(dadosDetelheCaixa[0].ID);
-      return responsePost.data;
-    } catch (error) {
+      const responsePost = await post('/log-web', createData)
       Swal.fire({
         title: 'Cadastro',
         text: 'Erro ao Tentar Cadastrar',
@@ -135,6 +143,7 @@ export const ActionCadastrarQuebraCaixaModal = ({ show, handleClose, dadosDetelh
       });
 
       console.log(error);
+      return responsePost.data
     }
   }
 

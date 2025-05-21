@@ -19,7 +19,7 @@ export const ActionPesquisaProdutosPreco = () => {
   const [marcaSelecionada, setMarcaSelecionada] = useState('')
   const [codBarra, setCodBarra] = useState('')
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(100);
+  const [pageSize, setPageSize] = useState(1000);
 
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useQuery(
     'marcasLista',
@@ -29,8 +29,8 @@ export const ActionPesquisaProdutosPreco = () => {
     },
     { staleTime: 5 * 60 * 1000 }
   );
-  
- 
+
+
   const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch: refetchEmpresas } = useQuery(
     ['listaEmpresaComercial', marcaSelecionada],
     async () => {
@@ -47,26 +47,30 @@ export const ActionPesquisaProdutosPreco = () => {
     if (marcaSelecionada) {
       refetchEmpresas();
     }
-  }, [marcaSelecionada, refetchEmpresas]); 
+  }, [marcaSelecionada, refetchEmpresas]);
 
 
   const fetchProdutoSap = async () => {
     try {
-      
-      const urlApi = `/produto-preco?idEmpresa=${empresaSelecionada}&descricaoProduto=${codBarra}`;
+
+      const urlApi = `/produto-preco-novo?idEmpresa=${empresaSelecionada}&dsProduto=${codBarra}`;
       const response = await get(urlApi);
-      
+
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
-        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
-  
-        async function fetchNextPage(currentPage) {
+
+        async function fetchNextPage(page) {
           try {
-            currentPage++;
-            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
-            if (responseNextPage.length) {
+            const rows = response.rows || response.data.length || 0;
+            const totalPages = Math.ceil(rows / pageSize);
+            console.log('Total de páginas:', totalPages);
+            page++;
+            setCurrentPage(page);
+            animacaoCarregamento(`Carregando... Página ${page} de ${totalPages}`, true);
+            const responseNextPage = await get(`${urlApi}&page=${page}`);
+            if (responseNextPage.data.length) {
               allData.push(...responseNextPage.data);
-              return fetchNextPage(currentPage);
+              return fetchNextPage(page);
             } else {
               return allData;
             }
@@ -75,14 +79,14 @@ export const ActionPesquisaProdutosPreco = () => {
             throw error;
           }
         }
-  
+
         await fetchNextPage(currentPage);
         return allData;
       } else {
-       
+
         return response.data;
       }
-  
+
     } catch (error) {
       console.error('Error fetching data:', error);
       throw error;
@@ -92,28 +96,37 @@ export const ActionPesquisaProdutosPreco = () => {
   };
 
   const { data: dadosProdutosSap = [], error: erroQuebra, isLoading: isLoadingQuebra, refetch: refetchProdutoSap } = useQuery(
-    'produto-preco',
+    '/produto-preco-novo',
     () => fetchProdutoSap(empresaSelecionada, codBarra, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 
+
   const fetchProdutosQuality = async () => {
     try {
-      
-      const urlApi = `/produtoQuality?descricaoProduto=${codBarra}&idEmpresa=${empresaSelecionada}`;
+
+      const urlApi = `produtoQuality?descricaoProduto=${codBarra}&idEmpresa=${empresaSelecionada}`;
       const response = await get(urlApi);
-      
+
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
-        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
-  
-        async function fetchNextPage(currentPage) {
+        // animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
+        async function fetchNextPage(page) {
           try {
-            currentPage++;
-            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
-            if (responseNextPage.length) {
+            const rows = response.rows || response.data.length || 0;
+            const totalPages = Math.ceil(rows / pageSize);
+
+            // page++;
+            setCurrentPage((prevPage) => {
+              const nextPage = prevPage + 1;
+              animacaoCarregamento(`Carregando... Página ${page} de ${totalPages}`, true);
+              return nextPage;
+            });
+            const responseNextPage = await get(`${urlApi}&page=${page}`);
+            if (responseNextPage.data.length) {
               allData.push(...responseNextPage.data);
-              return fetchNextPage(currentPage);
+              return fetchNextPage(page + 1);
             } else {
               return allData;
             }
@@ -122,14 +135,14 @@ export const ActionPesquisaProdutosPreco = () => {
             throw error;
           }
         }
-  
+
         await fetchNextPage(currentPage);
         return allData;
       } else {
-       
+
         return response.data;
       }
-  
+
     } catch (error) {
       console.error('Error fetching data:', error);
       throw error;
@@ -140,7 +153,7 @@ export const ActionPesquisaProdutosPreco = () => {
 
   const { data: dadosProdutosQuality = [], error: erroQuality, isLoading: isLoadingQuality, refetch: refetchProdutosQuality } = useQuery(
     'produtoQuality',
-    () => fetchProdutosQuality(codBarra, empresaSelecionada, currentPage, pageSize),
+    () => fetchProdutosQuality(empresaSelecionada, codBarra, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 
@@ -153,7 +166,7 @@ export const ActionPesquisaProdutosPreco = () => {
 
 
   const handleSelectMarcas = (e) => {
-    setMarcaSelecionada(e.value);   
+    setMarcaSelecionada(e.value);
   }
 
   const handleInputChange = (e) => {
@@ -161,10 +174,10 @@ export const ActionPesquisaProdutosPreco = () => {
   }
 
   const handleClickSap = () => {
-    if(empresaSelecionada === '') {
+    if (empresaSelecionada === '') {
       alert('Selecione uma Marca e uma Empresa')
     } else {
-
+      setCurrentPage(prevPage => prevPage + 1);
       refetchProdutoSap(empresaSelecionada)
       setTabelaSapVisivel(true);
       setTabelaQualityVisivel(false);
@@ -172,9 +185,10 @@ export const ActionPesquisaProdutosPreco = () => {
   }
 
   const handleClickQuality = () => {
-    if(empresaSelecionada === '') {
+    if (empresaSelecionada === '') {
       alert('Selecione uma Marca e uma Empresa')
     } else {
+      setCurrentPage(prevPage => prevPage + 1);
       refetchProdutosQuality(empresaSelecionada)
       setTabelaQualityVisivel(true);
       setTabelaSapVisivel(false);
@@ -193,7 +207,7 @@ export const ActionPesquisaProdutosPreco = () => {
         InputSelectEmpresaComponent={InputSelectAction}
         optionsEmpresas={[
           { value: '', label: 'Selecione uma loja' },
-            ...optionsEmpresas.map((empresa) => ({
+          ...optionsEmpresas.map((empresa) => ({
             value: empresa.IDEMPRESA,
             label: empresa.NOFANTASIA,
           }))
@@ -205,10 +219,10 @@ export const ActionPesquisaProdutosPreco = () => {
         InputSelectMarcasComponent={InputSelectAction}
         labelSelectMarcas={"Marcas"}
         optionsMarcas={[
-          { value: '', label: 'Selecione uma Marca' },          
+          { value: '', label: 'Selecione uma Marca' },
           ...optionsMarcas.map((empresa) => ({
-          value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.DSGRUPOEMPRESARIAL,
+            value: empresa.IDGRUPOEMPRESARIAL,
+            label: empresa.GRUPOEMPRESARIAL,
 
           }))
         ]}

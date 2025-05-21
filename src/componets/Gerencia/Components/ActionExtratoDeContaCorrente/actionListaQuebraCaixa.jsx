@@ -5,37 +5,36 @@ import { toFloat } from "../../../../utils/toFloat";
 export const ActionListaQuebraCaixa = ({ dadosExtratoLojaPeriodo, dados }) => {
   const [dadosQuebra, setDadosQuebra] = useState([]);
 
-  useEffect(() => {
+
     let saldoAnteriorAdiantamentos = dados[0]?.saldoAnteriorAdiantamentos;
-    const dadosCalculados = dadosExtratoLojaPeriodo.flatMap((item) =>
-      item.quebracaixa.map((quebracaixa) => {
-        const calcularTotalDinheiroInformado = () => {
-          let dinheiroInformado = 0;
-          if (toFloat(quebracaixa.VRAJUSTDINHEIRO) > 0) {
-            dinheiroInformado = toFloat(quebracaixa.VRAJUSTDINHEIRO);
-          } else {
-            dinheiroInformado = toFloat(quebracaixa.VRRECDINHEIRO);
-          }
-          return dinheiroInformado;
-        };
+    const dadosCalculados = dadosExtratoLojaPeriodo.map((item) => {
+      const calcularTotalDinheiroInformado = () => {
+        let dinheiroInformado = 0;
+        if (toFloat(item.quebracaixa.VRAJUSTDINHEIRO) > 0) {
+          dinheiroInformado = toFloat(item.quebracaixa.VRAJUSTDINHEIRO);
+        } else {
+          dinheiroInformado = toFloat(item.quebracaixa.VRRECDINHEIRO);
+        }
+        return dinheiroInformado;
+      };
+    
         
-        const totalQuebraCaixa = calcularTotalDinheiroInformado() - toFloat(quebracaixa.VRFISICODINHEIRO);
+        const totalQuebraCaixa = calcularTotalDinheiroInformado() - toFloat(item.quebracaixa.VRFISICODINHEIRO);
         const saldoAnteriorQuebra = saldoAnteriorAdiantamentos + totalQuebraCaixa;
     
         return {
-          IDMOV: quebracaixa.IDMOV,
-          DTMOVCAIXA: quebracaixa.DTMOVCAIXA,
-          FUNCIONARIOMOV: quebracaixa.FUNCIONARIOMOV,
-          VRFISICODINHEIRO: quebracaixa.VRFISICODINHEIRO,
-          VRRECDINHEIROQUEBRA: quebracaixa.VRRECDINHEIRO,
-          VRAJUSTDINHEIRO: quebracaixa.VRAJUSTDINHEIRO,
+          IDMOV: item.quebracaixa.IDMOV,
+          DTMOVCAIXA: item.quebracaixa.DTMOVCAIXA,
+          FUNCIONARIOMOV: item.quebracaixa.FUNCIONARIOMOV,
+          VRFISICODINHEIRO: item.quebracaixa.VRFISICODINHEIRO,
+          VRRECDINHEIROQUEBRA: item.quebracaixa.VRRECDINHEIRO,
+          VRAJUSTDINHEIRO: item.quebracaixa.VRAJUSTDINHEIRO,
           totalQuebraCaixa: totalQuebraCaixa,
           saldoAnteriorQuebra: saldoAnteriorQuebra
         };
-      })
+      }
     );
-    setDadosQuebra(dadosCalculados);
-  }, [dadosExtratoLojaPeriodo, dados]);
+
   
   return (
     <Fragment>

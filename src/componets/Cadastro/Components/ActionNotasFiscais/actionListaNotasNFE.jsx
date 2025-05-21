@@ -1,10 +1,10 @@
 import { Fragment, useRef, useState } from "react"
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { CiEdit } from "react-icons/ci";
 import { get } from "../../../../api/funcRequest";
 
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -16,10 +16,11 @@ import { FaUnlink } from "react-icons/fa";
 import { GiPadlock, GiPadlockOpen } from "react-icons/gi";
 import { GrFormView } from "react-icons/gr";
 import { SiSap } from "react-icons/si";
+import { ActionDesvincularNotasNFEModal } from "./actionDesvincularNotasNFEModal";
 
 export const ActionListaNotasNFE = ({ dadosNFE }) => {
-  const [modalEditar, setModalEditar] = useState(false);
-  const [dadosDetalheEstilos, setDadosDetalheEstilos] = useState([]);
+  const [modalDesvincular, setModalDesvincular] = useState(false);
+  const [dadosPedidosVinculados, setDadosPedidosVinculados] = useState([]);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
 
@@ -64,7 +65,7 @@ export const ActionListaNotasNFE = ({ dadosNFE }) => {
     XLSX.writeFile(workbook, 'lista_estilos.xlsx');
   };
 
-  console.log(dadosNFE, 'dadosNFE');
+
   const dados = dadosNFE.map((item, index) => {
     let contador = index + 1;
 
@@ -166,120 +167,62 @@ export const ActionListaNotasNFE = ({ dadosNFE }) => {
       field: 'IDRESUMOENTRADA',
       header: 'Opções',
       body: row => {
-        if(row.STCANCELADO == 'True'){
-          return (
-            <div style={{ justifyContent: "space-between", display: "flex" }}>
-       
-              <div className="p-1">
-                <ButtonTable
-                  titleButton={"Visualizar Nota"}
-                  onClickButton={() => clickVisualizar(row)}
-                  cor={"info"}
-                  Icon={GrFormView}
-                  iconSize={22}
-                  iconColor={"#fff"}
-    
-                />
-              </div>
-            
-            </div>
-          )
-
-        } else {
-          return (
-            <div style={{ justifyContent: "space-between", display: "flex" }}>
-              {row.STMIGRADOSAP == 'True' && (
-                <div>
-                </div>
-              ) || (
-                <div className="p-1">
-                  <ButtonTable
-                    titleButton={"Migrar Para o SAP"}
-                    onClickButton={() => clickMigrar(row)}
-                    cor={"primary"}
-                    Icon={SiSap}
-                    iconSize={22}
-                    iconColor={"#fff"}
+        return (
+          <div style={{ justifyContent: "space-between", display: "flex" }}>
       
-                  />
-                </div>
-
-              )}
-              <div className="p-1">
-                <ButtonTable
-                  titleButton={"Visualizar Nota"}
-                  onClickButton={() => clickVisualizar(row)}
-                  cor={"info"}
-                  Icon={GrFormView}
-                  iconSize={22}
-                  iconColor={"#fff"}
-    
-                />
-              </div>
-              <div className="p-1">
-                <ButtonTable
-                  titleButton={"Vincular Nota Fiscal a Pedidos"}
-                  onClickButton={() => clickVincular(row)}
-                  cor={"success"}
-                  Icon={GiPadlock}
-                  iconSize={22}
-                  iconColor={"#fff"}
-    
-                />
-              </div>
-              <div className="p-1">
-                <ButtonTable
-                  titleButton={"Desvincular Pedidos Desta Nota Fiscal"}
-                  onClickButton={() => clickDesVincular(row)}
-                  cor={"warning"}
-                  Icon={GiPadlockOpen}
-                  iconSize={22}
-                  iconColor={"#fff"}
-    
-                />
-              </div>
-              <div className="p-1">
-                <ButtonTable
-                  titleButton={"Criar Nota Fiscal de Devolução"}
-                  onClickButton={() => clickCriarNota(row)}
-                  cor={"warning"}
-                  Icon={MdOutlineCreateNewFolder}
-                  iconSize={22}
-                  iconColor={"#fff"}
-    
-                />
-              </div>
-              <div className="p-1">
-                <ButtonTable
-                  titleButton={"Cancelar Nota Fiscal"}
-                  onClickButton={() => clickCriarNota(row)}
-                  cor={"danger"}
-                  Icon={BsTrash3}
-                  iconSize={22}
-                  iconColor={"#fff"}
-    
-                />
-              </div>
-
+            <div className="p-1">
+              <ButtonTable
+                titleButton={"Vincular Nota Fiscal a Pedidos"}
+                onClickButton={() => clickVincular(row)}
+                cor={"success"}
+                Icon={GiPadlock}
+                iconSize={22}
+                iconColor={"#fff"}
+  
+              />
             </div>
-          )
-        }
+            <div className="p-1">
+              <ButtonTable
+                titleButton={"Desvincular Pedidos Desta Nota Fiscal"}
+                onClickButton={() => clickDesvincular(row)}
+                cor={"warning"}
+                Icon={GiPadlockOpen}
+                iconSize={22}
+                iconColor={"#fff"}
+  
+              />
+            </div>
+
+            <div className="p-1">
+              <ButtonTable
+                titleButton={"Cancelar Nota Fiscal"}
+                onClickButton={() => clickCriarNota(row)}
+                cor={"danger"}
+                Icon={BsTrash3}
+                iconSize={22}
+                iconColor={"#fff"}
+  
+              />
+            </div>
+          
+          </div>
+        )
       },
       sortable: true,
     }
   ]
 
-  const clickEditar = (row) => {
-    if (row && row.ID_ESTILOS) {
-      handleEditar(row.ID_ESTILOS);
+  const clickDesvincular = (row) => {
+    if (row && row.IDRESUMOENTRADA) {
+      handleDesvincular(row.IDRESUMOENTRADA);
     }
   };
 
-  const handleEditar = async (ID_ESTILOS) => {
+  const handleDesvincular = async (IDRESUMOENTRADA) => {
     try {
-      const response = await get(`/listaEstilos?idEstilo=${ID_ESTILOS}`);
-      setDadosDetalheEstilos(response.data);
-      setModalEditar(true)
+      const response = await get(`/vinculo-nfPedidos?idNota=${IDRESUMOENTRADA}`);
+      setDadosPedidosVinculados(response.data);
+      setModalDesvincular(true);
     } catch (error) {
       console.error(error);
     }
@@ -288,9 +231,9 @@ export const ActionListaNotasNFE = ({ dadosNFE }) => {
   return (
     <Fragment>
       <div className="panel">
-      <div className="panel-hdr">
-        <h2>Lista de Notas Fiscais</h2>
-      </div>
+        <div className="panel-hdr">
+          <h2>Lista de Notas Fiscais</h2>
+        </div>
         <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
           <HeaderTable
             globalFilterValue={globalFilterValue}
@@ -303,8 +246,9 @@ export const ActionListaNotasNFE = ({ dadosNFE }) => {
         </div>
         <div className="card mb-4" ref={dataTableRef}>
           <DataTable
-            title="Vendas por Loja"
+            title="Notas Fiscais"
             value={dados}
+            globalFilter={globalFilterValue}
             size="small"
             sortOrder={-1}
             paginator={true}
@@ -330,8 +274,14 @@ export const ActionListaNotasNFE = ({ dadosNFE }) => {
               />
             ))}
           </DataTable>
+        </div>
+
+        <ActionDesvincularNotasNFEModal 
+          show={modalDesvincular}
+          handleClose={() => setModalDesvincular(false)}
+          dadosPedidosVinculados={dadosPedidosVinculados}
+        />
       </div>
-    </div>
 
     </Fragment>
   )

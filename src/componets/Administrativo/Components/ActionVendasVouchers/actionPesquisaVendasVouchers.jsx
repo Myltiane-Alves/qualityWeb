@@ -1,6 +1,5 @@
 import React, { Fragment, useState, useEffect } from "react"
 import { get } from "../../../../api/funcRequest";
-import { formatMoeda } from "../../../../utils/formatMoeda";
 import { ActionMain } from "../../../Actions/actionMain";
 import { InputField } from "../../../Buttons/Input";
 import { ButtonType } from "../../../Buttons/ButtonType";
@@ -13,19 +12,13 @@ import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../ut
 
 
 export const ActionPesquisaVendasVouchers = () => {
-  // const [dadosVendasClientes, setDadosVendasClientes] = useState([]);
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
-  const [pesquisaVendas, setPesquisaVendas] = useState(false)
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
   const [dataPesquisaFim, setDataPesquisaFim] = useState('')
-  const [dadosEmpresas, setDadosEmpresas] = useState([]);
-  const [dadosMarcas, setDadosMarca] = useState([]);
   const [numeroSerie, setNumeroSerie] = useState('');
   const [numeroNFCE, setNumeroNFCE] = useState('');
   const [cpfNumeroVenda, setCPFNumeroVenda] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
-  const [grupoSelecionado, setGrupoSelecionado] = useState('')
   const [marcaSelecionada, setMarcaSelecionada] = useState('')
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
@@ -61,7 +54,6 @@ export const ActionPesquisaVendasVouchers = () => {
   useEffect(() => {
     if (marcaSelecionada) {
       refetchEmpresas();
-   
     }
     refetchMarcas()
   }, [marcaSelecionada, refetchEmpresas]);
@@ -71,13 +63,10 @@ export const ActionPesquisaVendasVouchers = () => {
       
       const urlApi = `/lista-venda-cliente?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&cpfOUidVenda=${cpfNumeroVenda}&nff=${numeroNFCE}&serie=${numeroSerie}&idSubGrupoEmpresarial=${marcaSelecionada}&idEmpresa=${empresaSelecionada}`;    
       const response = await get(urlApi);
-      
    
       if (response.data && response.data.length === pageSize) {
         let allData = [...response.data];
         animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.page}`, true);
-
-  
         async function fetchNextPage(currentPage) {
           try {
             currentPage++;
@@ -109,7 +98,7 @@ export const ActionPesquisaVendasVouchers = () => {
     }
   };
    
-  
+
   const { data: dadosVendasClientes = [], error: errorVendasVendedor, isLoading: isLoadingVendasVendedor, refetch: refetchListaVendasVendedor } = useQuery(
     ['lista-venda-cliente', dataPesquisaInicio, dataPesquisaFim, cpfNumeroVenda, numeroNFCE, numeroSerie, marcaSelecionada, empresaSelecionada, currentPage, pageSize],
     () => fetchListaVendasVendedor(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
@@ -118,31 +107,18 @@ export const ActionPesquisaVendasVouchers = () => {
     }
   )
 
-
   const handleSelectGrupo = (e) => {
     setMarcaSelecionada(e.value);
   };
-
 
   const handleSelectEmpresa = (e) => {
     setEmpresaSelecionada(e.value)
   }
 
-  const handlePesquisaVendasVisivel = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setPesquisaVendas(false)
-    } else {
-      setPesquisaVendas(true)
-    }
-  }
-
   const handleClick = () => {
-
-    setTabelaVisivel(true)
-    setCurrentPage(+1)
+    setCurrentPage(prevPage => prevPage + 1)
     refetchListaVendasVendedor()  
+    setTabelaVisivel(true)
   }
 
 
@@ -174,7 +150,7 @@ export const ActionPesquisaVendasVouchers = () => {
             return {
               
               value: marca.IDGRUPOEMPRESARIAL,
-              label: marca.DSGRUPOEMPRESARIAL,
+              label: marca.GRUPOEMPRESARIAL,
             }
           })
         ]}
@@ -221,10 +197,8 @@ export const ActionPesquisaVendasVouchers = () => {
       />
 
       
-    
       <ActionListaVendasVouchers dadosVendasClientes={dadosVendasClientes} />
       
-
     </Fragment>
   )
 }

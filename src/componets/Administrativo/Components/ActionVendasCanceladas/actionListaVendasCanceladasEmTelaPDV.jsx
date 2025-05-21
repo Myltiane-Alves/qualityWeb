@@ -15,7 +15,7 @@ import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 import { ActionDetalheVendaModal } from "../ActionVendasContigencia/actionDetalheVendaModal";
 import { ActionDetalheVendaProdutosModal } from "../ActionsModaisVendas/actionDetalheVendaProdutosModal";
-import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/actionRelacaoRecebimentosModal";
+import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/ActionRecebimentos/actionRelacaoRecebimentosModal";
 
 export const ActionListaVendasCanceladasEmTelaPDV = ({ dadosVendasCanceladasEmTelaPDV }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
@@ -314,6 +314,8 @@ export const ActionListaVendasCanceladasEmTelaPDV = ({ dadosVendasCanceladasEmTe
               onClickButton={() => handleClickVenda(row)}
               Icon={GrView}
               cor={"info"}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -322,6 +324,8 @@ export const ActionListaVendasCanceladasEmTelaPDV = ({ dadosVendasCanceladasEmTe
               onClickButton={() => handleClickProduto(row)}
               Icon={FaProductHunt}
               cor={"warning"}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -330,6 +334,8 @@ export const ActionListaVendasCanceladasEmTelaPDV = ({ dadosVendasCanceladasEmTe
               onClickButton={() => handleClickPagamento(row)}
               Icon={MdOutlineAttachMoney}
               cor={"success"}
+              width="30px"
+              height="30px"
             />
           </div>
         </div>
@@ -427,6 +433,9 @@ export const ActionListaVendasCanceladasEmTelaPDV = ({ dadosVendasCanceladasEmTe
             value={dadosListaVendasCanceladas}
             globalFilter={globalFilterValue}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaVendasCanceladas.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             sortField="VRTOTALPAGO"
             sortOrder={-1}
             paginator={true}

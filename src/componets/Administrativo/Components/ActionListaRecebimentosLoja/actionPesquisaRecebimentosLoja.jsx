@@ -39,7 +39,6 @@ export const ActionPesquisaRecebimentosLoja = () => {
   const { data: optionsEmpresas = [],} = useFetchEmpresas(marcaSelecionada);
   const {  data: dadosFormaPagamento = [], error: errorFormaPagamentos, isLoading: isLoadingFormaPagamentos, } = useFetchData('forma-pagamentos', '/forma-pagamentos');
 
-  
 
   const { data: dadosFuncionarios = [], error: errorFuncionarios, isLoading: isLoadingFuncionarios, refetch: refetchFuncionarios } = useQuery(
     'funcionario-recebimento',
@@ -58,7 +57,6 @@ export const ActionPesquisaRecebimentosLoja = () => {
 
   const fetchListaRecebimentos = async () => {
     try {
-      
       
       const urlApi = `/venda-total-forma-pagamento?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idFuncionario=${colaboradorSelecionado}&dsFormaPagamento=${pagamentoSelecionado}&dsParcela=${parcelaSelecionada}&idGrupo=${marcaSelecionada}`;
       const response = await get(urlApi);
@@ -250,7 +248,7 @@ export const ActionPesquisaRecebimentosLoja = () => {
             return {
               
               value: marca.IDGRUPOEMPRESARIAL,
-              label: marca.DSGRUPOEMPRESARIAL,
+              label: marca.GRUPOEMPRESARIAL,
             }
           })
         ]}

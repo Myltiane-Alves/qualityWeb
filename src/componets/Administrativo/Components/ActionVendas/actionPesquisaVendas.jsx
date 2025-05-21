@@ -14,7 +14,7 @@ export const ActionPesquisaVendas = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(1000)
 
-  const fetchQuebra = async () => {
+  const fetchVenda = async () => {
     try {
       
       const urlApi = `/lista-venda/:id?idVenda=${idVenda}`;
@@ -57,7 +57,7 @@ export const ActionPesquisaVendas = () => {
 
   const { data: dadosVendas = [], error: erroQuebra, isLoading: isLoadingQuebra, refetch } = useQuery(
     'lista-venda-id',
-    () => fetchQuebra(idVenda, currentPage, pageSize),
+    () => fetchVenda(idVenda, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 

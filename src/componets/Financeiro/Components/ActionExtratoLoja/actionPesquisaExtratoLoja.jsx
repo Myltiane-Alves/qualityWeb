@@ -11,7 +11,7 @@ import { useQuery } from 'react-query';
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
 import { useFetchData } from "../../../../hooks/useFetchData"
 
-export const ActionPesquisaExtratoLoja = () => {
+export const ActionPesquisaExtratoLoja = ({usuarioLogado, ID}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
@@ -38,6 +38,14 @@ export const ActionPesquisaExtratoLoja = () => {
   }, [])
 
   const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas } = useFetchData('listaEmpresasIformatica', '/listaEmpresasIformatica');
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const fetchExtratoLoja = async () => {
     try {
@@ -154,6 +162,9 @@ export const ActionPesquisaExtratoLoja = () => {
             dadosTotalAdiantamentos={dadosTotalAdiantamentos}
             dadosAjusteExtrato={dadosAjusteExtrato}
             dadosExtratoLoja={dadosExtratoLoja}
+            usuarioLogado={usuarioLogado}
+            optionsModulos={optionsModulos}
+            empresaSelecionada={empresaSelecionada}
           />
           </div>
 

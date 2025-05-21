@@ -6,9 +6,10 @@ import { ButtonType } from "../../../Buttons/ButtonType";
 import { get, put } from "../../../../api/funcRequest";
 import { AiOutlineSearch } from "react-icons/ai";
 import { ActionListaFuncionarios } from "./actionListaFuncionarios";
-import { ActionCadastrarFuncionarioModal } from "./actionCadastarFuncionarioModal";
+// import { ActionCadastrarFuncionarioModal } from "./ActionCadastrar/actionCadastrarFuncionario";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { IoIosAdd } from "react-icons/io";
 
 
 export const ActionPesquisaFuncionarios = () => {
@@ -40,6 +41,7 @@ export const ActionPesquisaFuncionarios = () => {
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
+        
         let allData = [...response.data];
         animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
   
@@ -136,17 +138,17 @@ export const ActionPesquisaFuncionarios = () => {
         linkNome={"Cadastrar "}
         onButtonClickCadastro={handleCadastro}
         corCadastro={"success"}
-        IconCadastro={AiOutlineSearch}
-        />
+        IconCadastro={IoIosAdd}
+      />
 
 
-        <ActionListaFuncionarios dadosFuncionarios={dadosFuncionarios} />
+      <ActionListaFuncionarios dadosFuncionarios={dadosFuncionarios} />
       
-
+{/* 
       <ActionCadastrarFuncionarioModal 
         show={modalCadastro}
         handleClose={() => setModalCadastro(false)}
-      />
+      /> */}
     </Fragment>
   )
 }

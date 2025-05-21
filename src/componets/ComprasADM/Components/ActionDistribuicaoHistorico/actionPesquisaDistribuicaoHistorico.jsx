@@ -6,59 +6,91 @@ import { ButtonType } from "../../../Buttons/ButtonType";
 import { get } from "../../../../api/funcRequest";
 import { getDataAtual } from "../../../../utils/dataAtual";
 import { ActionListaPedidoCompra } from "./actionListaPedidoCompra";
+import { useFetchData } from "../../../../hooks/useFetchData";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { useQuery } from "react-query";
 
 
 export const ActionPesquisaDistribuicaoHistorico = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [modalVisivel, setModalVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
   const [dataPesquisaFim, setDataPesquisaFim] = useState('')
-  const [dadosFonecedores, setDadosFonecedores] = useState([])
   const [fornecedorSelecionado, setFornecedorSelecionado] = useState('')
   const [numeroPedido, setNumeroPedido] = useState('')
-  const [dadosPedidosCompra, setDadosPedidosCompra] = useState([])
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
+
 
   useEffect(() => {
     const dataInicial = getDataAtual()
     const dataFim = getDataAtual()
     setDataPesquisaInicio(dataInicial)
     setDataPesquisaFim(dataFim)
-    getListFornecedores()
+ 
   }, [])
-
-  const getListFornecedores = async () => {
-    try {
-      const response = await get('/fornecedores');
-      setDadosFonecedores(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  const getListaPedidoCompra = async () => {
-    try {
-      const response = await get(`distribuicaoComprasHistorico?idFornecedor=${fornecedorSelecionado}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`)
-      if (response.data) {
-        setDadosPedidosCompra(response.data)
-        // console.log(response.data, 'get tabelas')
+  
+    const fetchListaPedidos = async () => {
+      try {
+      
+        const urlApi = `/distribuicao-compras-historico?idFornecedor=${fornecedorSelecionado}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+        const response = await get(urlApi);
+        
+        if (response.data.length && response.data.length === pageSize) {
+          let allData = [...response.data];
+          animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+    
+          async function fetchNextPage(currentPage) {
+            try {
+              currentPage++;
+              const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+              if (responseNextPage.length) {
+                allData.push(...responseNextPage.data);
+                return fetchNextPage(currentPage);
+              } else {
+                return allData;
+              }
+            } catch (error) {
+              console.error('Erro ao buscar próxima página:', error);
+              throw error;
+            }
+          }
+    
+          await fetchNextPage(currentPage);
+          return allData;
+        } else {
+          
+          return response.data;
+        }
+    
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+      } finally {
+        fecharAnimacaoCarregamento();
       }
-    } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
-    }
-  }
+    };
+      
+    const { data: dadosPedidosCompra = [], error: errorPedidos, isLoading: isLoadingPedidos, refetch: refetchListaPedidos } = useQuery(
+      ['imagemProdutos', fornecedorSelecionado, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+      () => fetchListaPedidos(fornecedorSelecionado, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+      { enabled: true, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+    )
+  
+    const { data: dadosFonecedores = [], error: errorFornecedor, isLoading: isLoadingFornecedor } = useFetchData('fornecedores', '/fornecedores');
+
+
+
+
 
   const handleSelectFornecedor = (e) => {
     setFornecedorSelecionado(e.value);
   }
 
   const handleClickActionDistribuicaoCompras = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      getListaPedidoCompra()
-    } 
+    setCurrentPage(prevPage => prevPage + 1)
+    refetchListaPedidos()
+    setTabelaVisivel(true)
   }
 
   const handleModalVisivel = () => {
@@ -115,6 +147,7 @@ export const ActionPesquisaDistribuicaoHistorico = () => {
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}
         onButtonClickSearch={handleClickActionDistribuicaoCompras}
+        corSearch={"primary"}
       />
 
       {tabelaVisivel && (

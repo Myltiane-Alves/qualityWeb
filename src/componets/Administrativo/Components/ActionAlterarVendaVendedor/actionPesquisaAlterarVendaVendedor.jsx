@@ -9,8 +9,9 @@ import { getDataAtual } from "../../../../utils/dataAtual";
 import { AiOutlineSearch } from "react-icons/ai";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { useFetchData } from "../../../../hooks/useFetchData";
 
-export const ActionPesquisaAlterarVendaVendedor = () => {
+export const ActionPesquisaAlterarVendaVendedor = ({ usuarioLogado, ID }) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
   const [dataPesquisaFim, setDataPesquisaFim] = useState('')
@@ -19,6 +20,8 @@ export const ActionPesquisaAlterarVendaVendedor = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
   const [isLoading, setIsLoading] = useState(false);
+  const [isQueryVenda, setIsQueryVenda] = useState(false);
+
 
   useEffect(() => {
     const dataInicial = getDataAtual();
@@ -27,23 +30,23 @@ export const ActionPesquisaAlterarVendaVendedor = () => {
     setDataPesquisaFim(dataFinal);
   }, [])
 
-
-
-  const { data: dadosEmpresa = [], error: errorMarcas, isLoading: isLoadingMarcas } = useQuery(
-    'empresas',
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
     async () => {
-      const response = await get(`/empresas`);
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
       return response.data;
     },
-    { staleTime: 5 * 60 * 1000 }
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
   );
+
+  const { data: dadosEmpresa = [], error: errorEmpresa, isLoading: isLoadingEmpresa } = useFetchData('empresas', '/empresas')
 
   const fetchVendasAtiva = async () => {
     try {
       
-      const urlApi = `/venda-ativa?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/venda-ativa?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&statusCancelado=False`;
       const response = await get(urlApi);
-      
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
         animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
@@ -84,7 +87,7 @@ export const ActionPesquisaAlterarVendaVendedor = () => {
     ['venda-ativa', empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchVendasAtiva(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     {
-      enabled: Boolean(empresaSelecionada && dataPesquisaInicio && dataPesquisaFim), 
+      enabled: Boolean(isQueryVenda), 
       staleTime: 5 * 60 * 1000,
     }
   );
@@ -99,6 +102,7 @@ export const ActionPesquisaAlterarVendaVendedor = () => {
     setTabelaVisivel(true)
     setIsLoading(true)
     setCurrentPage(prevPage => prevPage + 1)
+    setIsQueryVenda(true)
     refetchVendasAtiva()
   }
 
@@ -146,7 +150,12 @@ export const ActionPesquisaAlterarVendaVendedor = () => {
 
       {tabelaVisivel &&
         <>
-          <ActionListaAlterarVendaVendedor empresaSelecionada={empresaSelecionada} dadosVendasAtivas={dadosVendasAtivas}/>  
+          <ActionListaAlterarVendaVendedor 
+            empresaSelecionada={empresaSelecionada} 
+            dadosVendasAtivas={dadosVendasAtivas}
+            optionsModulos={optionsModulos}
+            usuarioLogado={usuarioLogado}  
+          />  
         </>
       }
 

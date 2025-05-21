@@ -10,7 +10,6 @@ import HeaderTable from "../../../Tables/headerTable";
 
 export const ActionListaFaturasPix = ({ dadosVendasFaturasPix }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -73,50 +72,50 @@ export const ActionListaFaturasPix = ({ dadosVendasFaturasPix }) => {
     {
       field: 'contador',
       header: 'Nº',
-      body: row => <p style={{ color: 'blue' }}>{row.contador}</p>,
+      body: row => <th style={{ color: 'blue' }}>{row.contador}</th>,
       sortable: true,
     },
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => <p style={{ color: 'blue' }}>{row.NOFANTASIA}</p>,
+      body: row => <p style={{ color: 'blue', fontWeight: 600, width: '250px', margin: '0px'}}>{row.NOFANTASIA}</p>,
       sortable: true,
     },
     {
       field: 'DTPROCESSAMENTO',
       header: 'Data',
-      body: row => <p style={{ color: 'blue' }}>{row.DTPROCESSAMENTO}</p>,
+      body: row => <p style={{ color: 'blue', fontWeight: 600, width: '100px' }}>{row.DTPROCESSAMENTO}</p>,
       sortable: true,
     },
     {
       field: 'NUCODAUTORIZACAO',
       header: 'Cod. Autorização',
-      body: row => <p style={{ color: 'blue' }}>{row.NUCODAUTORIZACAO}</p>,
+      body: row => <th style={{ color: 'blue' }}>{row.NUCODAUTORIZACAO}</th>,
       sortable: true,
     },
     {
       field: 'VRRECEBIDO',
-      header: 'Valor Fatura PIX',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.VRRECEBIDO)}</p>,
+      header: 'Vr Fatura PIX',
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.VRRECEBIDO)}</th>,
       footer: formatMoeda(calcularTotalValorPix()),
       sortable: true,
     },
     {
       field: 'NOFUNCIONARIO',
       header: 'Recebedor',
-      body: row => <p style={{ color: 'blue' }}>{row.NOFUNCIONARIO}</p>,
+      body: row => <p style={{ color: 'blue', fontWeight: 600, width: '250px', margin: '0px' }}>{row.NOFUNCIONARIO}</p>,
       sortable: true,
     },
     {
       field: 'NUAUTORIZACAO',
       header: 'Autorização',
-      body: row => <p style={{ color: 'blue' }}>{row.NUAUTORIZACAO}</p>,
+      body: row => <th style={{ color: 'blue' }}>{row.NUAUTORIZACAO}</th>,
       sortable: true,
     },
     {
       field: 'STCANCELADO',
       header: 'Situação',
-      body: row => <p style={{ color: row.STCANCELADO == 'True' ? 'red' : 'blue' }}>{row.STCANCELADO == 'True' ? 'Cancelado' : 'Ativo'}</p>,
+      body: row => <th style={{ color: row.STCANCELADO == 'True' ? 'red' : 'blue' }}>{row.STCANCELADO == 'True' ? 'Cancelado' : 'Ativo'}</th>,
       sortable: true,
     }
   ]
@@ -152,10 +151,13 @@ export const ActionListaFaturasPix = ({ dadosVendasFaturasPix }) => {
                     title="Fatura Pix"
                     value={dadosListaVendasPix}
                     globalFilter={globalFilterValue}
-                    size={size}
+                    size={"small"}
                     sortOrder={-1}
                     rows={10}
                     rowsPerPageOptions={[10, 20, 50, 100, dadosListaVendasPix.length]}
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                    filterDisplay="menu"
                     paginator={true}
                     showGridlines
                     stripedRows
@@ -172,7 +174,7 @@ export const ActionListaFaturasPix = ({ dadosVendasFaturasPix }) => {
                         sortable={coluna.sortable}
                         headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
                         footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                        bodyStyle={{ fontSize: '0.8rem', color: '#d1cdc7' }}
+                        bodyStyle={{ fontSize: '1rem', color: '#d1cdc7' }}
 
                       />
                     ))}

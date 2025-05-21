@@ -10,10 +10,7 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 
-export const ActionListaVendasMarcaROB = ({
-  dadosListaVendasMarcaROB,
-}) => {
-  const [size, setSize] = useState('small')
+export const ActionListaVendasMarcaROB = ({dadosListaVendasMarcaROB }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
 
@@ -76,26 +73,26 @@ export const ActionListaVendasMarcaROB = ({
 
   const calcularTotalPis = (item) => {
     return (
-      ((toFloat(item.valorPago) - toFloat(item.valorICMS)) * 1.65)/100
+      ((toFloat(item.valorPago.vrTotalPago) - toFloat(item.valorICMS.vrTotalICMS)) * 1.65)/100
     )
   }
 
   const calcularTotalCofins = (item) => {
     return (
-      ((toFloat(item.valorPago) - toFloat(item.valorICMS)) * 7.60)/100
+      ((toFloat(item.valorPago.vrTotalPago) - toFloat(item.valorICMS.vrTotalICMS)) * 7.60)/100
     )
   }
 
   const calcularValorVendaBrutaROB = (item) => {
     return (
-      (toFloat(item.valorPago) + toFloat(item.valorDesconto))
+      (toFloat(item.valorPago.vrTotalPago) + toFloat(item.valorDesconto.vrTotalDesconto))
     )
   }
 
   const dadosVendasMarcaExcel = dadosListaVendasMarcaROB.map((item, index) => {
     const totalPis = calcularTotalPis(item);
     const totalCofins = calcularTotalCofins(item);
-    const valorTotalReceitaLiquida = parseFloat(item.valorPago) - (parseFloat(item.voucher) + parseFloat(totalPis) + parseFloat(totalCofins) + parseFloat(item.valorICMS));
+    const valorTotalReceitaLiquida = parseFloat(item.valorPago.vrTotalPago) - (parseFloat(item.voucher.vrTotalVoucher) + parseFloat(totalPis) + parseFloat(totalCofins) + parseFloat(item.valorICMS.vrTotalICMS));
     const valorTotalLucroBruto = parseFloat(valorTotalReceitaLiquida) - parseFloat(item.vendaMarca.TOTALCUSTO);
     const valorVendaBrutaROB = calcularValorVendaBrutaROB(item);
 
@@ -103,8 +100,8 @@ export const ActionListaVendasMarcaROB = ({
       DSGRUPOEMPRESARIAL:  item.vendaMarca.DSGRUPOEMPRESARIAL,
       valorVendaBrutaROB:  formatMoeda(valorVendaBrutaROB),
       valorDesconto:  formatMoeda(item.valorDesconto), 
-      voucher:  formatMoeda(item.voucher), 
-      valorICMS:  formatMoeda(item.valorICMS), 
+      voucher:  formatMoeda(item.voucher.vrTotalVoucher), 
+      valorICMS:  formatMoeda(item.valorICMS.vrTotalICMS), 
       totalPis:  formatMoeda(totalPis),
       totalCofins:  formatMoeda(totalCofins),
       valorTotalReceitaLiquida:  formatMoeda(valorTotalReceitaLiquida),
@@ -117,7 +114,7 @@ export const ActionListaVendasMarcaROB = ({
     const totalPis = calcularTotalPis(item);
     const totalCofins = calcularTotalCofins(item);
     const valorVendaBrutaROB = calcularValorVendaBrutaROB(item);
-    const valorTotalReceitaLiquida = parseFloat(item.valorPago) - (parseFloat(item.voucher) + parseFloat(totalPis) + parseFloat(totalCofins) + parseFloat(item.valorICMS));
+    const valorTotalReceitaLiquida = parseFloat(item.valorPago.vrTotalPago) - (parseFloat(item.voucher.vrTotalVoucher) + parseFloat(totalPis) + parseFloat(totalCofins) + parseFloat(item.valorICMS.vrTotalICMS));
     const valorTotalLucroBruto = parseFloat(valorTotalReceitaLiquida) - parseFloat(item.vendaMarca.TOTALCUSTO);
  
     return {
@@ -127,10 +124,10 @@ export const ActionListaVendasMarcaROB = ({
       VRTOTALLIQUIDO: item.vendaMarca.VRTOTALLIQUIDO,
       TOTALCUSTO: item.vendaMarca.TOTALCUSTO,
       
-      valorPago: item.valorPago,
-      voucher: item.voucher,
-      valorDesconto: item.valorDesconto,
-      valorICMS: item.valorICMS,
+      valorPago: item.valorPago.vrTotalPago,
+      voucher: item.voucher.vrTotalVoucher,
+      valorDesconto: item.valorDesconto.vrTotalDesconto,
+      valorICMS: item.valorICMS.vrTotalICMS,
 
       totalPis: totalPis,
       totalCofins: totalCofins,
@@ -236,9 +233,12 @@ export const ActionListaVendasMarcaROB = ({
             title="Vendas por Loja"
             value={dadosVendasMarcaROB}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             rows={10}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

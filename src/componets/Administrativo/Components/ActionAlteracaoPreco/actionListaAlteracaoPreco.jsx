@@ -1,15 +1,70 @@
-import React, { Fragment } from "react"
+import React, { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import { toFloat } from "../../../../utils/toFloat";
 import { formatarPorcentagem } from "../../../../utils/formatarPorcentagem";
 import { dataFormatada } from "../../../../utils/dataFormatada";
+import HeaderTable from "../../../Tables/headerTable";
+import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
+import * as XLSX from 'xlsx';
+import 'jspdf-autotable';
 
 
+export const ActionListaAlteracaoPreco = ({ dadosAlteracaoPreco }) => {
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const dataTableRef = useRef();
 
-export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
+  const onGlobalFilterChange = (e) => {
+    setGlobalFilterValue(e.target.value);
+  };
 
+  const handlePrint = useReactToPrint({
+    content: () => dataTableRef.current,
+    documentTitle: 'Balanco por Loja',
+  });
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Nº', 'Empresa', 'Data Abertura', 'Data Fechamento', 'Estoque Atual', 'Contagem', 'Diferença', 'Status']],
+      body: dados.map(item => [
+
+        item.IDEMPRESA,
+        item.NOFANTASIA,
+        item.DTABERTURA,
+        item.DTFECHAMENTO,
+        item.QTDTOTALANTERIOR,
+        item.QTDTOTALCONTAGEM,
+        item.diferenca,
+        item.STCONCLUIDO == 'False' ? 'Concluído' : 'Em Aberto',
+
+      ]),
+      horizontalPageBreak: true,
+      horizontalPageBreakBehaviour: 'immediately'
+    });
+    doc.save('balanco_loja.pdf');
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(dadosExcel);
+    const workbook = XLSX.utils.book_new();
+    const header = ['Nº', 'Empresa', 'Data Abertura', 'Data Fechamento', 'Estoque Atual', 'Contagem', 'Diferença', 'Status'];
+    worksheet['!cols'] = [
+      { wpx: 50, caption: 'Nº' },
+      { wpx: 150, caption: 'Empresa' },
+      { wpx: 150, caption: 'Data Abertura' },
+      { wpx: 150, caption: 'Data Fechamento' },
+      { wpx: 150, caption: 'Estoque Atual' },
+      { wpx: 150, caption: 'Contagem' },
+      { wpx: 150, caption: 'Diferença' },
+      { wpx: 150, caption: 'Status' },
+    ];
+    XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Balanco por Loja');
+    XLSX.writeFile(workbook, 'balanco_loja.xlsx');
+  };
 
   const calcularDiferencaPreco = (item) => {
     return (
@@ -24,15 +79,15 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
   }
   const dados = Array.isArray(dadosAlteracaoPreco) ? dadosAlteracaoPreco.map((item, index) => {
     let contador = index + 1;
- 
+
     const diferencaPreco = calcularDiferencaPreco(item);
     const valorAnterior = calcularValorAnterior(item);
     const valorAtual = toFloat(item.PRECOVENDA) * toFloat(item.QTDFINAL);
     const diferencaValor = valorAtual - valorAnterior;
     const diferencaPercentual = (toFloat(valorAtual) - toFloat(valorAnterior)) / toFloat(valorAnterior) * 100;
     const somaDiferencaPercentual = toFloat(diferencaPercentual) * toFloat(item.QTDFINAL)
-    
-  
+    const mediaDiferencial = (toFloat(somaDiferencaPercentual) / toFloat(item.QTDFINAL).toFixed(2))
+
     return {
       IDRESUMOALTERACAOPRECOPRODUTO: item.IDRESUMOALTERACAOPRECOPRODUTO,
       DTHORAEXECUTADO: item.DTHORAEXECUTADO,
@@ -50,37 +105,52 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
       valorAtual: toFloat(valorAtual),
       diferencaValor: toFloat(diferencaValor),
       diferencaPercentual: formatarPorcentagem(diferencaPercentual),
+      somaDiferencaPercentual: toFloat(somaDiferencaPercentual).toFixed(2),
+      mediaDiferencial: mediaDiferencial,
       contador
     }
   }) : [];
 
-  const calcularEstoque= () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.QTDFINAL), 0);
-  }
+  const calcularTotal = (field) => {
+    return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
+  };
 
+  const calcularEstoque = () => {
+    const total = calcularTotal('QTDFINAL');
+    return total;
+  }
   const calcularTotalPrecoAnterior = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.PRECOVENDAANTERIOR), 0);
+    const total = calcularTotal('PRECOVENDAANTERIOR');
+    return total;
   }
-
   const calcularTotalPrecoAtual = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.PRECOVENDA), 0);
+    const total = calcularTotal('PRECOVENDA');
+    return total;
   }
-
   const calcularTotalDiferencaPreco = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.diferencaPreco), 0);
+    const total = calcularTotal('diferencaPreco');
+    return total;
   }
-
   const calcularTotalValorAnterior = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.valorAnterior), 0);
+    const total = calcularTotal('valorAnterior');
+    return total;
   }
-
   const calcularTotalValorAtual = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.valorAtual), 0);
+    const total = calcularTotal('valorAtual');
+    return total;
+  }
+  const calcularTotalDiferencaValor = () => {
+    const total = calcularTotal('diferencaValor');
+    return total;
+  }
+  const calcularTotalMedia = () => {
+    const totalPercentual = calcularTotal('somaDiferencaPercentual');
+    const totalEstoque = calcularTotal('QTDFINAL');
+    const total = parseFloat(totalPercentual) / parseFloat(totalEstoque).toFixed(2);
+    return formatarPorcentagem(total);
   }
 
-  const calcularTotalDiferencaValor = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.diferencaValor), 0);
-  }
+
 
   const colunasAlteracaoPreco = [
     {
@@ -102,20 +172,20 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
       sortable: true,
     },
     {
-      field: 'DSGRUPOESTRUTURA',
+      field: 'DSSUBGRUPOESTRUTURA',
       header: 'Sub Grupo',
-      body: row => <th>{row.DSGRUPOESTRUTURA}</th>,
+      body: row => <p style={{ width: '150px', margin: '0px', fontWeight: 600 }}>{row.DSSUBGRUPOESTRUTURA}</p>,
       sortable: true,
     },
     {
       field: 'DSNOME',
       header: 'Produto',
-      body: row => <th>{row.DSNOME}</th>,
+      body: row => <p style={{ width: '200px', margin: '0px', fontWeight: 600 }}>{row.DSNOME}</p>,
       sortable: true,
     },
     {
       field: 'IDPRODUTO',
-      header: 'Código',	
+      header: 'Código',
       body: row => <th>{row.IDPRODUTO}</th>,
       sortable: true,
     },
@@ -131,7 +201,7 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
       header: 'Estoque',
       body: row => <th>{row.QTDFINAL}</th>,
       footer: row => calcularEstoque(),
-      sortable: true, 
+      sortable: true,
     },
     {
       field: 'PRECOVENDAANTERIOR',
@@ -179,47 +249,73 @@ export const ActionListaAlteracaoPreco = ({dadosAlteracaoPreco}) => {
       field: 'diferencaPercentual',
       header: 'Dif(%)',
       body: row => <th>{row.diferencaPercentual}</th>,
+      footer: <th>{calcularTotalMedia()}</th>,
       sortable: true,
     },
   ]
 
 
-  
+
   return (
 
-    <Fragment>      
-      <div className="card">
-       <DataTable
-         title="Vendas por Loja"
-         value={dados}
-         sortField="VRTOTALPAGO"
-         sortOrder={-1}
-         paginator={true}
-         rows={10}
-         rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
-         showGridlines
-         stripedRows
-         emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-       >
-         {colunasAlteracaoPreco.map(coluna => (
-           <Column
-             key={coluna.field}
-             field={coluna.field}
-             header={coluna.header}
-             
-             body={coluna.body}
-             footer={coluna.footer}
-             sortable={coluna.sortable}
-             headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem'}}
-             footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc',fontSize: '0.8rem' }}
-             bodyStyle={{ fontSize: '0.8rem' }}
+    <Fragment>
+      <div id="panel-1" className="panel" >
+        <div className="panel-hdr">
+          <h2 >
+            Lista de Alteração de Preço
+          </h2>
 
-           />
-         ))}
-       </DataTable>
-
-      </div>
+        </div>
       
+          <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+            <HeaderTable
+              globalFilterValue={globalFilterValue}
+              onGlobalFilterChange={onGlobalFilterChange}
+              handlePrint={handlePrint}
+              exportToExcel={exportToExcel}
+              exportToPDF={exportToPDF}
+            />
+
+          </div>
+
+          <div className="card" ref={dataTableRef}>
+
+            <DataTable
+              title="Alteração de Preço"
+              value={dados}
+              size="small"
+              globalFilter={globalFilterValue}
+              sortOrder={-1}
+              paginator={true}
+              rows={10}
+              rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+              currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+              filterDisplay="menu"
+              showGridlines
+              stripedRows
+              emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+            >
+              {colunasAlteracaoPreco.map(coluna => (
+                <Column
+                  key={coluna.field}
+                  field={coluna.field}
+                  header={coluna.header}
+
+                  body={coluna.body}
+                  footer={coluna.footer}
+                  sortable={coluna.sortable}
+                  headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                  bodyStyle={{ fontSize: '0.8rem' }}
+
+                />
+              ))}
+            </DataTable>
+          </div>
+
+        </div>
+
 
     </Fragment>
   )

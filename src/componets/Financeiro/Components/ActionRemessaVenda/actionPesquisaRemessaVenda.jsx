@@ -14,9 +14,10 @@ import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../ut
 import { useFetchData, useFetchEmpresas } from "../../../../hooks/useFetchData";
 
 
-export const ActionPesquisaRemessaVenda = () => {
+export const ActionPesquisaRemessaVenda = ({ usuarioLogado, ID }) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
   const [estabelecimento] = useState('')
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
@@ -35,6 +36,15 @@ export const ActionPesquisaRemessaVenda = () => {
 
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', '/marcasLista');
   const { data: optionsEmpresas = [],} = useFetchEmpresas(marcaSelecionada); 
+  
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const fetchListaEstabelecimentos = async () => {
     try {
@@ -79,7 +89,7 @@ export const ActionPesquisaRemessaVenda = () => {
   const { data: dadosEstabelecimentos = [], error: errorVendasConciliacao, isLoading: isLoadingVendasConciliacao, refetch: refecthEstabelecimentos } = useQuery(
     ['estabelecimento', marcaSelecionada, empresaSelecionada,  currentPage, pageSize],
     () => fetchListaEstabelecimentos(marcaSelecionada, empresaSelecionada,  currentPage, pageSize),
-    { enabled: false }
+    { enabled: Boolean(dataPesquisaInicio && dataPesquisaFim) }
   );
 
   const fetchListaRemessaVendas = async () => {
@@ -125,16 +135,16 @@ export const ActionPesquisaRemessaVenda = () => {
   const { data: dadosRemessaVendas = [], error: errorRemessaVendas, isLoading: isLoadingRemessaVendas, refetch: refecthRemessaVendas } = useQuery(
     ['remessa-vendas', marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada,  currentPage, pageSize],
     () => fetchListaRemessaVendas(marcaSelecionada, empresaSelecionada,  currentPage, pageSize),
-    { enabled: false }
+    { enabled: Boolean(dataPesquisaInicio && dataPesquisaFim) }
   );
 
 
-  const handleSelectEmpresa = (e) => {
-    const selectId = e.value;
-    if (selectId) {
-      setEmpresaSelecionada(selectId);
-    }
-  };
+  const handleChangeEmpresa = (e) => {
+    const selectedEmpresa = optionsEmpresas.find(empresa => empresa.IDEMPRESA === e.value);
+    setEmpresaSelecionadaNome(selectedEmpresa.NOFANTASIA);
+    setEmpresaSelecionada(e.value);
+  }
+
 
   const handleSelectMarca = (e) => {
     const selectId = e.value;
@@ -151,7 +161,7 @@ export const ActionPesquisaRemessaVenda = () => {
     })
     try {
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setCurrentPage(prevPage => prevPage + 1);
       refecthEstabelecimentos()
       Swal.close()
     } catch (error) {
@@ -168,16 +178,17 @@ export const ActionPesquisaRemessaVenda = () => {
       allowOutsideClick: false,
       allowEscapeKey: false,
     });
-
+  
     try {
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
-      const remessaData = await refecthRemessaVendas();
+      const { data: remessaData } = await refecthRemessaVendas();
       await gerarArquivoTxt(remessaData);
       setArquivoGerado(true);
-      Swal.close();
     } catch (error) {
       Swal.fire("Erro", "Erro ao gerar arquivo", "error");
+    } finally {
+      setIsLoadingPesquisa(false); 
+      Swal.close();
     }
   };
 
@@ -198,6 +209,7 @@ export const ActionPesquisaRemessaVenda = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Remessa de vendas"]}
         title="Remessa de vendas por Grupos e Período"
+        subTitle={empresaSelecionadaNome}
 
         InputFieldDTInicioComponent={InputField}
         valueInputFieldDTInicio={dataPesquisaInicio}
@@ -210,7 +222,7 @@ export const ActionPesquisaRemessaVenda = () => {
         onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
 
         InputSelectEmpresaComponent={InputSelectAction}
-        onChangeSelectEmpresa={handleSelectEmpresa}
+        onChangeSelectEmpresa={handleChangeEmpresa}
         valueSelectEmpresa={empresaSelecionada}
         optionsEmpresas={[
           { value: '0', label: 'Todas Empresas' },
@@ -227,7 +239,7 @@ export const ActionPesquisaRemessaVenda = () => {
           // { value: '0', label: 'Selecione uma loja' },
           ...optionsMarcas.map((marca) => ({
             value: marca.IDGRUPOEMPRESARIAL,
-            label: marca.DSGRUPOEMPRESARIAL
+            label: marca.GRUPOEMPRESARIAL
           }))
         ]}
         valueSelectMarca={marcaSelecionada}
@@ -249,7 +261,7 @@ export const ActionPesquisaRemessaVenda = () => {
       />
 
       {tabelaVisivel && (      
-        <div className="panel" style={{marginTop: '8rem'}}>
+        <div className="panel" >
           <ActionListaRemessaVenda dadosEstabelecimentos={dadosEstabelecimentos} />
         </div>
       )}

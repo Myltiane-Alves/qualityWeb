@@ -146,6 +146,8 @@ export const ActionListaVendasDescontoFuncionario = ({ dadosVendasConvenioFuncio
             cor={"primary"}
             iconSize={18}
             onClickButton={() => handleClickPagamento(row)}
+            width="30px"
+            height="30px"
           />
 
         </div>
@@ -175,17 +177,12 @@ export const ActionListaVendasDescontoFuncionario = ({ dadosVendasConvenioFuncio
   
   const footerGroup = (
     <ColumnGroup>
-
       <Row>
         <Column footer="Total Vendas Convenio Desconto" colSpan={8} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
         <Column footer={formatMoeda(calcularTotalVrBruto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
         <Column footer={formatMoeda(calcularTotalVrDesconto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
         <Column footer={formatMoeda(calcularTotalVrLiq())} colSpan={2} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
-    
-
       </Row>
-
-
     </ColumnGroup>
   )
 
@@ -203,14 +200,17 @@ export const ActionListaVendasDescontoFuncionario = ({ dadosVendasConvenioFuncio
 
             <div className="card">
               <DataTable
-                title="Vendas por Loja"
+                title="Lista de Vendas Com Desconto Funcionários e PN"
                 value={dadosConvenioVendasDescontoFuncionario}
-                sortField="VRTOTALPAGO"
+                size="small"
                 sortOrder={-1}
                 paginator={true}
                 footerColumnGroup={footerGroup}
                 rows={10}
-                rowsPerPageOptions={[5, 10, 20, 50]}
+                rowsPerPageOptions={[10, 20, 50, 100, dadosConvenioVendasDescontoFuncionario.length]}
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                filterDisplay="menu"
                 showGridlines
                 stripedRows
                 emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

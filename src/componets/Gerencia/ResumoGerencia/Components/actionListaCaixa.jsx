@@ -199,6 +199,7 @@ export const ActionListaCaixa = ({ dadosListaCaixa, dadosDespesas, dadosAdiantam
       quebraCaixaOP: toFloat(quebraCaixaOP),
     }
   })
+  
   const calcularTotalQuebra = () => {
     let total = 0;
     for (let dados of dadosQuebra) {

@@ -9,46 +9,39 @@ import { AiOutlineSearch } from "react-icons/ai";
 import { ActionListaConferenciaCaixa } from "./actionListaConferenciaCaixa";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 
 
-export const ActionPesquisaConferenciaCaixa = () => {
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
+export const ActionPesquisaConferenciaCaixa = ({usuarioLogado, ID, optionsEmpresas }) => {
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
 
-  const navigate = useNavigate();
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
+  
   useEffect(() => {
     const dataInicio = getDataAtual()
     const dataFinal = getDataAtual()
     setDataPesquisaInicio(dataInicio)
     setDataPesquisaFim(dataFinal)
-  }, [usuarioLogado && usuarioLogado.IDEMPRESA])
+  }, [])
   
-  const usuario = usuarioLogado && usuarioLogado.id;
 
   const fetchCaixaMovimento = async () => {
     try {
-      
-      const urlApi = `/movimento-caixa-gerencia?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const idEmpresa = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      const urlApi = `/movimento-caixa-gerencia?idEmpresa=${idEmpresa}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -93,13 +86,11 @@ export const ActionPesquisaConferenciaCaixa = () => {
   );
 
   const handleClick = () => {
-    if (usuarioLogado && usuarioLogado.IDEMPRESA && usuarioLogado.DATA_HORA_SESSAO) {
-      setCurrentPage(prevPage => prevPage + 1);
-      refetchCaixaMovimento(usuarioLogado && usuarioLogado.IDEMPRESA);
-      setTabelaVisivel(true);
-    } else {
-      console.log('Usuário não possui informações válidas.');
-    }
+    
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchCaixaMovimento();
+    setTabelaVisivel(true);
+   
   }
 
   return (
@@ -112,15 +103,28 @@ export const ActionPesquisaConferenciaCaixa = () => {
         title="Movimento dos Caixas"
         subTitle={usuarioLogado?.NOFANTASIA}
 
-        InputFieldDTInicioComponent={InputField}
-        valueInputFieldDTInicio={dataPesquisaInicio}
-        labelInputFieldDTInicio={"Data Início"}
-        onChangeInputFieldDTInicio={(e) => setDataPesquisaInicio(e.target.value)}
+        InputSelectPendenciaComponent={InputSelectAction}
+        labelSelectPendencia="Selecione a Empresa"
+        optionsPendencia={[
+          { value: '', label: 'Todas' },
+          ...optionsEmpresas?.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+          }))
+        ]}
+        onChangeSelectPendencia={(e) => setEmpresaSelecionada(e.value)}
+        valueSelectPendencia={empresaSelecionada}
+        isVisible={{display: optionsModulos[0]?.ADMINISTRADOR == false ? "none" : "block"}}
 
-        InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
+        InputFieldDTInicioAComponent={InputField}
+        valueInputFieldDTInicioA={dataPesquisaInicio}
+        labelInputDTInicioA={"Data Início"}
+        onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
+        
+        InputFieldDTFimAComponent={InputField}
+        labelInputDTFimA={"Data Fim"}
+        valueInputFieldDTFimA={dataPesquisaFim}
+        onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
 
         onButtonClickSearch={handleClick}
         ButtonSearchComponent={ButtonType}
@@ -131,7 +135,11 @@ export const ActionPesquisaConferenciaCaixa = () => {
       />
 
       {tabelaVisivel && (
-        <ActionListaConferenciaCaixa usuario={usuario} dadosMovimentosCaixa={dadosMovimentosCaixa} />
+        <ActionListaConferenciaCaixa 
+          dadosMovimentosCaixa={dadosMovimentosCaixa} 
+          usuarioLogado={usuarioLogado}
+          optionsModulos={optionsModulos}  
+        />
       )}
 
     </Fragment >

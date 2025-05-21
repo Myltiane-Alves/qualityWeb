@@ -6,6 +6,8 @@ import { get } from "../../../../api/funcRequest"
 import { AiOutlineSearch } from "react-icons/ai"
 import { InputSelectAction } from "../../../Inputs/InputSelectAction"
 import { ActionListaProdutoEtiqueta } from "./actionListaProdutoEtiqueta"
+import { ButtonType } from "../../../Buttons/ButtonType"
+import { useFetchData } from "../../../../hooks/useFetchData"
 
 
 
@@ -23,9 +25,25 @@ export const ActionPesquisaProdutoEtiqueta = () => {
     getListaEmpresas()
   }, [])
 
+  const { data: dadosEmpresa = [] } = useFetchData('empresas', '/empresas');
+  const { data: dadosListaPrecos = [] } = useFetchData('lista-de-preco', '/lista-de-preco');
+
+  // const groupedCores = dadosListaPrecos.reduce((acc, item) => {
+  //   const group = item.listaPreco.NOMELISTA || "Outras Marcas"; r
+  //   const option = { value: item.detalheLista.loja.IDEMPRESA, label: item.detalheLista.loja.NOFANTASIA };
+
+  //   const groupIndex = acc.findIndex((g) => g.label === group);
+  //   if (groupIndex !== -1) {
+  //     acc[groupIndex].options.push(option);
+  //   } else {
+  //     acc.push({ label: group, options: [option] });
+  //   }
+  //   return acc;
+  // }, []);
+
   const getListaEmpresas = async () => {
     try {
-        const response = await get(`/listasDePrecosSAP`);
+        const response = await get(`/lista-de-preco`);
         if (response.data && response.data.length > 0) {
             const empresas = response.data.map(item => ({
                 value: item.listaPreco && item.listaPreco.IDRESUMOLISTAPRECO,
@@ -43,7 +61,7 @@ export const ActionPesquisaProdutoEtiqueta = () => {
 
   const getListaProdutosSAP = async () => {
     try {
-      const response = await get(`/listaProdutosEtiquetaSAP?page=1&idLista=${empresaSelecionada}&idProduto=${idProduto}&descricao=${descricaoProduto}&codeBars=${codBarrasProduto}`)
+      const response = await get(`/listaProdutosEtiquetaSAP?idLista=${empresaSelecionada}&idProduto=${idProduto}&descricao=${descricaoProduto}&codeBars=${codBarrasProduto}`)
       if (response.data) {
        
         setDadosListaPrecosSap(response.data)
@@ -96,12 +114,12 @@ export const ActionPesquisaProdutoEtiqueta = () => {
         placeHolderInputFieldDescricao={"Descrição do Produto"}
 
         InputFieldCodBarraComponent={InputField}
-        labelInputFieldCodBarra={"Cód.Barras / Nome Produto"}
+        labelInputFieldCodBarra={"Cód.Barras "}
         valueInputFieldCodBarra={codBarrasProduto}
         onChangeInputFieldCodBarra={(e) => setCodBarrasProduto(e.target.value)}
         placeHolderInputFieldCodBarra={"Cód.Barras / Nome Produto"}
         
-        ButtonSearchComponent={ButtonSearch}
+        ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}
         onButtonClickSearch={handleClick}
         corSearch={"primary"}

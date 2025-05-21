@@ -5,13 +5,10 @@ import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import HeaderTable from "../../../Tables/headerTable";
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
+
 
 export const ActionListaDetalhamento = ({dadosListaRecebimentosLoja}) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {

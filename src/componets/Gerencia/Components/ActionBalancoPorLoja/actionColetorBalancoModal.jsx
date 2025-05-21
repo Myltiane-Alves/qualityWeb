@@ -21,38 +21,29 @@ import { FaCheck, FaMinus } from "react-icons/fa";
 import { InputNumber } from "primereact/inputnumber";
 import { ButtonTypeModal } from "../../../Buttons/ButtonTypeModal";
 import { FooterModal } from "../../../Modais/FooterModal/footerModal";
+import { toFloat } from "../../../../utils/toFloat";
 
 
-export const ActionColetorBalancoModal = ({ show, handleClose, dadosResumoBalancoModal }) => {
+export const ActionColetorBalancoModal = ({ show, handleClose, dadosResumoBalancoModal, usuarioLogado }) => {
   const { register, handleSubmit, errors } = useForm();
   const [modalResumo, setModalResumo] = useState(true)
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [globalFilterValueDetalhe, setGlobalFilterValueDetalhe] = useState('');
   const [detalhesBalanco, setDetalhesBalanco] = useState([]);
   const [modalDetalhesBalanco, setModalDetalhesBalanco] = useState(false);
-  const [size, setSize] = useState('small');
   const [tabelaDetalhe, setTabelaDetalhe] = useState(false);
   const [tabelaColetor, setTabelaColetor] = useState(true);
   const [quantidade, setQuantidade] = useState(0);
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
+
   const [ipUsuario, setIpUsuario] = useState('')
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
   const dataTableRef = useRef();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
+  
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  };
 
   useEffect(() => {
     getIPUsuario();
@@ -112,8 +103,7 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosResumoBalanc
   };
 
   const dados = dadosResumoBalancoModal.map((item, index) => {
-    
-    
+      
     return {
       IDEMPRESA: item.IDEMPRESA,
       IDRESUMOBALANCO: item.IDRESUMOBALANCO,
@@ -126,17 +116,34 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosResumoBalanc
     }
   })
 
-  const cacularTotalQtdItens = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.NUMITENS), 0);
-  }
-  
-  const cacularTotalCusto = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.TOTALCUSTO), 0);
-  }
+  const calcularTotalPagina = (field) => {
+    return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
+  };
 
+  const calcularTotal = (field) => {
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dados.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + toFloat(item[field] || 0), 0);
+  };
+
+  const cacularTotalQtdItens = () => {
+    const totalPagina = calcularTotal('NUMITENS');
+    const total = calcularTotalPagina('NUMITENS' );
+    return `${totalPagina}   (${total} total)`;
+  };
+  const cacularTotalCusto = () => {
+    const totalPagina = calcularTotal('TOTALCUSTO');
+    const total = calcularTotalPagina('TOTALCUSTO' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
   const cacularTotalVenda = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.TOTALVENDA), 0);
-  }
+    const totalPagina = calcularTotal('TOTALVENDA');
+    const total = calcularTotalPagina('TOTALVENDA' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
+ 
+
 
   const colunasColetor = [
     {
@@ -156,14 +163,14 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosResumoBalanc
       field: 'TOTALCUSTO',
       header: 'Total Custo',
       body: row => <th>{formatMoeda(row.TOTALCUSTO)}</th>,
-      footer: formatMoeda(cacularTotalCusto()),
+      footer: cacularTotalCusto(),
       sortable: true
     },
     {
       field: 'TOTALVENDA',
       header: 'Total Venda',
       body: row => <th>{formatMoeda(row.TOTALVENDA)}</th>,
-      footer: formatMoeda(cacularTotalVenda()),
+      footer: cacularTotalVenda(),
       sortable: true
     },
     {
@@ -177,7 +184,9 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosResumoBalanc
                 titleButton={"Exclusão do Coletor e Produtos Relacionados"}
                 cor={"danger"}
                 Icon={GrFormView}
-                iconSize={18}
+                iconSize={25}
+                width="35px"
+                height="35px"
                 onClickButton={() => handleClickExcluir(row)}
               />
             </div>
@@ -190,17 +199,16 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosResumoBalanc
                 cor={"primary"}
                 iconColor={"#fff"}
                 Icon={GrFormView}
-                iconSize={18}
+                iconSize={25}
+                width="35px"
+                height="35px"
                 onClickButton={() => handleClickDetalheBalanco(row)}
               />
             </div>
           )
-
         }
       },
-
     },
-
   ]
 
   const handleEditDetalheBalanco = async (IDRESUMOBALANCO, NUMEROCOLETOR) => {
@@ -268,8 +276,7 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosResumoBalanc
     XLSX.writeFile(workbook, 'detalhe_balanco.xlsx');
   };
 
-  const dadosDetalhe = detalhesBalanco.map((item) => {
-   
+  const dadosDetalhe = detalhesBalanco.map((item) => {  
 
     return {
       IDDETALHEBALANCO: item.IDDETALHEBALANCO,
@@ -394,50 +401,60 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosResumoBalanc
               handleClose={() => { handleClose(), setTabelaDetalhe(false); setTabelaColetor(true) }}
             />
             <Modal.Body>
+       
 
               {tabelaColetor && (
                 <Fragment>
-                  <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-                    <HeaderTable
-                      globalFilterValue={globalFilterValue}
-                      onGlobalFilterChange={onGlobalFilterChange}
-                      handlePrint={handlePrint}
-                      exportToExcel={exportToExcel}
-                      exportToPDF={exportToPDF}
-                    />
+                    <div className="panel">
+                      <div className="panel-hdr">
+                        {/* <h2>
+                          Detalhe do Balanço Nº {detalhesBalanco[0]?.IDRESUMOBALANCO} - {detalhesBalanco[0]?.NOFANTASIA}
+                        </h2> */}
+                      </div>
+                        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+                          <HeaderTable
+                            globalFilterValue={globalFilterValue}
+                            onGlobalFilterChange={onGlobalFilterChange}
+                            handlePrint={handlePrint}
+                            exportToExcel={exportToExcel}
+                            exportToPDF={exportToPDF}
+                          />
 
-                  </div>
-                  <div className="card" ref={dataTableRef}>
-                    <DataTable
-                      title="Vendas por Loja"
-                      value={dados}
-                      globalFilter={globalFilterValue}
-                      sortField="VRTOTALPAGO"
-                      sortOrder={-1}
-                      paginator={true}
-                      rows={10}
-                      rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
-                      showGridlines
-                      stripedRows
-                      emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-                    >
-                      {colunasColetor.map(coluna => (
-                        <Column
-                          key={coluna.field}
-                          field={coluna.field}
-                          header={coluna.header}
+                        </div>
+                        <div className="card" ref={dataTableRef}>
+                          <DataTable
+                            title="Vendas por Loja"
+                            value={dados}
+                            globalFilter={globalFilterValue}
+                            size="small"
+                            sortOrder={-1}
+                            paginator={true}
+                            rows={rows}
+                            first={first}
+                            onPage={onPageChange}
+                            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+                            showGridlines
+                            stripedRows
+                            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+                          >
+                            {colunasColetor.map(coluna => (
+                              <Column
+                                key={coluna.field}
+                                field={coluna.field}
+                                header={coluna.header}
 
-                          body={coluna.body}
-                          footer={coluna.footer}
-                          sortable={coluna.sortable}
-                          headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                          footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                          bodyStyle={{ fontSize: '0.8rem' }}
+                                body={coluna.body}
+                                footer={coluna.footer}
+                                sortable={coluna.sortable}
+                                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                                bodyStyle={{ fontSize: '0.8rem' }}
 
-                        />
-                      ))}
-                    </DataTable>
-                  </div>
+                              />
+                            ))}
+                          </DataTable>
+                        </div>
+                    </div>
 
                 </Fragment>
               )}
@@ -468,9 +485,9 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosResumoBalanc
                          title="Vendas por Loja"
                          value={dadosDetalhe}
                          globalFilter={globalFilterValueDetalhe}
-                         size={size}
+                         size="small"
                          sortOrder={-1}
-                         paginator={true}
+                         paginator
                          rows={10}
                          rowsPerPageOptions={[10, 20, 50, 100, dadosDetalhe.length]}
                          showGridlines

@@ -5,9 +5,9 @@ import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionListaVendas = ({ dados, dadosExtratoLojaPeriodo }) => {
 
-  const dadosVendas = dadosExtratoLojaPeriodo.flatMap((item) => {
+  const dadosVendas = dadosExtratoLojaPeriodo.map((item) => {
 
-    const saldoAnteriorVendas = dados[0]?.saldoAnterior2 + toFloat(item.venda.VRRECDINHEIRO)
+    const saldoAnteriorVendas = dados[0].saldoAnterior2 + toFloat(item.venda.VRRECDINHEIRO)
     return {
 
       VRRECDINHEIRO: toFloat(item.venda.VRRECDINHEIRO),

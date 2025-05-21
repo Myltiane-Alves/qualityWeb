@@ -1,13 +1,79 @@
-import { Fragment, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import { toFloat } from "../../../../utils/toFloat";
-
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { useReactToPrint } from "react-to-print";
+import HeaderTable from "../../../Tables/headerTable";
 
 export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
+  const dataTableRef = useRef();
+  
+  const onPageChange = (event) => {
+      setFirst(event.first);
+      setRows(event.rows);
+  };
+
+  const onGlobalFilterChange = (e) => {
+    setGlobalFilterValue(e.target.value);
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => dataTableRef.current,
+    documentTitle: 'Vendas por Vendedor',
+  });
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Nº', 'Empresa', 'Matrícula', 'Funcionário', 'QTD Vendas', 'QTD Produtos', 'Valor Total Vendas', 'Valor Total Venda Liq', 'Valor Total Custo' ]],
+      body: dadosListaVendedorVendas.map(item => [
+        item.contador,
+        item.NOFANTASIA,
+        item.VENDEDOR_MATRICULA,
+        item.VENDEDOR_NOME,
+        item.QTD_VENDAS,
+        item.QTD_PRODUTOS,
+        formatMoeda(item.VRTOTALVENDA),
+        formatMoeda(item.VRRECVOUCHER),
+        formatMoeda(item.valorTotalVendaLiquida),
+        formatMoeda(item.PRECO_COMPRA)
+      ]),
+      horizontalPageBreak: true,
+      horizontalPageBreakBehaviour: 'immediately'
+    });
+    doc.save('vendas_vendedor.pdf');
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(dadosListaVendedorVendas);
+    const workbook = XLSX.utils.book_new();
+    const header = ['Nº', 'Empresa', 'Matrícula', 'Funcionário', 'QTD Vendas', 'QTD Produtos', 'Valor Total Vendas', 'Valor Total Venda Liq', 'Valor Total Custo' ]
+    worksheet['!cols'] = [
+      { wpx: 100, caption: 'Nº' },
+      { wpx: 200, caption: 'Empresa' },
+      { wpx: 100, caption: 'Matrícula' },
+      { wpx: 100, caption: 'Funcionário' },
+      { wpx: 100, caption: 'QTD Vendas' },
+      { wpx: 100, caption: 'QTD Produtos' },
+      { wpx: 100, caption: 'Valor Total Vendas' },
+      { wpx: 100, caption: 'Valor Total Venda Liq' },
+      { wpx: 100, caption: 'Valor Total Custo' }
+    ];
+    XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Vendas por Vendedor');
+    XLSX.writeFile(workbook, 'vendas_vendedor.xlsx');
+  };
+
 
   const calcularValorTotalVendaLiquida = (item) => {
+    
     return toFloat(item.VRTOTALVENDA) - toFloat(item.VRRECVOUCHER)
   }
 
@@ -19,17 +85,17 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
     return total;
   }
 
-  // const calcularTotalQuantidadeVendasPorPagina = () => {
-  //   let total = 0;
-  //   const firstIndex = page * rowsPerPage;
-  //   const lastIndex = firstIndex + rowsPerPage;
-  //   for(let i = firstIndex; i < lastIndex && i < dadosVendasVendedor.length; i++) {
-  //     if(dadosVendasVendedor[i]) {
-  //       total += parseFloat(dadosVendasVendedor[i].QTD_VENDAS);
-  //     }
-  //   }
-  //   return total;
-  // }
+  const calcularTotalQuantidadeVendasPorPagina = () => {
+    let total = 0;
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    for(let i = firstIndex; i < lastIndex && i < dadosVendasVendedor.length; i++) {
+      if(dadosVendasVendedor[i]) {
+        total += parseFloat(dadosVendasVendedor[i].QTD_VENDAS);
+      }
+    }
+    return total;
+  }
 
   const calcularTotalQuantidadeProdutos = () => {
     let total = 0;
@@ -39,17 +105,17 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
     return total;
   }
 
-  // const calcularTotalQuantidadeProdutosPorPagina = () => {
-  //   let total = 0;
-  //   const firstIndex = page * rowsPerPage;
-  //   const lastIndex = firstIndex + rowsPerPage;
-  //   for(let i = firstIndex; i < lastIndex && i < dadosVendasVendedor.length; i++) {
-  //     if(dadosVendasVendedor[i]) {
-  //       total += parseFloat(dadosVendasVendedor[i].QTD_PRODUTOS);
-  //     }
-  //   }
-  //   return total;
-  // }
+  const calcularTotalQuantidadeProdutosPorPagina = () => {
+    let total = 0;
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    for(let i = firstIndex; i < lastIndex && i < dadosVendasVendedor.length; i++) {
+      if(dadosVendasVendedor[i]) {
+        total += parseFloat(dadosVendasVendedor[i].QTD_PRODUTOS);
+      }
+    }
+    return total;
+  }
 
   const calcularTotalVendaBrutaVendasVendedor = () => {
     let total = 0;
@@ -59,17 +125,17 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
     return total;
   }
 
-  // const calcularTotalVendaBrutaVendasVendedorPorPagina = () => {
-  //   let total = 0;
-  //   const firstIndex = page * rowsPerPage;
-  //   const lastIndex = firstIndex + rowsPerPage;
-  //   for(let i = firstIndex; i < lastIndex && i < dadosVendasVendedor.length; i++) {
-  //     if(dadosVendasVendedor[i]) {
-  //       total += parseFloat(dadosVendasVendedor[i].VRTOTALVENDA);
-  //     }
-  //   }
-  //   return total;
-  // }
+  const calcularTotalVendaBrutaVendasVendedorPorPagina = () => {
+    let total = 0;
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    for(let i = firstIndex; i < lastIndex && i < dadosVendasVendedor.length; i++) {
+      if(dadosVendasVendedor[i]) {
+        total += parseFloat(dadosVendasVendedor[i].VRTOTALVENDA);
+      }
+    }
+    return total;
+  }
 
   const calcularTotalValorVoucher = () => {
     let total = 0;
@@ -79,17 +145,17 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
     return total;
   }
 
-  // const calcularTotalValorVoucherPorPagina = () => {
-  //   let total = 0;
-  //   const firstIndex = page * rowsPerPage;
-  //   const lastIndex = firstIndex + rowsPerPage;
-  //   for(let i = firstIndex; i < lastIndex && i < dadosVendasVendedor.length; i++) {
-  //     if(dadosVendasVendedor[i]) {
-  //       total += parseFloat(dadosVendasVendedor[i].VRRECVOUCHER);
-  //     }
-  //   }
-  //   return total;
-  // }
+  const calcularTotalValorVoucherPorPagina = () => {
+    let total = 0;
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    for(let i = firstIndex; i < lastIndex && i < dadosVendasVendedor.length; i++) {
+      if(dadosVendasVendedor[i]) {
+        total += parseFloat(dadosVendasVendedor[i].VRRECVOUCHER);
+      }
+    }
+    return total;
+  }
 
   const calcularTotalVendaLiquidaVendasVendedor = () => {
     let total = 0;
@@ -99,17 +165,17 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
     return total;
   }
 
-  // const calcularTotalVendaLiquidaVendasVendedorPorPagina = () => {
-  //   let total = 0;
-  //   const firstIndex = page * rowsPerPage;
-  //   const lastIndex = firstIndex + rowsPerPage;
-  //   for(let i = firstIndex; i < lastIndex && i < dadosListaVendedorVendas.length; i++) {
-  //     if(dadosListaVendedorVendas[i]) {
-  //       total += parseFloat(dadosListaVendedorVendas[i].valorTotalVendaLiquida);
-  //     }
-  //   }
-  //   return total;
-  // }
+  const calcularTotalVendaLiquidaVendasVendedorPorPagina = () => {
+    let total = 0;
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    for(let i = firstIndex; i < lastIndex && i < dadosListaVendedorVendas.length; i++) {
+      if(dadosListaVendedorVendas[i]) {
+        total += parseFloat(dadosListaVendedorVendas[i].valorTotalVendaLiquida);
+      }
+    }
+    return total;
+  }
 
   const calcularTotalValorCusto = () => {
     let total = 0;
@@ -119,23 +185,24 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
     return total;
   }
 
-  // const calcularTotalValorCustoPorPagina = () => {
-  //   let total = 0;
-  //   const firstIndex = page * rowsPerPage;
-  //   const lastIndex = firstIndex + rowsPerPage;
-  //   for(let i = firstIndex; i < lastIndex && i < dadosVendasVendedor.length; i++) {
-  //     if(dadosVendasVendedor[i]) {
-  //       total += parseFloat(dadosVendasVendedor[i].PRECO_COMPRA);
-  //     }
-  //   }
-  //   return total;
-  // }
+  const calcularTotalValorCustoPorPagina = () => {
+    let total = 0;
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    for(let i = firstIndex; i < lastIndex && i < dadosVendasVendedor.length; i++) {
+      if(dadosVendasVendedor[i]) {
+        total += parseFloat(dadosVendasVendedor[i].PRECO_COMPRA);
+      }
+    }
+    return total;
+  }
 
   const dadosListaVendedorVendas = dadosVendasVendedor.map((item, index) => {
     let contador = index + 1;
     const valorTotalVendaLiquida = calcularValorTotalVendaLiquida(item);
- 
+    
     return {
+      contador,
       NOFANTASIA: item.NOFANTASIA,
       VENDEDOR_MATRICULA: item.VENDEDOR_MATRICULA,
       VENDEDOR_NOME: item.VENDEDOR_NOME,
@@ -143,9 +210,8 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
       QTD_PRODUTOS: item.QTD_PRODUTOS,
       VRTOTALVENDA: item.VRTOTALVENDA,
       VRRECVOUCHER: item.VRRECVOUCHER,
-      PRECO_COMPRA: item.PRECO_COMPRA,
       valorTotalVendaLiquida: valorTotalVendaLiquida,
-      contador
+      PRECO_COMPRA: item.PRECO_COMPRA,
     }
   });
   
@@ -153,25 +219,25 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
     {
       field: 'contador',
       header: 'Nº',
-      body: row => row.contador,
+      body: row => <th>{row.contador}</th>,
       sortable: true
     },
     {
       field: 'NOFANTASIA',
       header: 'Empresa',
-      body: row => row.NOFANTASIA,
+      body: row => <th>{row.NOFANTASIA}</th>,
       sortable: true
     },
     {
       field: 'VENDEDOR_MATRICULA',
       header: 'Matrícula',
-      body: row => row.VENDEDOR_MATRICULA,
+      body: row => <th>{row.VENDEDOR_MATRICULA}</th>,
       sortable: true
     },
     {
       field: 'VENDEDOR_NOME',
       header: 'Funcionário',
-      body: row => row.VENDEDOR_NOME,
+      body: row => <th>{row.VENDEDOR_NOME}</th>,
       sortable: true
     },
     {
@@ -181,9 +247,9 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
       footer: () => {
         return(
           <div>          
-            {/* <p style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidadeProdutosPorPagina())}</p> */}
+            <th style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidadeVendasPorPagina())}</th>
             <hr/>
-            <p style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidadeProdutos())}</p>
+            <th style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidadeVendas())}</th>
           </div>
         )
       },
@@ -196,9 +262,9 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
       footer: () => {
         return(
           <div>          
-            {/* <p style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidadeVendasPorPagina())}</p> */}
+            <th style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidadeProdutosPorPagina())}</th>
             <hr/>
-            <p style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidadeVendas())}</p>
+            <th style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidadeProdutos())}</th>
           </div>
         )
       },
@@ -211,9 +277,9 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
       footer: () => {
         return(
           <div>          
-            {/* <p style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaBrutaVendasVendedorPorPagina())}</p> */}
+            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaBrutaVendasVendedorPorPagina())}</th>
             <hr/>
-            <p style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaBrutaVendasVendedor())}</p>
+            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaBrutaVendasVendedor())}</th>
           </div>
         )
       },
@@ -221,14 +287,14 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
     },
     {
       field: 'VRRECVOUCHER',
-      header: 'Valor Vouchers',
+      header: 'Valor Total Vouchers',
       body: row => formatMoeda(row.VRRECVOUCHER),
       footer: () => {
         return(
           <div>          
-            {/* <p style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorVoucherPorPagina())}</p> */}
+            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorVoucherPorPagina())}</th>
             <hr/>
-            <p style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorVoucher())}</p>
+            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorVoucher())}</th>
           </div>
         )
       },
@@ -236,14 +302,14 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
     },
     {
       field: 'valorTotalVendaLiquida',
-      header: 'Venda Líquida',
+      header: 'Total Venda Líquida',
       body: row => formatMoeda(row.valorTotalVendaLiquida),
       footer: () => {
         return(
           <div>          
-            {/* <p style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaLiquidaVendasVendedorPorPagina())}</p> */}
+            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaLiquidaVendasVendedorPorPagina())}</th>
             <hr/>
-            <p style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaLiquidaVendasVendedor())}</p>
+            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaLiquidaVendasVendedor())}</th>
           </div>
         )
       },
@@ -251,54 +317,77 @@ export const ActionListaVendasPorVendedor  = ({dadosVendasVendedor}) => {
     },
     {
       field: 'PRECO_COMPRA',
-      header: 'Valor Custo',
+      header: 'Total Custo',
       body: row => formatMoeda(row.PRECO_COMPRA),
       footer: () => {
         return(
           <div>          
-            {/* <p style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorCustoPorPagina())}</p> */}
+            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorCustoPorPagina())}</th>
             <hr/>
-            <p style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorCusto())}</p>
+            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorCusto())}</th>
           </div>
         )
       },
       sortable: true
     }
   ]
-  
+ 
+
   return (
 
     <Fragment>
-      <div className="card">
-        <DataTable      
-          title="Vendas por Loja"
-          value={dadosListaVendedorVendas}
-          sortField="VRTOTALPAGO"
-          sortOrder={-1}
-          paginator
-          rows={10}
-          rowsPerPageOptions={[10, 20, 30, 50, 100]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-        >
-          {colunasVendasVendedor.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}                          
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem'}}
-              footerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9',fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
+      <div className="panel">
+        <div className="panel-hdr">
+          <h2>Vendas por Vendedor</h2>
+        </div>
+        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <HeaderTable
+            globalFilterValue={globalFilterValue}
+            onGlobalFilterChange={onGlobalFilterChange}
+            handlePrint={handlePrint}
+            exportToExcel={exportToExcel}
+            exportToPDF={exportToPDF}
+          />
 
-            />
-          ))}
-        </DataTable>
+        </div>
+        <div className="card" ref={dataTableRef}>
+
+          <DataTable
+            title="Vendas por Vendedor"
+            value={dadosListaVendedorVendas}
+            globalFilter={globalFilterValue}
+            size="small"
+            sortOrder={-1}
+            paginator={true}
+            onPage={onPageChange}
+            first={first}
+            rows={rows}
+            rowsPerPageOptions={[10, 20, 50, 100, dadosListaVendedorVendas.length]}
+            totalRecords={dadosListaVendedorVendas.length}
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+          >
+            {colunasVendasVendedor.map(coluna => (
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                header={coluna.header}
+
+                body={coluna.body}
+                footer={coluna.footer}
+                sortable={coluna.sortable}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem'}}
+                bodyStyle={{ fontSize: '0.8rem' }}
+
+              />
+            ))}
+          </DataTable>
+        </div>
       </div>
-      
+
     </Fragment>
   )
+
 }

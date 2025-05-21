@@ -104,6 +104,19 @@ export const ActionEditarFaturaModal = ({ show, handleClose, dadosDetalheFatura 
       
       return responsePost.data;
     } catch (error) {
+      let textoFuncao = 'GERENCIA/ERRO AO ATUALIZAR FATURA';
+  
+  
+      const postData = {
+        IDFUNCIONARIO: usuarioLogado.id,
+        PATHFUNCAO: textoFuncao,
+        DADOS: textDados,
+        IP: ipUsuario
+      }
+  
+      const responsePost = await post('/log-web', postData)
+  
+      
       Swal.fire({
         title: 'Cadastro',
         text: 'Erro ao Tentar Confimar Alteração',
@@ -113,8 +126,9 @@ export const ActionEditarFaturaModal = ({ show, handleClose, dadosDetalheFatura 
           container: 'custom-swal',
         }
       });
-
+      
       console.log(error);
+      return responsePost.data;
     }
   }
 

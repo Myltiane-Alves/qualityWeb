@@ -7,18 +7,16 @@ import { ButtonType } from "../../../Buttons/ButtonType";
 import { AiOutlineSearch } from "react-icons/ai";
 import { ActionListaEstoqueProduto } from "./actionListaEstoqueProdutos";
 import { getDataAtual } from "../../../../utils/dataAtual";
+import { useFetchData } from "../../../../hooks/useFetchData";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
 
 export const ActionPesquisaEstoqueProdutos = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
-  const [dadosGrupos, setDadosGrupos] = useState([])
-  const [dadosSubGrupos, setDadosSubGrupos] = useState([])
-  const [dadosFornecedor, setDadosFornecedor] = useState([])
-  const [dadosMarcasProdutos, setDadosMarcasProdutos] = useState([])
-  const [fornecedorSelecionado, setFornecedorSelecionado] = useState([])
-  const [grupoSelecionado, setGrupoSelecionado] = useState([])
-  const [subGrupoSelecionado, setSubGrupoSelecionado] = useState([])
+  const [fornecedorSelecionado, setFornecedorSelecionado] = useState('')
+  const [grupoSelecionado, setGrupoSelecionado] = useState('')
+  const [subGrupoSelecionado, setSubGrupoSelecionado] = useState('')
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
   const [dataPesquisaFim, setDataPesquisaFim] = useState('')
   const [dataPesquisaInicioB, setDataPesquisaInicioB] = useState('')
@@ -27,8 +25,8 @@ export const ActionPesquisaEstoqueProdutos = () => {
   const [dataPesquisaFimC, setDataPesquisaFimC] = useState('')
   const [descricaoProduto, setDescricaoProduto] = useState('')
   const [marcaProduto, setMarcaProduto] = useState('')
- 
-  const [dadosEstoqueVendasPosicionamentoPeriodos, setDadosEstoqueVendasPosicionamentoPeriodos] = useState([])
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
   useEffect(() => {
     const dataInicial = getDataAtual();
@@ -43,86 +41,73 @@ export const ActionPesquisaEstoqueProdutos = () => {
     setDataPesquisaFim(dataFinal);
     setDataPesquisaFimB(dataFinalB);
     setDataPesquisaFimC(dataFinalC);
-    getListaGrupo();
-    if(getListaGrupo) {
-      getListaSubGrupos(grupoSelecionado);
-    }
-    getListaSubGrupos();
-    getListaFornecedor();
-    getListaMarcasProdutos();
-  }, [grupoSelecionado]);
+  }, []);
 
-  const getListaGrupo = async () => {
-    try {
-      const response = await get(`/listaGrupoProduto`)
-      if (response.data) { 
-        setDadosGrupos(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar grupos: ', error)
-    }
-  }
+  const { data: dadosGrupos = [], error: errorGrupo, isLoading: isLoadingGrupo } = useFetchData('grupo-produto', `/grupo-produto`);
+  const { data: dadosSubGrupos = [], error: errorSubGrupo, isLoading: isLoadingSubGrupo } = useFetchData('subgrupo-produto', `/subgrupo-produto?idGrupo=${grupoSelecionado}`);
+  const { data: dadosFornecedor = [], error: errorFornecedor, isLoading: isLoadingFornecedor } = useFetchData('lista-fornecedor-produto', `/lista-fornecedor-produto`);
+  const { data: dadosMarcasProdutos = [], error: errorMarcaProduto, isLoading: isLoadingMarcaProduto } = useFetchData('lista-marca-produto', `/lista-marca-produto?idSubGrupo=${subGrupoSelecionado}`);
 
-  const getListaSubGrupos = async () => {
+  const fetchVendasEstoque = async () => {
     try {
-      const response = await get(`/listaSubGrupoProduto?idGrupo=${grupoSelecionado}`)
-      if (response.data) { 
-        setDadosSubGrupos(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar sub grupos: ', error)
-    }
-  }
 
-  const getListaMarcasProdutos = async () => {
-    try {
-      const response = await get(`/listaMarcaProduto?idSubGrupo=${subGrupoSelecionado}`)
-      if (response.data) { 
-        setDadosMarcasProdutos(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-  }
+      const urlApi = `/vendasEstoqueProduto?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&dataPesquisaInicioB=${dataPesquisaInicioB}&dataPesquisaFimB=${dataPesquisaFimB}&dataPesquisaInicioC=${dataPesquisaInicioC}&dataPesquisaFimC=${dataPesquisaFimC}&descricaoProduto=${descricaoProduto}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarcaProduto=${marcaProduto}`;
+      const response = await get(urlApi);
 
-  const getListaFornecedor = async () => {
-    try {
-      const response = await get(`/listaFornecedorProduto?idMarca=`)
-      if (response.data) { 
-        setDadosFornecedor(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-  }
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
 
-  const getListaVendasPosicionamentoEstoquePeriodos = async () => {
-    try {
-      const response = await get(`/vendasEstoqueProduto?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&dataPesquisaInicioB=${dataPesquisaInicioB}&dataPesquisaFimB${dataPesquisaFimB}&dataPesquisaInicioC=${dataPesquisaInicioC}&dataPesquisaFimC=${dataPesquisaFimC}&descricaoProduto=${descricaoProduto}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarcaProduto=${marcaProduto}`)
-      if (response.data) {
-        setDadosEstoqueVendasPosicionamentoPeriodos(response.data)
+        async function fetchNextPage(page) {
+          try {
+            page++;
+            const responseNextPage = await get(`${urlApi}&page=${page}`);
+            if (responseNextPage.data.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(page);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
+        return response.data;
       }
-      return response.data;
+
     } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
+  };
+
+  const { data: dadosEstoqueVendas = [], error: erroVendasEstoque, isLoading: isLoadingVendasEstoque, refetch: refetchVendasEstoque } = useQuery(
+    'vendasEstoqueProduto',
+    () => fetchVendasEstoque(dataPesquisaInicio, dataPesquisaFim, dataPesquisaInicioB, dataPesquisaFimB, dataPesquisaInicioC, dataPesquisaFimC, descricaoProduto, fornecedorSelecionado, grupoSelecionado, subGrupoSelecionado, marcaProduto, currentPage, pageSize),
+    { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  );
 
 
   const handleGrupoChange = (selectedOptions) => {
     const values = selectedOptions.map((option) => option.value);
+  
     setGrupoSelecionado(values);
   }
- 
+
   const handleSubGrupoChange = (selectedOptions) => {
     const values = selectedOptions.map((option) => option.value);
+    
     setSubGrupoSelecionado(values);
   }
-  
+
   const handleFornecedorChange = (selectedOptions) => {
     const values = selectedOptions.map((option) => option.value);
     setFornecedorSelecionado(values);
@@ -133,13 +118,10 @@ export const ActionPesquisaEstoqueProdutos = () => {
   }
 
   const handleClick = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      getListaVendasPosicionamentoEstoquePeriodos(dataPesquisaInicio, dataPesquisaFim, dataPesquisaInicioB, dataPesquisaFimB, dataPesquisaInicioC, dataPesquisaFimC, )
-    }
-
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchVendasEstoque();
+    setTabelaVisivel(true)
+  
   }
 
 
@@ -151,33 +133,33 @@ export const ActionPesquisaEstoqueProdutos = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista de Vendas"]}
         title="Relatório Vendas"
-   
+
 
         InputFieldDTInicioAComponent={InputField}
         labelInputDTInicioA={"Data Início(A)"}
         onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
         valueInputFieldDTInicioA={dataPesquisaInicio}
-        
+
         InputFieldDTFimAComponent={InputField}
         labelInputDTFimA={"Data Fim(A)"}
         onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
         valueInputFieldDTFimA={dataPesquisaFim}
-        
+
         InputFieldDTInicioBComponent={InputField}
         labelInputDTInicioB={"Data Início(B)"}
         valueInputFieldDTInicioB={dataPesquisaInicioB}
         onChangeInputFieldDTInicioB={(e) => setDataPesquisaInicioB(e.target.value)}
-        
+
         InputFieldDTFimBComponent={InputField}
         labelInputDTFimB={"Data Fim(B)"}
         onChangeInputFieldDTFimB={(e) => setDataPesquisaFimB(e.target.value)}
         valueInputFieldDTFimB={dataPesquisaFimB}
-        
+
         InputFieldDTInicioCComponent={InputField}
         labelInputDTInicioC={"Data Início(C)"}
         onChangeInputFieldDTInicioC={(e) => setDataPesquisaInicioC(e.target.value)}
         valueInputFieldDTInicioC={dataPesquisaInicioC}
-        
+
         InputFieldDTFimCComponent={InputField}
         labelInputDTFimC={"Data Fim(C)"}
         onChangeInputFieldDTFimC={(e) => setDataPesquisaFimC(e.target.value)}
@@ -185,7 +167,7 @@ export const ActionPesquisaEstoqueProdutos = () => {
 
         MultSelectGrupoComponent={MultSelectAction}
         optionsMultSelectGrupo={[
-          {value: '', label: 'Selecione um Grupo'},
+          { value: '', label: 'Selecione um Grupo' },
           ...dadosGrupos.map((item) => ({
             value: item.ID_GRUPO,
             label: item.GRUPO,
@@ -197,9 +179,9 @@ export const ActionPesquisaEstoqueProdutos = () => {
 
         MultSelectSubGrupoComponent={MultSelectAction}
         optionsMultSelectSubGrupo={[
-          {value: '', label: 'Selecione um SubGrupo'},
+          { value: '', label: 'Selecione um SubGrupo' },
           ...dadosSubGrupos.map((item) => ({
-            value: item.ID_GRUPO,
+            value: item.ID_ESTRUTURA,
             label: item.ESTRUTURA,
           }))
         ]}
@@ -209,10 +191,10 @@ export const ActionPesquisaEstoqueProdutos = () => {
 
         MultSelectFornecedorComponent={MultSelectAction}
         optionsMultSelectFornecedor={[
-          {value: '', label: 'Selecione um Fornecedor'},
+          { value: '', label: 'Selecione um Fornecedor' },
           ...dadosFornecedor.map((fornecedor) => ({
-          value: fornecedor.ID_FORNECEDOR,
-          label: `${fornecedor.ID_FORNECEDOR} ${fornecedor.FORNECEDOR}`,
+            value: fornecedor.ID_FORNECEDOR,
+            label: `${fornecedor.ID_FORNECEDOR} ${fornecedor.FORNECEDOR}`,
           }))
         ]}
         labelMultSelectFornecedor={"Por Fornecedor"}
@@ -227,9 +209,9 @@ export const ActionPesquisaEstoqueProdutos = () => {
 
         MultSelectMarcaComponent={MultSelectAction}
         labelMultSelectMarca={"Marca"}
-        
+
         optionsMultSelectMarca={[
-          {value: '', label: 'Selecione uma Marca'},
+          { value: '', label: 'Selecione uma Marca' },
           ...dadosMarcasProdutos.map((marca) => ({
             value: marca.ID_MARCA,
             label: `${marca.ID_MARCA} ${marca.MARCA}`,
@@ -246,10 +228,9 @@ export const ActionPesquisaEstoqueProdutos = () => {
       />
 
 
-    {tabelaVisivel && (
-       <ActionListaEstoqueProduto dadosEstoqueVendasPosicionamentoPeriodos={dadosEstoqueVendasPosicionamentoPeriodos} />
-    )}    
+      {tabelaVisivel && (
+        <ActionListaEstoqueProduto dadosEstoqueVendas={dadosEstoqueVendas} />
+      )}
     </Fragment>
   )
 }
-

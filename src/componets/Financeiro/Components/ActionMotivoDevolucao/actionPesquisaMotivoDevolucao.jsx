@@ -7,23 +7,23 @@ import { getDataAtual } from "../../../../utils/dataAtual"
 import { IoIosAdd } from "react-icons/io"
 import { get } from "../../../../api/funcRequest"
 import { ActionListaMotivoDevolucao } from "./actionListaMotivoDevolucao"
-import { ActionCriarMotivoDevolucaoModal } from "./actionCriarMotivoDevolucaoModal"
+import { ActionCriarMotivoDevolucaoModal } from "./ActionCadastrarMotivo/actionCriarMotivoDevolucaoModal"
 import { useQuery } from 'react-query';
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
+import Swal from "sweetalert2"
 
-export const ActionPesquisaMotivoDevolucao = () => {
+export const ActionPesquisaMotivoDevolucao = ({ usuarioLogado, ID}) => {
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  // const [dadosMotivoDevolucao, setDadosMotivoDevolucao] = useState([]);
   const [numeroMotivoDevolucao, setNumeroMotivoDevolucao] = useState('')
   const [descricaoMotivoDevolucao, setDescricaoMotivoDevolucao] = useState('')
-  const [clickContador, setClickContador] = useState(0)
   const [tabelaVisivel, setTabelaVisivel] = useState(false)
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(500); 
   const [modalCriarVisivel, setModalCriarVisivel] = useState(false)
   
+
   useEffect(() => {
     const dataInicial = getDataAtual();
     const dataFinal = getDataAtual();
@@ -32,8 +32,6 @@ export const ActionPesquisaMotivoDevolucao = () => {
   }, [])
 
   const fetchMotivoDevolucao = async () => {
-
-    
     try {
       const urlApi = `/motivo-devolucao?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idMotivo=${numeroMotivoDevolucao}&descricaoMotivo=${descricaoMotivoDevolucao}`;
       const response = await get(urlApi);
@@ -79,31 +77,38 @@ export const ActionPesquisaMotivoDevolucao = () => {
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 
-  // const getListaMotivoDevolucao = async () => {
-  //   try {
-  //     const response = await get(`/motivo-devolucao?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idMotivo=${numeroMotivoDevolucao}&descricaoMotivo=${descricaoMotivoDevolucao}`)
-  //     if (response.data) {
-  //       setDadosMotivoDevolucao(response.data)
-  //     }
-  //     return response.data
-  //   } catch (error) {
-  //     console.log(error, "não foi possivel pegar os dados da tabela ")
-  //   }
-  // }
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
-  const handleClick = () => {
-    
-    setTabelaVisivel(true)
-    setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
-    refetchMotivoDevolucao()
-
-    
+  const handleClickCadastro = () => {
+    if(optionsModulos[0]?.CRIAR == 'True') {
+      setModalCriarVisivel(true)
+    } else {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        html: `Acesso restrito. Por favor, <br> entre em contato com o responsável pela seção.`,
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 5000
+      })
+    }
   }
 
-  const handleClickModalCriar = () => {
-    setModalCriarVisivel(true)
+  const handleClick = () => {
+    setTabelaVisivel(true)
+    setIsLoadingPesquisa(true);
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchMotivoDevolucao()
   }
 
   return (
@@ -144,19 +149,24 @@ export const ActionPesquisaMotivoDevolucao = () => {
 
         ButtonTypeCadastro={ButtonType}
         linkNome={"Inserir Motivo"}
-        onButtonClickCadastro={handleClickModalCriar}
+        onButtonClickCadastro={handleClickCadastro}
         corCadastro={"success"}
         IconCadastro={IoIosAdd}
 
       />
 
       {tabelaVisivel && (
-        <ActionListaMotivoDevolucao dadosMotivoDevolucao={dadosMotivoDevolucao} />
+        <ActionListaMotivoDevolucao 
+          dadosMotivoDevolucao={dadosMotivoDevolucao}
+          optionsModulos={optionsModulos}
+        />
       )}
 
       <ActionCriarMotivoDevolucaoModal
         show={modalCriarVisivel}
         handleClose={() => setModalCriarVisivel(false)}
+        optionsModulos={optionsModulos}
+        usuarioLogado={usuarioLogado}
 
       />
     </Fragment>

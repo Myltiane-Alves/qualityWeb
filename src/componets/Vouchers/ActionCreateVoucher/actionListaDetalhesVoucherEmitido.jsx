@@ -8,14 +8,14 @@ import { CiEdit } from 'react-icons/ci';
 import { ButtonTable } from '../../ButtonsTabela/ButtonTable';
 import { GrFormView } from 'react-icons/gr';
 import { get, post } from '../../../api/funcRequest';
-import { ActionDetalharModal } from './actionDetalharModal';
+import { ActionDetalharModal } from './ActionDetalhesModal/actionDetalharModal';
 import HeaderTable from '../../Tables/headerTable';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { useReactToPrint } from "react-to-print";
-import { ActionEditarStatusVoucherModal } from './actionEditarStatusVoucherModal';
-import { ActionImprimirVoucherModal } from './actionImprimirVoucherModal';
+import { ActionEditarStatusVoucherModal } from './ActionEditarVoucher/actionEditarStatusVoucherModal';
+import { ActionImprimirVoucherModal } from './ActionImprimirVoucher/actionImprimirVoucherModal';
 import Swal from 'sweetalert2';
 import { ocultaParteDosDadosVoucher } from '../../../utils/ocultarParte';
 

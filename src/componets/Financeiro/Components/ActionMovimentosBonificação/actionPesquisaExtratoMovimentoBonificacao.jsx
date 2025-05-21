@@ -8,21 +8,67 @@ import { get } from "../../../../api/funcRequest";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
-export const ActionPesquisaExtratoMovimentoBonificacao = () => {
+export const ActionPesquisaExtratoMovimentoBonificacao = ({usuarioLogado, ID}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [funcionarioSelecionado, setFuncionarioSelecionado] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
 
-
-  const { data: optionsFucionarios = [], error: errorFuncionario, isLoading: isLoadingFuncionario } = useQuery(
-    ['todos-funcionario', currentPage, pageSize],
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
     async () => {
-      const response = await get(`/todos-funcionario?page=${currentPage}&pageSize=${pageSize}`);
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
       return response.data;
     },
-    { staleTime: 5 * 60 * 1000 }
-  );  
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
+
+  const fetchListaFuntionarios = async () => {
+    try {
+
+      const urlApi = `/todos-funcionario?`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+       
+        return response.data;
+      }
+  
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
+    }
+  };
+
+  const { data: optionsFucionarios = [], error: errorFuncionario, isLoading: isLoadingFuncionario, refetch } = useQuery(
+    ['todos-funcionario', funcionarioSelecionado, currentPage, pageSize],
+    () => fetchListaFuntionarios(funcionarioSelecionado, currentPage, pageSize),
+    { enabled: true, staleTime: 5 * 60 * 1000 }
+  );
 
   const fetchDadosExtratoBoniFicacao = async () => {
     try {
@@ -71,20 +117,15 @@ export const ActionPesquisaExtratoMovimentoBonificacao = () => {
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 
-  const handleSelectFuncionario = (e) => {
-    const selectId = e.value
-    if (selectId) {
-      setFuncionarioSelecionado(selectId)
-    }
-  }
-
   const handleClick = () => {
     setTabelaVisivel(true)
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
+    setCurrentPage(prevPage => prevPage + 1);
     refetchDadosExtratoBoniFicacao()
   }
 
+
+  
   return (
 
     <Fragment>
@@ -95,8 +136,6 @@ export const ActionPesquisaExtratoMovimentoBonificacao = () => {
         // subTitle="Nome da Loja"
 
         InputSelectEmpresaComponent={InputSelectAction}
-        onChangeSelectEmpresa={handleSelectFuncionario}
-        valueSelectEmpresa={funcionarioSelecionado}
         optionsEmpresas={[
           { value: '0', label: 'Selecione...' },
           ...optionsFucionarios.map((empresa) => ({
@@ -105,6 +144,8 @@ export const ActionPesquisaExtratoMovimentoBonificacao = () => {
           }))
         ]}
         labelSelectEmpresa={"Funcionário"}
+        valueSelectEmpresa={funcionarioSelecionado} // Use apenas o estado aqui
+        onChangeSelectEmpresa={(e) => setFuncionarioSelecionado(e.value)}
 
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}
@@ -117,7 +158,13 @@ export const ActionPesquisaExtratoMovimentoBonificacao = () => {
 
         <div className="card">
           
-          <ActionListaExtratoMovimentoBonificacao dadosExtratoBonificacao={dadosExtratoBonificacao} />
+          <ActionListaExtratoMovimentoBonificacao 
+            dadosExtratoBonificacao={dadosExtratoBonificacao} 
+            usuarioLogado={usuarioLogado}
+            optionsModulos={optionsModulos}
+            funcionarioSelecionado={funcionarioSelecionado}  
+            setFuncionarioSelecionado={setFuncionarioSelecionado}
+          />
         </div>
       )}
     </Fragment>

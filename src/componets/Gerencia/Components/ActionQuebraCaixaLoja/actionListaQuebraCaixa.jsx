@@ -17,7 +17,6 @@ export const ActionListaQuebraCaixa = ({ dadosQuebraCaixa }) => {
   const [dadosDetelheImprimir, setDadosDetelheImprimir] = useState([]);
   const [modalImprimir, setModalImprimir] = useState(false);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -95,19 +94,19 @@ export const ActionListaQuebraCaixa = ({ dadosQuebraCaixa }) => {
     {
       field: 'DTLANCAMENTO',
       header: 'Data Lan.',
-      body: row => <th style={{ color: 'blue' }}>{dataFormatada(row.DTLANCAMENTO)}</th>,
+      body: row => <p style={{ color: 'blue', margin: 0, width: '100px' }}>{row.DTLANCAMENTO}</p>,
       sortable: true,
     },
     {
       field: 'IDMOVIMENTOCAIXA',
       header: 'Nº Movimento Caixa',
-      body: row => <th style={{ color: 'blue' }}>{row.IDMOVIMENTOCAIXA}</th>,
+      body: row => <p style={{ color: 'blue', margin: 0, width: '200px' }}>{row.IDMOVIMENTOCAIXA}</p>,
       sortable: true,
     },
     {
       field: 'NOMEOPERADOR',
       header: 'Funcionário',
-      body: row => <th style={{ color: 'blue' }}>{row.NOMEOPERADOR}</th>,
+      body: row => <p style={{ color: 'blue', margin: 0, width: '300px' }}>{row.NOMEOPERADOR}</p>,
       sortable: true,
     },
     {
@@ -159,6 +158,8 @@ export const ActionListaQuebraCaixa = ({ dadosQuebraCaixa }) => {
                   cor={"primary"}
                   Icon={MdOutlineLocalPrintshop}
                   iconSize={20}
+                  width="35px"
+                  height="35px"
                   onClickButton={() => handleClickImprimir(row)}
                 />
               </div>
@@ -212,12 +213,15 @@ export const ActionListaQuebraCaixa = ({ dadosQuebraCaixa }) => {
           <DataTable
             title="Quebra de Caixa"
             value={dados}
-            size={size}
+            size="small"
             globalFilter={globalFilterValue}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             response
@@ -232,9 +236,9 @@ export const ActionListaQuebraCaixa = ({ dadosQuebraCaixa }) => {
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
                 footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

@@ -1,13 +1,11 @@
 import { Fragment, useEffect, useState } from "react"
 import { ActionMain } from "../../../Actions/actionMain"
 import { InputField } from "../../../Buttons/Input"
-import { ButtonSearch } from "../../../Buttons/ButtonSearch"
 import { get } from "../../../../api/funcRequest"
 import { getDataAtual } from "../../../../utils/dataAtual"
 import { InputSelectAction } from "../../../Inputs/InputSelectAction"
 import { ActionListaRecebimentosLoja } from "./actionListaRecebimentosLoja"
 import { AiOutlineSearch } from "react-icons/ai"
-import { ActionListaDetalhamento } from "./actionListaDetalhamento"
 import { useQuery } from 'react-query';
 import Swal from 'sweetalert2';
 import { ActionListaDetalhamentoCopia } from "./actionListaDetalhamentoCopia"
@@ -18,14 +16,14 @@ import { useFetchData } from "../../../../hooks/useFetchData"
 
 export const ActionPesquisaRecebimentosLoja = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(1000)
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(true)
-  const [totalPages, setTotalPages] = useState(0);
+
 
   useEffect(() => {
     const dataInicial = getDataAtual();
@@ -138,21 +136,20 @@ export const ActionPesquisaRecebimentosLoja = () => {
     {enabled: false, staleTime: 5 * 60 * 1000}
   );
 
-
-  const handleEmpresaChange = (selectedOptions) => {
-    setEmpresaSelecionada(selectedOptions.value);
+  const handleChangeEmpresa = (e) => {
+    const empresa = optionsEmpresas.find((item) => item.IDEMPRESA === e.value);
+    setEmpresaSelecionada(e.value);
+    setEmpresaSelecionadaNome(empresa.NOFANTASIA);
   }
 
+
+
   const handleClick = () => {
-
-      setTabelaVisivel(true)
-
-
-      setIsLoadingPesquisa(true);
-      setCurrentPage(+1); 
-      refetchListaRecebimentosLoja()
-      refetchRecebimentosEletronicos()
-    
+    setTabelaVisivel(true)
+    setIsLoadingPesquisa(true);
+    setCurrentPage(prevPage => prevPage +1); 
+    refetchListaRecebimentosLoja()
+    refetchRecebimentosEletronicos()
   }
 
 
@@ -165,6 +162,7 @@ export const ActionPesquisaRecebimentosLoja = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista de Recebimentos"]}
         title="Recebimentos por Lojas e Período"
+        subTitle={empresaSelecionadaNome}
 
         InputFieldDTInicioComponent={InputField}
         labelInputFieldDTInicio={"Data Início"}
@@ -186,7 +184,7 @@ export const ActionPesquisaRecebimentosLoja = () => {
         ]}
         labelSelectEmpresa={"Empresa"}
         valueSelectEmpresa={empresaSelecionada}
-        onChangeSelectEmpresa={handleEmpresaChange}
+        onChangeSelectEmpresa={handleChangeEmpresa}
 
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}
@@ -196,7 +194,8 @@ export const ActionPesquisaRecebimentosLoja = () => {
 
       />
 
-        <div className="card " style={{marginTop: '8rem'}}>
+        <ActionListaDetalhamentoCopia dadosListaRecebimentosLoja={dadosListaRecebimentosLoja} />
+        <div className="card " >
 
           <ActionListaRecebimentosLoja 
             dadosRecebimentosEletronico={dadosRecebimentosEletronico}
@@ -207,7 +206,6 @@ export const ActionPesquisaRecebimentosLoja = () => {
           />
                
           {/* <ActionListaDetalhamento dadosListaRecebimentosLoja={dadosListaRecebimentosLoja} /> */}
-          <ActionListaDetalhamentoCopia dadosListaRecebimentosLoja={dadosListaRecebimentosLoja} />
         </div>
 
     </Fragment>

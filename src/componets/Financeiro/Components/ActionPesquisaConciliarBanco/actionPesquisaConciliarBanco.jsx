@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react"
+import { Fragment, useState } from "react"
 import { ActionMain } from "../../../Actions/actionMain"
 import { InputField } from "../../../Buttons/Input"
 import { ButtonType } from "../../../Buttons/ButtonType"
@@ -12,7 +12,7 @@ import Swal from "sweetalert2"
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
 import { useFetchData } from "../../../../hooks/useFetchData"
 
-export const ActionPesquisaConciliarBanco = () => {
+export const ActionPesquisaConciliarBanco = ({usuarioLogado, ID}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [tabelaVisivelConsolidado, setTabelaVisivelConsolidado] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
@@ -27,6 +27,14 @@ export const ActionPesquisaConciliarBanco = () => {
   const [pageSize, setPageSize] = useState(500); 
 
   const { data: dadosContaBanco = [] } = useFetchData('contaBanco', '/contaBanco');
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const fetchConciliarBanco = async () => {
     try {
@@ -77,7 +85,8 @@ export const ActionPesquisaConciliarBanco = () => {
 
   const fetchConciliarBancoConsolidado = async () => {
     try {
-      const urlApi = `/depositoLojaConsolidado?idConta=${contaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&dataCompensacaoInicio=${dataPesquisaInicioB}&dataCompensacaoFim=${dataPesquisaFimB}&dataMovimentoInicio=${dataPesquisaInicioC}&dataMovimentoFim=${dataPesquisaFimC}`;
+      
+      const urlApi = `/depositoLojaConsolidado?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&dataCompInicio=${dataPesquisaInicioB}&dataCompFim=${dataPesquisaFimB}&dataMovInicio=${dataPesquisaInicioC}&dataMovFim=${dataPesquisaFimC}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -115,8 +124,6 @@ export const ActionPesquisaConciliarBanco = () => {
     }
     
   };
-
-  
 
   const { data: dadosConciliarBancoConsolidado = [], error: errorBancoConsolidado, isLoading: isLoadingBancoConsolidado, refetch: refetchBancoConsolidado } = useQuery(
     ['depositoLojaConsolidado',  contaSelecionada, dataPesquisaInicio, dataPesquisaFim, dataPesquisaInicioB, dataPesquisaFimB, dataPesquisaInicioC, dataPesquisaFimC, currentPage, pageSize],
@@ -229,7 +236,12 @@ export const ActionPesquisaConciliarBanco = () => {
       />
 
       {tabelaVisivel && (
-        <ActionListaConciliarPorBanco dadosConciliarBanco={dadosConciliarBanco} />
+        <ActionListaConciliarPorBanco 
+          dadosConciliarBanco={dadosConciliarBanco} 
+          usuarioLogado={usuarioLogado}
+          optionsModulos={optionsModulos}  
+          handleClick={handleClick}
+        />
 
       )}
       {tabelaVisivelConsolidado && (

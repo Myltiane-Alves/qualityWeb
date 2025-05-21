@@ -1,9 +1,8 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ResultadoResumo } from "../../ResultadoResumo/ResultadoResumo";
 import { ActionMain } from "../../Actions/actionMain";
 import { InputSelectAction } from "../../Inputs/InputSelectAction";
 import { InputField } from "../../Buttons/Input";
-import { ButtonSearch } from "../../Buttons/ButtonSearch";
 import { get } from "../../../api/funcRequest";
 import { formatMoeda } from "../../../utils/formatMoeda";
 import { getDataAtual } from "../../../utils/dataAtual";
@@ -17,7 +16,7 @@ import { toFloat } from "../../../utils/toFloat";
 import { BsGem } from "react-icons/bs";
 import { FaCashRegister, FaRegLightbulb } from "react-icons/fa";
 import { ActionListaExtratoLoja } from "./Components/ActionExtrato/actionListaExtratoLoja";
-import { ActionListaConvenioDescontoFuncionario } from "../Components/ActionListaVendasConvenio/actionListaConvenioDescontoFuncionario";
+// import { ActionListaConvenioDescontoFuncionario } from "../Components/ActionListaVendasConvenio/actionListaConvenioDescontoFuncionario";
 import { ButtonType } from "../../Buttons/ButtonType";
 import { ActionListaVendasDescontoFuncionario } from "./actionListaVendasDescontoFuncionario";
 import { ActionListaVendasConvenioDesconto } from "./actionListaVendasConvenioDesconto";
@@ -25,27 +24,18 @@ import { ActionListaVendasVoucherLancado } from "./actionListaVendasVoucherLanca
 import { ActionListaDespesasLancada } from "./actionListaDespesasLancadas";
 import { ActionListaFaturasLancada } from "./actionListaFaturasLancadas";
 import { ActionListaFechamentoDosCaixas } from "./actionListaFechamentoDosCaixas";
+import { useFetchData } from "../../../hooks/useFetchData";
+import { useQuery } from "react-query";
 
 export const ResumoDashBoardAdministrativo = () => {
   const [resumoVisivel, setResumoVisivel] = useState(false);
-  const [dadosEmpresas, setDadosEmpresas] = useState([]);
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
   const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
-  const [dadosResumoVendas, setDadosResumoVendas] = useState([]);
   const [dadosMovimentacaoCaixaDoDia, setDadosMovimentacaoCaixaDoDia] = useState([]);
   const [dadosVendasPCJ, setDadosVendasPCJ] = useState([])
-  const [dadosCaixaFechados, setDadosCaixaFechados] = useState([])
-  const [dadosVendasVendedor, setDadosVendasVendedor] = useState([])
-  const [dadosVendasAtivas, setDadosVendasAtivas] = useState([])
-  const [dadosVendasCanceladas, setDadosVendasCanceladas] = useState([])
   const [dadosVendas, setDadosVendas] = useState([])
-  const [dadosVendasConvenioFuncionario, setDadosVendasConvenioFuncionario] = useState([])
-  const [dadosDetalheFaturaLancadas, setDadosDetalheFaturaLancadas] = useState([])
   const [dadosDetalheDespesas, setDadosDetalheDespesas] = useState([])
-  const [dadosDespesaLoja, setDadosDespesaLoja] = useState([])
   const [dataPesquisa, setDataPesquisa] = useState('')
-  const [dadosDetalheVoucher, setDadosDetalheVoucher] = useState([])
-  const [dadosVendasConvenioDesconto, setDadosVendasConvenioDesconto] = useState([])
   const [dadosExtratoLojaPeriodo, setDadosExtratoLojaPeriodo] = useState([])
   const [dadosExtratoQuebra, setDadosExtratoQuebra] = useState([])
   const [dadosTotalDepositos, setDadosTotalDepositos] = useState([])
@@ -54,41 +44,126 @@ export const ResumoDashBoardAdministrativo = () => {
   const [dadosTotalAdiantamentos, setDadosTotalAdiantamentos] = useState([])
   const [dadosAjusteExtrato, setDadosAjusteExtrato] = useState([])
   const [dadosExtratoLoja, setDadosExtratoLoja] = useState([])
-  const [dadosQuebraCaixa, setDadosQuebraCaixa] = useState([])
-  const [dadosAdiantamentoSalarial, setDadosAdiantamentoSalarial] = useState([])
 
-  // Início Lista de Empresas
+
   useEffect(() => {
     const dataAtual =  getDataAtual()
     setDataPesquisa(dataAtual)
-    getTodasEmpresas();
   }, []);
   
-  const getTodasEmpresas = async () => {
-    try {
-      const response = await get("/empresas",)
-      if (response.data) {
-        setDadosEmpresas(response.data)
-      }
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-  }
+  const { data: dadosEmpresas = [], } = useFetchData('empresas', '/empresas');
 
-  
-  
-  const getListaAdiantamentoSalaria = async (empresaSelecionada) => {
-    try {
+  const { data: dadosAdiantamentoSalarial = [], error: errorFuncionarios, isLoading: isLoadingFuncionarios, refetch: refetchAdiantamento } = useQuery(
+    'adiantamentos-salarial',
+    async () => {
       const response = await get(`/adiantamentos-salarial?idEmpresa=${empresaSelecionada}&dataPesquisa=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosAdiantamentoSalarial(response.data)
-      }
       return response.data;
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, listaCaixasFechados")
-    }
-  }
-  const getListaCaixaMovimento = async (empresaSelecionada) => {
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+
+  const { data: dadosQuebraCaixa = [], error: errorQuebra, isLoading: isLoadingQuebra, refetch: refetchQuebra } = useQuery(
+    'quebra-caixa-loja-resumo',
+    async () => {
+      const response = await get(`/quebra-caixa-loja-resumo?idEmpresa=${empresaSelecionada}&dataPesquisa=${dataPesquisa}`);
+      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+
+  const { data: dadosVendasVendedor = [], error: errorVendasVendedor, isLoading: isLoadingVendasVendedor, refetch: refetchVendasVendedor } = useQuery(
+    'vendaVendedor',
+    async () => {
+      const response = await get(`/vendaVendedor?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`);
+      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+
+  const { data: dadosVendasAtivas = [], error: errorVendasAtivas, isLoading: isLoadingVendasAtivas, refetch: refetchVendasAtivas } = useQuery(
+    'venda-ativa',
+    async () => {
+      const response = await get(`/venda-ativa?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}&statusCancelado=False`);
+      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+ 
+  const { data: dadosVendasCanceladas = [], error: errorVendasCanceladas, isLoading: isLoadingVendasCanceladas, refetch: refetchVendasCanceladas } = useQuery(
+    'venda-ativa',
+    async () => {
+      const response = await get(`/venda-ativa?statusCancelado=True&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`);
+      console.log(response.data, "dadosVendasCanceladas")
+      return response.data;
+    },
+    { enabled: Boolean(empresaSelecionada), staleTime: 5 * 60 * 1000, }
+  );
+  
+
+  const { data: dadosDetalheVoucher = [], error: errorDetalheVouche, isLoading: isLoadingDetalheVouche, refetch: refetchDetalheVouche } = useQuery(
+    'venda-ativa',
+    async () => {
+      const response = await get(`/detalheVoucher?idEmpresa=${empresaSelecionada}&datapesq=${dataPesquisa}`);
+      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+
+  const { data: dadosVendasConvenioDesconto = [], error: errorConvenio, isLoading: isLoadingConvenio, refetch: refetchConvenio } = useQuery(
+    'resumo-venda-convenio',
+    async () => {
+      const response = await get(`/resumo-venda-convenio?idEmpresa=${empresaSelecionada}&dataFechamento=${dataPesquisa}&statusCancelado=False`);
+      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+
+  const { data: dadosVendasConvenioFuncionario = [], error: errorConvenioFuncionario, isLoading: isLoadingConvenioFuncionario, refetch: refetchConvenioFuncionario } = useQuery(
+    'resumo-venda-convenio-desconto',
+    async () => {
+      const response = await get(`/resumo-venda-convenio-desconto?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}&statusCancelado=False`);
+      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+ 
+  const { data: dadosCaixaFechados = [], error: errorCaixaFechado, isLoading: isLoadingCaixaFechado, refetch: refetchCaixaFechado } = useQuery(
+    'listaCaixasFechados',
+    async () => {
+      const response = await get(`/listaCaixasFechados?idEmpresa=${empresaSelecionada}&dataFechamento=${dataPesquisa}`);
+      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+
+  const { data: dadosDetalheFaturaLancadas = [], error: errorFaturaLancada, isLoading: isLoadingFaturaLancada, refetch: refetchFaturaLancada } = useQuery(
+    'detalheFatura',
+    async () => {
+      const response = await get(`/detalheFatura?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`);
+      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+
+  const { data: dadosResumoVendas = [], error: errorResumoVendas, isLoading: isLoadingResumoVendas, refetch: refetchResumoVendas } = useQuery(
+    'resumoVenda',
+    async () => {
+      const response = await get(`/resumoVenda?idEmpresa=${empresaSelecionada}&dataPesquisa=${dataPesquisa}`);
+      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+
+  const { data: dadosDespesaLoja = [], error: errorDespesaLoja, isLoading: isLoadingDespesaLoja, refetch: refetchDespesaLoja } = useQuery(
+    'despesasLojaADM',
+    async () => {
+      const response = await get(`/despesasLojaADM?idEmpresa=${empresaSelecionada}&dataPesquisa=${dataPesquisa}`);
+      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000, }
+  );
+
+  const getListaCaixaMovimento = async () => {
     try {
       const response = await get(`/listaCaixasMovimento?idEmpresa=${empresaSelecionada}&dataFechamento=${dataPesquisa}`);
       if (response.data && response.data.length > 0) {
@@ -98,91 +173,6 @@ export const ResumoDashBoardAdministrativo = () => {
       return response.data;
     } catch (error) {
       console.log(error, "não foi possível carregar os dados da tabela, listaCaixasFechados")
-    }
-  }
-
-  const getListaQuebraCaixa = async (empresaSelecionada) => {
-    try {
-      const response = await get(`/quebra-caixa-loja?idEmpresa=${empresaSelecionada}&dataPesquisa=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosQuebraCaixa(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, listaCaixasFechados")
-    }
-  }
-
-  const getListaVendasVendedor = async (empresaSelecionada) => {
-    try {
-      const response = await get(`/vendaVendedor?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosVendasVendedor(response.data);
-      }
-      return response.data;    
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-  }
-
-  const getListaVendasAtivas = async (empresaSelecionada) => {
-    try {
-      const response = await get(`/vendaAtivaResumo?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosVendasAtivas(response.data);
-      }
-      return response.data;  
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-  }
-
-  const getListaVendasCanceladas = async (empresaSelecionada) => {
-    try {
-      const response = await get(`/vendaCanceladaResumo?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosVendasCanceladas(response.data);
-      }
-      return response.data;    
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-  }
-
-  const getDetalheVoucher = async (empresaSelecionada) => {
-    try {
-      const response = await get(`/detalheVoucher?idEmpresa=${empresaSelecionada}&datapesq=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosDetalheVoucher(response.data);   
-      }
-      return response.data;     
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-  }
-
-  const getVendasConvenio = async (empresaSelecionada) => {
-    try {
-        const response = await get(`/resumoVendaConvenioDesc?idEmpresa=${empresaSelecionada}&dataInicio=${dataPesquisa}&dataFechamento=${dataPesquisa}`);
-        if (response.data && response.data.length > 0) {
-          setDadosVendasConvenioDesconto(response.data);
-        }
-        return response.data;
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-
-  }
-  
-  const getVendasConvenioFuncionario = async (empresaSelecionada) => {
-    try {
-      const response = await get(`/resumoVendaConvenioDesc?idEmpresa=${empresaSelecionada}&dataInicio=${dataPesquisa}&dataFechamento=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosVendasConvenioFuncionario(response.data);   
-      }
-      return response.data;     
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
     }
   }
 
@@ -208,56 +198,6 @@ export const ResumoDashBoardAdministrativo = () => {
     }
   }
 
-  const getListaCaixaFechados = async (empresaSelecionada) => {
-
-    try {
-      const response = await get(`/listaCaixasFechados?idEmpresa=${empresaSelecionada}&dataFechamento=${dataPesquisa}`);
-      if (response.data ) {
-        setDadosCaixaFechados(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, listaCaixasFechados")
-    }
-  }
-
-  const getDetalheFaturaLancadas = async (empresaSelecionada) => {
-    try {  
-      const response = await get(`/detalheFatura?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`);
-      if (response.data) {
-        setDadosDetalheFaturaLancadas(response.data);
-      }
-      return response.data;
-      
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-
-  }
-
-  const getResumoVendas = async () => {
-    try {
-      const response = await get(`/resumoVenda?idEmpresa=${empresaSelecionada}&dataPesquisa=${dataPesquisa}`);
-      if (response.data) {
-        setDadosResumoVendas(response.data); 
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar resumo das vendas: ', error);
-    }
-  };
-
-  const getListaDespesasLoja = async () => {
-    try {
-      const response = await get(`/despesasLojaADM?idEmpresa=${empresaSelecionada}&dataPesquisa=${dataPesquisa}`);
-      if (response.data) {
-        setDadosDespesaLoja(response.data); 
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar resumo das vendas: ', error);
-    }
-  };
 
   const dadosDespesas = dadosDespesaLoja.map((item, index) => {
     return {
@@ -291,20 +231,24 @@ export const ResumoDashBoardAdministrativo = () => {
 
   const handleClick = async () => {
     setResumoVisivel(true)
-    getResumoVendas()
-    getListaDespesasLoja()
-    getListaCaixaMovimento(empresaSelecionada)
-    getListaVendasVendedor(empresaSelecionada)
-    getListaVendasAtivas(empresaSelecionada)
-    getListaVendasCanceladas(empresaSelecionada)
-    getDetalheVoucher(empresaSelecionada)
-    getVendasConvenio(empresaSelecionada)
-    getListaSaldoExtratoLoja()
-    getListaCaixaFechados(empresaSelecionada)
-    getDetalheFaturaLancadas(empresaSelecionada)
-    getVendasConvenioFuncionario(empresaSelecionada)
-    getListaQuebraCaixa(empresaSelecionada)
-    getListaAdiantamentoSalaria(empresaSelecionada)
+    // getListaCaixaMovimento(empresaSelecionada)
+    // getListaSaldoExtratoLoja()
+   
+    refetchResumoVendas()
+    refetchDespesaLoja()
+    
+    
+    refetchConvenio()
+    refetchConvenioFuncionario()
+    refetchFaturaLancada()
+    refetchCaixaFechado()
+    refetchVendasAtivas()
+    refetchVendasCanceladas()
+    refetchDetalheVouche()
+    // refetchVendasVendedor()
+    // refetchQuebra()
+    // refetchAdiantamento()
+
   }
 
 
@@ -340,23 +284,23 @@ export const ResumoDashBoardAdministrativo = () => {
 
     
       {resumoVisivel && ( 
-        <div style={{marginTop: '8rem'}}>
+        <Fragment>
 
           <ResultadoResumo
             nomeVendas="Vendas Loja"
             cardVendas={true}
-            valorVendas={formatMoeda(toFloat(dados[0]?.totalVenda)) }
+            valorVendas={formatMoeda(dados[0]?.totalVenda) }
             IconVendas={AiOutlineUser}
             // IconVendas={MdOutlinePayment}
             
             nomeTicketMedio="Ticket Médio"
             cardTicketMedio={true}
-            valorTicketMedio={formatMoeda(toFloat(dados[0]?.VRTICKETWEB)) }
+            valorTicketMedio={formatMoeda(dados[0]?.VRTICKETWEB) }
             IconTicketMedio={FaRegLightbulb}
             
             nomeCliente="Clientes"
             cardCliente={true}
-            numeroCliente={toFloat(dados[0]?.QTDVENDAS)}
+            numeroCliente={dados[0]?.QTDVENDAS }
             IconNumeroCliente={BsGem}
     
             valorDespesas={formatMoeda(toFloat(dadosDespesaLoja[0]?.VRDESPESA))}
@@ -415,9 +359,10 @@ export const ResumoDashBoardAdministrativo = () => {
             <ActionListaVendasVoucherLancado dadosDetalheVoucher={dadosDetalheVoucher} />
     
             <ActionListaVendasConvenioDesconto dadosVendasConvenioDesconto={dadosVendasConvenioDesconto} />
+
             <ActionListaVendasDescontoFuncionario dadosVendasConvenioFuncionario={dadosVendasConvenioFuncionario} />
           
-        </div>
+        </Fragment>
       )}
     </Fragment>
   )

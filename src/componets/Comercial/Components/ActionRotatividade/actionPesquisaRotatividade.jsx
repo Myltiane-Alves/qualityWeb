@@ -7,12 +7,13 @@ import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 import { MultSelectAction } from "../../../Select/MultSelectAction";
 import { ButtonType } from "../../../Buttons/ButtonType";
 import { ActionListaRotatividade } from "./actionListaRotatividade";
-
-
+import { getDataAtual } from "../../../../utils/dataAtual";
+import { useFetchData } from "../../../../hooks/useFetchData";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
 export const ActionPesquisaRotatividade = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
   const [marcaSelecionada, setMarcaSelecionada] = useState('')
   const [grupoSelecionado, setGrupoSelecionado] = useState('')
@@ -20,109 +21,70 @@ export const ActionPesquisaRotatividade = () => {
   const [fornecedorSelecionado, setFornecedorSelecionado] = useState('')
   const [ufSelecionado, setUFSelecionado] = useState('')
   const [produtoPesquisado, setProdutoPesquisado] = useState('')
-  const [optionsEmpresas, setOptionsEmpresas] = useState([])
-  const [optionsMarcas, setOptionsMarcas] = useState([])
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [dadosFornecedor, setDadosFornecedor] = useState([])
-  const [dadosGrupos, setDadosGrupos] = useState([])
-  const [dadoGrade, setDadosGrade] = useState([])
-  const [dadosRotatividade, setDadosRotatividade] = useState([])
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
   useEffect(() => {
-    if(getGrupoEmpresas) {
-      getListaEmpresas();
-    }
-    getGrupoEmpresas();
-    getListaFornecedor();
-    getListaGrupo();
-    getListaGrade(grupoSelecionado)
-  }, [grupoSelecionado, marcaSelecionada]);
+    const dataInicial = getDataAtual()
+    const dataFinal = getDataAtual()
+    setDataPesquisaInicio(dataInicial)
+    setDataPesquisaFim(dataFinal)
 
-  const getListaEmpresas = async () => {
-    if(marcaSelecionada) {
+  }, [])
 
-      try {
-        const response = await get(`/listaEmpresaComercial?idMarca=${marcaSelecionada}`);
-        if (response.data && response.data.length > 0) {
-          setOptionsEmpresas(response.data);
+  const { data: dadosMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', `/marcasLista`);
+  const { data: dadosEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresa } = useFetchData('listaEmpresaComercial', `/listaEmpresaComercial?idMarca=${marcaSelecionada}`);
+  const { data: dadosFornecedor = [], error: errorFornecedor, isLoading: isLoadingFornecedor } = useFetchData('parceiro-negocio', `/parceiro-negocio`);
+  const { data: dadosGrupo = [], error: errorGrupo, isLoading: isLoadingGrupo } = useFetchData('grupo', `/grupo`);
+  const { data: dadosGrade = [], error: errorGrade, isLoading: isLoadingGrade } = useFetchData('listaGrade', `/listaGrade?idGrupo=${grupoSelecionado}`);
+
+  const fetchListaRotatividade = async () => {
+    try {
+
+      const urlApi = `/rotatividadeVendas?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&descProduto=${produtoPesquisado}&uf=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupoGrade=${grupoSelecionado}&idGrade=${gradeSelecionado}`;
+      const response = await get(urlApi);
+
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
         }
+
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
         return response.data;
-      } catch (error) {
-  
       }
-    }
-  }
-
-  const getGrupoEmpresas = async () => {
-    try {
-
-      const response = await get(`/listaGrupoEmpresas`,)
-      if (response.data) {
-        setOptionsMarcas(response.data)
-      }
-
     } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
+      console.error('Erro ao buscar dados:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
+  };
 
-  const getListaFornecedor = async () => {
-    
-    try {
-      const response = await get(`/listaFornecedorProduto?idMarca=`)
-      if (response.data) { 
-        setDadosFornecedor(response.data)
-      }
-      return response.data;
-
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-    
-  }
-
-  const getListaGrupo = async () => {
-    
-    try {
-      const response = await get(`/grupoProdutoSap`)
-      if (response.data) { 
-        setDadosGrupos(response.data)
-      }
-      return response.data;
-
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-    
-  }
-
-  const getListaGrade = async () => {
-    try {
-      const response = await get(`/listaGrade?idGrupo=${grupoSelecionado}`)
-      if (response.data) { 
-        setDadosGrade(response.data)
-      }
-      return response.data;
-
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-    
-  }
-
-  const getListaRotatividade = async ( ) => {
-    try {
-      // const apiUrl = `http://164.152.245.77:8000/quality/concentrador/api/venda/rotatividade.xsjs?page=&dataInicio=${dataPesquisaInicio}&dataFim=${dataPesquisaFim}&idGrupoEmpresarial=${idGrupoEmpresarial}&idEmpresa=${idEmpresa}&descricaoProduto=${produtoPesquisado}&uf=${ufPesquisa}&idFornecedor=${idFornecedor}&idGrupoGrade=${idGrupoGrade}&idGrade=${idGrade}`
-      const response = await get(`/rotatividadeVendas?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idGrupoEmpresarial=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&produtoPesquisado=${produtoPesquisado}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupoGrade=${grupoSelecionado}&idGrade=${gradeSelecionado}`)
-      if (response.data) {
-        setDadosRotatividade(response.data)
-      }
-      return response.data
-    } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
-    }
-  }
+  const { data: dadosRotatividade = [], error: errorVendas, isLoading: isLoadingVendas, refetch: refetchListaRotatividade } = useQuery(
+    ['rotatividadeVendas', dataPesquisaInicio, dataPesquisaFim, marcaSelecionada, empresaSelecionada, produtoPesquisado, ufSelecionado, fornecedorSelecionado, grupoSelecionado, gradeSelecionado, currentPage, pageSize],
+    () => fetchListaRotatividade(dataPesquisaInicio, dataPesquisaFim, marcaSelecionada, empresaSelecionada, produtoPesquisado, ufSelecionado, fornecedorSelecionado, grupoSelecionado, gradeSelecionado, currentPage, pageSize),
+    { enabled: Boolean(marcaSelecionada), staleTime: 5 * 60 * 1000 }
+  );
 
 
   const handleSelectEmpresa = (selectedOptions) => {
@@ -140,22 +102,21 @@ export const ActionPesquisaRotatividade = () => {
 
   const handleGrupoChange = (e) => {
     const selectedGrupo = e.value;
-    if(!isNaN(selectedGrupo)){
+    if (!isNaN(selectedGrupo)) {
       setGrupoSelecionado(selectedGrupo);
     }
-    console.log(grupoSelecionado, 'grupoSelecionado')
   }
 
   const handleGradeChange = (e) => {
     const selectedSubGrupo = e.value;
-    if(!isNaN(selectedSubGrupo)){
+    if (!isNaN(selectedSubGrupo)) {
       setGradeSelecionado(selectedSubGrupo);
     }
   }
 
   const handleFornecedorChange = (e) => {
     const selectedFornecedor = e.value;
-    if(!isNaN(selectedFornecedor)){
+    if (!isNaN(selectedFornecedor)) {
       setFornecedorSelecionado(selectedFornecedor);
     }
   }
@@ -166,35 +127,24 @@ export const ActionPesquisaRotatividade = () => {
   }
 
   const handleClick = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      getListaRotatividade(dataPesquisaInicio, dataPesquisaFim, marcaSelecionada, empresaSelecionada)
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    setTabelaVisivel(true)
+    refetchListaRotatividade()
   }
-
-
-
 
   const optionsUF = [
     { value: 'DF', label: 'DF' },
     { value: 'GO', label: 'GO' },
   ]
 
-
-
   return (
 
     <Fragment>
-
-
-
       <ActionMain
         linkComponentAnterior={["Home"]}
-        linkComponent={["Relatórios Vendas"]}
-        title="Relatórios Vendas"
-        subTitle="Nome da Loja"
+        linkComponent={["Rotatividade"]}
+        title="Rotatividade por Período"
+        // subTitle="Nome da Loja"
 
         InputFieldDTInicioComponent={InputField}
         labelInputFieldDTInicio={"Data Início"}
@@ -204,12 +154,12 @@ export const ActionPesquisaRotatividade = () => {
         InputFieldDTFimComponent={InputField}
         labelInputFieldDTFim={"Data Fim"}
         valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)} 
+        onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
 
         InputSelectGrupoComponent={InputSelectAction}
         optionsGrupos={[
-          {value: '', label: 'Selecione um Grupo'},
-          ...dadosGrupos.map((item) => ({
+          { value: '', label: 'Selecione um Grupo' },
+          ...dadosGrupo.map((item) => ({
             value: item.IDGRUPO,
             label: item.GRUPOPRODUTO,
           }))
@@ -220,10 +170,10 @@ export const ActionPesquisaRotatividade = () => {
 
         InputSelectGradeComponent={InputSelectAction}
         optionsGrades={[
-          {value: '', label: 'Selecione uma Grade'},
-          ...dadoGrade.map((grade) => ({
-          value: grade.NOMEGRUPO,
-          label: grade.NOMEGRUPO,
+          { value: '', label: 'Selecione uma Grade' },
+          ...dadosGrade.map((grade) => ({
+            value: grade.NOMEGRUPO,
+            label: grade.NOMEGRUPO,
           }))
         ]}
         labelSelectGrade={"Por Grade"}
@@ -232,10 +182,10 @@ export const ActionPesquisaRotatividade = () => {
 
         InputSelectFornecedorComponent={InputSelectAction}
         optionsFornecedores={[
-          {value: '', label: 'Selecione um Fornecedor'},
+          { value: '', label: 'Selecione um Fornecedor' },
           ...dadosFornecedor.map((fornecedor) => ({
-          value: fornecedor.ID_FORNECEDOR,
-          label: `${fornecedor.ID_FORNECEDOR} ${fornecedor.FORNECEDOR}`,
+            value: fornecedor.ID_FORNECEDOR,
+            label: `${fornecedor.ID_FORNECEDOR} ${fornecedor.FORNECEDOR}`,
           }))
         ]}
         labelSelectFornecedor={"Por Fornecedor"}
@@ -252,30 +202,29 @@ export const ActionPesquisaRotatividade = () => {
         optionsSelectUF={optionsUF.map((item) => ({
           value: item.value,
           label: item.label,
-        }))}   
+        }))}
         labelSelectUF={"UF"}
         valueSelectUF={ufSelecionado}
         onChangeSelectUF={handleSelectUF}
 
         MultSelectGrupoComponent={MultSelectAction}
         labelMultSelectGrupo={"Empresa"}
-      
-        optionsMultSelectGrupo={optionsEmpresas.map((item) => ({
+
+        optionsMultSelectGrupo={dadosEmpresas.map((item) => ({
           value: item.IDEMPRESA,
           label: item.NOFANTASIA,
         }))}
         defaultValueMultSelectGrupo={[empresaSelecionada]}
         isMultiSelectGrupo={true}
         onChangeMultSelectGrupo={handleSelectEmpresa}
-        // animatedComponentsGrupo={animatedComponents}
 
         InputSelectMarcasComponent={InputSelectAction}
         labelSelectMarcas={"Marcas"}
         optionsMarcas={[
-          { value: null, label: 'Selecione uma Marca' },          
-          ...optionsMarcas.map((empresa) => ({
-          value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.GRUPOEMPRESARIAL,
+          { value: null, label: 'Selecione uma Marca' },
+          ...dadosMarcas.map((empresa) => ({
+            value: empresa.IDGRUPOEMPRESARIAL,
+            label: empresa.GRUPOEMPRESARIAL,
 
           }))
         ]}
@@ -285,11 +234,11 @@ export const ActionPesquisaRotatividade = () => {
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}
         onButtonClickSearch={handleClick}
-        IconSearch={AiOutlineSearch}      
-        corSearch={"primary"}  
-      
+        IconSearch={AiOutlineSearch}
+        corSearch={"primary"}
+
       />
-        
+
       {tabelaVisivel &&
         <ActionListaRotatividade dadosRotatividade={dadosRotatividade} />
       }

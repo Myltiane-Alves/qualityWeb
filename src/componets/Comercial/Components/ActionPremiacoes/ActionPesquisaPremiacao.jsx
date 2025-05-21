@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useState } from "react"
 import { AiOutlineSearch } from "react-icons/ai";
-import { useNavigate } from "react-router-dom"
 import { IoIosAdd } from "react-icons/io";
 import { ActionMain } from "../../../Actions/actionMain";
 import { InputField } from "../../../Buttons/Input";
@@ -15,29 +14,9 @@ export const ActionPesquisaPremiacoes = () => {
   const [clickContador, setClickContador] = useState(0);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [marcas, setMarcas] = useState([]);
   const [marcaSelecionada, setMarcaSelecionada] = useState(null);
-
   const [dadosListaPremiacoes, setDadosListaPremiacoes] = useState([]);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
 
   useEffect(() => {
     getGrupoEmpresas()
@@ -145,4 +124,3 @@ export const ActionPesquisaPremiacoes = () => {
     </Fragment>
   )
 }
-

@@ -5,7 +5,7 @@ import { dataFormatada } from "../../../../utils/dataFormatada";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 
 import { ActionDetalheVendaProdutosModal } from "../ActionsModaisVendas/actionDetalheVendaProdutosModal";
-import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/actionRelacaoRecebimentosModal";
+import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/ActionRecebimentos/actionRelacaoRecebimentosModal";
 import { get } from "../../../../api/funcRequest";
 import { MdOutlineAttachMoney } from "react-icons/md";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
@@ -165,7 +165,7 @@ export const ActionListaVendasCanceladasMinutos = ({ dadosVendasCanceladasMinuto
     {
       field: 'NOFANTASIA',
       header: 'Empresa',
-      body: row => <p style={{fontWeight: 600, width: '200px'}}> {row.NOFANTASIA}</p>,
+      body: row => <p style={{fontWeight: 600, width: '200px', margin: '0px'}}> {row.NOFANTASIA}</p>,
       sortable: true,
     },
     {
@@ -177,7 +177,7 @@ export const ActionListaVendasCanceladasMinutos = ({ dadosVendasCanceladasMinuto
     {
       field: 'IDVENDA',
       header: 'Nº Venda',
-      body: row => <th style={{}}> {row.IDVENDA}</th>,
+      body: row => <p style={{fontWeight: 600, width: '100px',margin: '0px'}}> {row.IDVENDA}</p>,
       sortable: true,
 
     },
@@ -191,13 +191,13 @@ export const ActionListaVendasCanceladasMinutos = ({ dadosVendasCanceladasMinuto
     {
       field: 'DTHORAFECHAMENTO',
       header: 'Abertura',
-      body: row => <p style={{ fontWeight: 600, width: '150px'}}> {row.DTHORAFECHAMENTO}</p>,
+      body: row => <p style={{ fontWeight: 600, width: '150px',margin: '0px'}}> {row.DTHORAFECHAMENTO}</p>,
       sortable: true,
     },
     {
       field: 'NOFUNCIONARIO',
       header: 'Operador',
-      body: row => <p style={{ fontWeight: 600, width: '200px'}}> {row.NOFUNCIONARIO}</p>,
+      body: row => <p style={{ fontWeight: 600, width: '200px', margin: '0px'}}> {row.NOFUNCIONARIO}</p>,
       sortable: true,
     },
     {
@@ -286,7 +286,7 @@ export const ActionListaVendasCanceladasMinutos = ({ dadosVendasCanceladasMinuto
     {
       field: 'NOFUNCIOCANCEL',
       header: 'Cancelado Por',
-      body: row => <p style={{  fontWeight: 600, width: '200px' }}> {row.NOFUNCIOCANCEL}</p>,
+      body: row => <p style={{  fontWeight: 600, width: '200px', margin: '0px'}}> {row.NOFUNCIOCANCEL}</p>,
       sortable: true,
     },
     {
@@ -298,7 +298,7 @@ export const ActionListaVendasCanceladasMinutos = ({ dadosVendasCanceladasMinuto
     {
       field: 'TXTMOTIVOCANCELAMENTO',
       header: 'Motivo',
-      body: row => <th style={{  }}> {row.TXTMOTIVOCANCELAMENTO}</th>,
+      body: row => <p style={{width: '300px', fontWeight: 600, margin: '0px'}}> {row.TXTMOTIVOCANCELAMENTO}</p>,
       sortable: true,
 
     },
@@ -316,6 +316,8 @@ export const ActionListaVendasCanceladasMinutos = ({ dadosVendasCanceladasMinuto
               onClickButton={() => handleClickVenda(row)}
               Icon={GrView}
               cor={"info"}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -324,6 +326,8 @@ export const ActionListaVendasCanceladasMinutos = ({ dadosVendasCanceladasMinuto
               onClickButton={() => handleClickProduto(row)}
               Icon={FaProductHunt}
               cor={"warning"}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -332,6 +336,8 @@ export const ActionListaVendasCanceladasMinutos = ({ dadosVendasCanceladasMinuto
               onClickButton={() => handleClickPagamento(row)}
               Icon={MdOutlineAttachMoney}
               cor={"success"}
+              width="30px"
+              height="30px"
             />
           </div>
         </div>
@@ -430,6 +436,9 @@ export const ActionListaVendasCanceladasMinutos = ({ dadosVendasCanceladasMinuto
             value={dadosListaVendasCanceladasMinutos}
             globalFilter={globalFilterValue}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaVendasCanceladasMinutos.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             sortField="VRTOTALPAGO"
             sortOrder={-1}
             paginator={true}

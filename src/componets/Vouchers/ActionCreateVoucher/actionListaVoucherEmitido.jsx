@@ -7,15 +7,17 @@ import { CiEdit } from 'react-icons/ci';
 import { ButtonTable } from '../../ButtonsTabela/ButtonTable';
 import { GrFormView } from 'react-icons/gr';
 import { get, post } from '../../../api/funcRequest';
-import { ActionDetalharModal } from './actionDetalharModal';
+import { ActionDetalharModal } from './ActionDetalhesModal/actionDetalharModal';
 import HeaderTable from '../../Tables/headerTable';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { useReactToPrint } from "react-to-print";
-import { ActionEditarStatusVoucherModal } from './actionEditarStatusVoucherModal';
-import { ActionImprimirVoucherModal } from './actionImprimirVoucherModal';
+import { ActionEditarStatusVoucherModal } from './ActionEditarVoucher/actionEditarStatusVoucherModal';
+import { ActionImprimirVoucherModal } from './ActionImprimirVoucher/actionImprimirVoucherModal';
 import Swal from 'sweetalert2';
+import { useAuthFuncionarioUpdate } from '../Hooks/useAuthFuncionarioUpdate';
+import { useAuthFuncionarioPrint } from '../Hooks/useAuthFuncionarioPrint';
 
 
 export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
@@ -23,6 +25,7 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
   const selectedModule = JSON.parse(storedModule);
   const [dadosDetalheVoucher, setDadosDetalheVoucher] = useState([]);
   const [dadosEditarVoucher, setDadosEditarVoucher] = useState([]);
+  const [dadosVoucherLogin, setDadosVoucherLogin] = useState([]);
   const [dadosImprimirVoucher, setDadosImprimirVoucher] = useState([]);
   const [modalEditarVoucher, setModalEditarVoucher] = useState(false);
   const [modalImprimirVoucher, setModalImprimirVoucher] = useState(false);
@@ -31,6 +34,9 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [usuarioAutorizado, setUsuarioAutorizado] = useState([])
   const dataTableRef = useRef();
+
+  const {onAuthFuncionarioUpdate } = useAuthFuncionarioUpdate({dadosVoucherLogin, usuarioLogado})
+  const {onAuthFuncionarioPrint } = useAuthFuncionarioPrint({dadosVoucherLogin, usuarioLogado})
   
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -215,20 +221,24 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
               titleButton={"Visualizar Detalhes"}
               onClickButton={() => handleClickDetalhar(row)}
               Icon={GrFormView}
-              iconSize={18}
+              iconSize={22}
               iconColor={"#fff"}
               cor={"success"}
+              width='30px'
+              height='30px'
             />
           </div>
 
           <div>
             <ButtonTable
               titleButton={"Editar Situação"}
-              onClickButton={() => handleClickEditar(row)}
+              onClickButton={() => handleClickLogin(row)}
               Icon={CiEdit}
-              iconSize={18}
+              iconSize={22}
               iconColor={"#fff"}
               cor={"primary"}
+              width='30px'
+              height='30px'
             />
           </div>
 
@@ -238,9 +248,11 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
               titleButton={"Imprimir"}
               onClickButton={() => handleClickImprimir(row)}
               Icon={MdOutlineLocalPrintshop}
-              iconSize={18}
+              iconSize={22}
               iconColor={"#fff"}
               cor={"warning"}
+              width='30px'
+              height='30px'
             />
           </div>
 
@@ -250,126 +262,126 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
 
   ]
 
-  const openSwal = async (callback, row) => {
-    const { value: formValues } = await Swal.fire({
-      title: 'Autorização',
-      html: `
-        <div>
-          <label class="form-label" for="matricula">Matrícula</label>
-          <input type="text" id="matricula" class="swal2-input" placeholder="Matrícula" style="text-align: center;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-          <label class="form-label" for="senha">Senha</label>
-          <input type="password" id="senha" class="swal2-input" placeholder="Senha">
-        </div>      
-      `,
-      width: '25rem',
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: 'Entrar',
-      cancelButtonText: 'Cancelar',
-      didOpen: () => {
-        const swalContainer = Swal.getPopup();
-        swalContainer.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            Swal.clickConfirm();
-          }
-        });
-      },
-      preConfirm: async () => {
-        const usuario = document.getElementById('matricula').value;
-        const senha = document.getElementById('senha').value;
+  // const openSwal = async (callback, row) => {
+  //   const { value: formValues } = await Swal.fire({
+  //     title: 'Autorização',
+  //     html: `
+  //       <div>
+  //         <label class="form-label" for="matricula">Matrícula</label>
+  //         <input type="text" id="matricula" class="swal2-input" placeholder="Matrícula" style="text-align: center;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+  //         <label class="form-label" for="senha">Senha</label>
+  //         <input type="password" id="senha" class="swal2-input" placeholder="Senha">
+  //       </div>      
+  //     `,
+  //     width: '25rem',
+  //     focusConfirm: false,
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Entrar',
+  //     cancelButtonText: 'Cancelar',
+  //     didOpen: () => {
+  //       const swalContainer = Swal.getPopup();
+  //       swalContainer.addEventListener('keydown', (e) => {
+  //         if (e.key === 'Enter') {
+  //           Swal.clickConfirm();
+  //         }
+  //       });
+  //     },
+  //     preConfirm: async () => {
+  //       const usuario = document.getElementById('matricula').value;
+  //       const senha = document.getElementById('senha').value;
         
-        const data = { 
-          MATRICULA: usuario, 
-          SENHA: senha, 
-          IDEMPRESALOGADA: usuarioLogado.IDEMPRESA,
-          IDGRUPOEMPRESARIAL: usuarioLogado.IDGRUPOEMPRESARIAL, 
-          IDVOUCHER: row.IDVOUCHER,
-        }; 
+  //       const data = { 
+  //         MATRICULA: usuario, 
+  //         SENHA: senha, 
+  //         IDEMPRESALOGADA: usuarioLogado.IDEMPRESA,
+  //         IDGRUPOEMPRESARIAL: usuarioLogado.IDGRUPOEMPRESARIAL, 
+  //         IDVOUCHER: row.IDVOUCHER,
+  //       }; 
 
-        try {
-          const response = await post('/auth-funcionario-update-voucher', data);
+  //       try {
+  //         const response = await post('/auth-funcionario-update-voucher', data);
         
-          if (response.data) {
-            return response.data;
-          } else {
-            Swal.showValidationMessage(`Credenciais inválidas`);
-          }
-        } catch (error) {
-          Swal.showValidationMessage(`Erro ao autenticar: ${error.message}`);
-        }
-      }
-    });
+  //         if (response.data) {
+  //           return response.data;
+  //         } else {
+  //           Swal.showValidationMessage(`Credenciais inválidas`);
+  //         }
+  //       } catch (error) {
+  //         Swal.showValidationMessage(`Erro ao autenticar: ${error.message}`);
+  //       }
+  //     }
+  //   });
   
-    if (formValues) {
-      setIsLoggedIn(true);
-      setUsuarioAutorizado(formValues);
-      callback()
-    }
-  };
+  //   if (formValues) {
+  //     setIsLoggedIn(true);
+  //     setUsuarioAutorizado(formValues);
+  //     callback()
+  //   }
+  // };
 
-  const openSwalImprimir = async (callback, row) => {
-    const { value: formValues } = await Swal.fire({
-      title: 'Autorização',
-      html: `
-        <div>
-          <label class="form-label" for="matricula">Matrícula</label>
-          <input type="text" id="matricula" class="swal2-input" placeholder="Matrícula" style="text-align: center;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-          <label class="form-label" for="senha">Senha</label>
-          <input type="password" id="senha" class="swal2-input" placeholder="Senha">
-        </div>      
-      `,
-      width: '25rem',
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: 'Entrar',
-      cancelButtonText: 'Cancelar',
-      didOpen: () => {
-        const swalContainer = Swal.getPopup();
-        swalContainer.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            Swal.clickConfirm();
-          }
-        });
-      },
-      preConfirm: async () => {
-        const usuario = document.getElementById('matricula').value;
-        const senha = document.getElementById('senha').value;
+  // const openSwalImprimir = async (callback, row) => {
+  //   const { value: formValues } = await Swal.fire({
+  //     title: 'Autorização',
+  //     html: `
+  //       <div>
+  //         <label class="form-label" for="matricula">Matrícula</label>
+  //         <input type="text" id="matricula" class="swal2-input" placeholder="Matrícula" style="text-align: center;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+  //         <label class="form-label" for="senha">Senha</label>
+  //         <input type="password" id="senha" class="swal2-input" placeholder="Senha">
+  //       </div>      
+  //     `,
+  //     width: '25rem',
+  //     focusConfirm: false,
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Entrar',
+  //     cancelButtonText: 'Cancelar',
+  //     didOpen: () => {
+  //       const swalContainer = Swal.getPopup();
+  //       swalContainer.addEventListener('keydown', (e) => {
+  //         if (e.key === 'Enter') {
+  //           Swal.clickConfirm();
+  //         }
+  //       });
+  //     },
+  //     preConfirm: async () => {
+  //       const usuario = document.getElementById('matricula').value;
+  //       const senha = document.getElementById('senha').value;
         
-        const data = { 
-          MATRICULA: usuario, 
-          SENHA: senha, 
-          IDEMPRESALOGADA: usuarioLogado.IDEMPRESA,
-          IDGRUPOEMPRESARIAL: usuarioLogado.IDGRUPOEMPRESARIAL, 
-          IDVOUCHER: row.IDVOUCHER,
-        }; 
+  //       const data = { 
+  //         MATRICULA: usuario, 
+  //         SENHA: senha, 
+  //         IDEMPRESALOGADA: usuarioLogado.IDEMPRESA,
+  //         IDGRUPOEMPRESARIAL: usuarioLogado.IDGRUPOEMPRESARIAL, 
+  //         IDVOUCHER: row.IDVOUCHER,
+  //       }; 
 
-        try {
-          const response = await post('/auth-funcionario-print-voucher', data);
+  //       try {
+  //         const response = await post('/auth-funcionario-print-voucher', data);
         
-          if (response.data) {
-            return response.data;
-          } else {
-            Swal.showValidationMessage(`Credenciais inválidas`);
-          }
-        } catch (error) {
-          Swal.showValidationMessage(`Erro ao autenticar: ${error.message}`);
-        }
-      }
-    });
+  //         if (response.data) {
+  //           return response.data;
+  //         } else {
+  //           Swal.showValidationMessage(`Credenciais inválidas`);
+  //         }
+  //       } catch (error) {
+  //         Swal.showValidationMessage(`Erro ao autenticar: ${error.message}`);
+  //       }
+  //     }
+  //   });
   
-    if (formValues) {
-      setIsLoggedIn(true);
-      setUsuarioAutorizado(formValues);
-      callback()
-    }
-  };
+  //   if (formValues) {
+  //     setIsLoggedIn(true);
+  //     setUsuarioAutorizado(formValues);
+  //     callback()
+  //   }
+  // };
 
   const handleClickDetalhar = async (row) => {
     if (row.IDVOUCHER) {
      handleDetalhar(row.IDVOUCHER);
     }
-
   }
+
 
   const handleDetalhar = async (IDVOUCHER) => {
     try {
@@ -388,6 +400,7 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
       const response = await get(`/detalheVoucherDados?idVoucher=${IDVOUCHER}`);
       if (response.data) {
         setDadosEditarVoucher(response.data);
+        setDadosVoucherLogin(response.data);
         setModalEditarVoucher(true);
       }
     } catch (error) {
@@ -395,9 +408,11 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
     }
   };
 
-  const handleClickEditar = async (row) => {
+  const handleClickLogin = async (row) => {
     if (row.IDVOUCHER) {
-      openSwal(() =>  handleEdit(row.IDVOUCHER), row)
+      setDadosVoucherLogin(row);
+      console.log(dadosVoucherLogin, "dados do login")
+      onAuthFuncionarioUpdate(() => handleEdit(row.IDVOUCHER), row);
     }
   }
 
@@ -406,6 +421,7 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
       const response = await get(`/detalheVoucherDados?idVoucher=${IDVOUCHER}`);
       if (response.data) {
         setDadosImprimirVoucher(response.data);
+        setDadosVoucherLogin(response.data);
         setModalImprimirVoucher(true);
       }
     } catch (error) {
@@ -415,7 +431,7 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
 
   const handleClickImprimir = async (row) => {
     if (row.IDVOUCHER) {
-      openSwalImprimir(() => handleImprimir(row.IDVOUCHER), row)
+      onAuthFuncionarioPrint(() => handleImprimir(row.IDVOUCHER), row)
     }
   }
 
@@ -447,6 +463,9 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

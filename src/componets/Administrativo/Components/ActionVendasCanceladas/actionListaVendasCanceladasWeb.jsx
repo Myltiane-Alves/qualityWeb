@@ -4,7 +4,6 @@ import { Column } from 'primereact/column';
 import { GrView } from "react-icons/gr";
 import { FaProductHunt } from "react-icons/fa";
 import { MdOutlineAttachMoney } from "react-icons/md";
-import { dataFormatada } from "../../../../utils/dataFormatada";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { useReactToPrint } from "react-to-print";
@@ -15,7 +14,7 @@ import HeaderTable from "../../../Tables/headerTable";
 import { get } from "../../../../api/funcRequest";
 import { ActionDetalheVendaModal } from "../ActionVendasContigencia/actionDetalheVendaModal";
 import { ActionDetalheVendaProdutosModal } from "../ActionsModaisVendas/actionDetalheVendaProdutosModal";
-import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/actionRelacaoRecebimentosModal";
+import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/ActionRecebimentos/actionRelacaoRecebimentosModal";
 
 export const ActionListaVendasCanceladasWeb = ({ dadosVendasCanceladasWeb }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
@@ -173,7 +172,7 @@ export const ActionListaVendasCanceladasWeb = ({ dadosVendasCanceladasWeb }) => 
     {
       field: 'IDVENDA',
       header: 'Nº Venda',
-      body: row => <th style={{ }}> {row.IDVENDA}</th>,
+      body: row => <p style={{fontWeight: 600, width: '100px', margin: '0px' }}> {row.IDVENDA}</p>,
       sortable: true,
 
     },
@@ -294,7 +293,7 @@ export const ActionListaVendasCanceladasWeb = ({ dadosVendasCanceladasWeb }) => 
     {
       field: 'TXTMOTIVOCANCELAMENTO',
       header: 'Motivo',
-      body: row => <th style={{ }}> {row.TXTMOTIVOCANCELAMENTO}</th>,
+      body: row => <p style={{ fontWeight: 600, width: '200px', margin: '0px'}}> {row.TXTMOTIVOCANCELAMENTO}</p>,
       sortable: true,
 
     },
@@ -312,6 +311,8 @@ export const ActionListaVendasCanceladasWeb = ({ dadosVendasCanceladasWeb }) => 
               onClickButton={() => handleClickVenda(row)}
               Icon={GrView}
               cor={"info"}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -320,6 +321,8 @@ export const ActionListaVendasCanceladasWeb = ({ dadosVendasCanceladasWeb }) => 
               onClickButton={() => handleClickProduto(row)}
               Icon={FaProductHunt}
               cor={"warning"}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -328,6 +331,8 @@ export const ActionListaVendasCanceladasWeb = ({ dadosVendasCanceladasWeb }) => 
               onClickButton={() => handleClickPagamento(row)}
               Icon={MdOutlineAttachMoney}
               cor={"success"}
+              width="30px"
+              height="30px"
             />
           </div>
         </div>
@@ -425,6 +430,9 @@ export const ActionListaVendasCanceladasWeb = ({ dadosVendasCanceladasWeb }) => 
             value={dadosListaVendasCanceladas}
             globalFilter={globalFilterValue}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaVendasCanceladas.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             sortField="VRTOTALPAGO"
             sortOrder={-1}
             paginator={true}

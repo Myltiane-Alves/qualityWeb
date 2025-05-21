@@ -8,86 +8,80 @@ import { ButtonType } from "../../../Buttons/ButtonType";
 import { AiOutlineSearch } from "react-icons/ai";
 import { get } from "../../../../api/funcRequest";
 import { getDataAtual } from "../../../../utils/dataAtual";
+import { useFetchData } from "../../../../hooks/useFetchData";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
 
 export const ActionPesquisaEstoqueVendaGrupoSubGrupo = () => {
-  const [clickContador, setClickContador] = useState(0);
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
   const [grupoSelecionado, setGrupoSelecionado] = useState('');
   const [subGrupoSelecionado, setSubGrupoSelecionado] = useState([]);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [dadosGrupos, setDadosGrupos] = useState([]);
-  const [dadosSubGrupos, setDadosSubGrupos] = useState([]);
-  const [dadosGrupoSubGrupo, setDadosGrupoSubGrupo] = useState([]);
-  const [optionsMarcas, setOptionsMarcas] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
   useEffect(() => {
     const dataInicial = getDataAtual();
     const dataFinal = getDataAtual();
     setDataPesquisaInicio(dataInicial);
     setDataPesquisaFim(dataFinal);
-    getListaGrupo();
-    if(getListaGrupo) {
-      getListaSubGrupos(grupoSelecionado || '');
-    }
-    getGrupoEmpresas();
-  
-  }, [grupoSelecionado])
 
- 
-  const getListaGrupo = async () => {
+  }, [])
+
+  const { data: dadosMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', `/marcasLista`);
+  const { data: dadosGrupos = [], error: errorGrupo, isLoading: isLoadingGrupo } = useFetchData('grupo-produto', `/grupo-produto`);
+  const { data: dadosSubGrupos = [], error: errorSubGrupo, isLoading: isLoadingSubGrupo } = useFetchData('subgrupo-produto', `/subgrupo-produto?idGrupo=${grupoSelecionado}`);
+
+
+  const fetchGrupoSubGrupo = async () => {
     try {
-      const response = await get(`/listaGrupoProduto`)
-      if (response.data) { 
-        setDadosGrupos(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-    
-  }
 
-  const getListaSubGrupos = async () => {
-    try {
-      const response = await get(`/listaSubGrupoProduto?idGrupo=${grupoSelecionado}`)
-      if (response.data) { 
-        setDadosSubGrupos(response.data)
-      }
-      return response.data;
+      const urlApi = `/vendas-estoque-grupo-sub-grupo?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idMarca=${marcaSelecionada}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}`;
+      const response = await get(urlApi);
 
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-    
-  }
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
 
-  const getGrupoEmpresas = async () => {
-    try {
-      const response = await get(`/marcasLista`,)
-      if (response.data) {
-        setOptionsMarcas(response.data)
-      }
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-  }
+        async function fetchNextPage(page) {
+          try {
+            page++;
+            const responseNextPage = await get(`${urlApi}&page=${page}`);
+            if (responseNextPage.data.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(page);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
 
-  const getListaVendasEstoqueGrupoSubGrupo = async () => {
-    try {
-      const response = await get(`/vendasEstoqueGrupoSubGrupo?dataInicio=${dataPesquisaInicio}&dataFim=${dataPesquisaFim}&idMarca=${marcaSelecionada}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}`)
-      if (response.data) { 
-        setDadosGrupoSubGrupo(response.data)
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
+        return response.data;
       }
-      return response.data;
 
     } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
+  };
 
+  const { data: dadosGrupoSubGrupo = [], error: erroGrupoSubGrupo, isLoading: isLoadingGrupoSubGrupo, refetch: refetchGrupoSubGrupo } = useQuery(
+    'vendas-estoque-grupo-sub-grupo',
+    () => fetchGrupoSubGrupo(dataPesquisaInicio, dataPesquisaFim, grupoSelecionado, subGrupoSelecionado, currentPage, pageSize),
+    { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  );
 
   const handleSelectMarcas = (e) => {
     const selectedId = Number(e.value);
@@ -99,7 +93,7 @@ export const ActionPesquisaEstoqueVendaGrupoSubGrupo = () => {
 
   const handleGrupoChange = (e) => {
     const selectedGrupo = e.value;
-    if(!isNaN(selectedGrupo)){
+    if (!isNaN(selectedGrupo)) {
       setGrupoSelecionado(selectedGrupo);
     }
   }
@@ -110,12 +104,9 @@ export const ActionPesquisaEstoqueVendaGrupoSubGrupo = () => {
   }
 
   const handleClick = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      getListaVendasEstoqueGrupoSubGrupo(marcaSelecionada)
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchGrupoSubGrupo()
+    setTabelaVisivel(true)
   }
 
   return (
@@ -136,11 +127,11 @@ export const ActionPesquisaEstoqueVendaGrupoSubGrupo = () => {
         InputFieldDTFimComponent={InputField}
         labelInputFieldDTFim={"Data Fim"}
         valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)} 
+        onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
 
         InputSelectGrupoComponent={InputSelectAction}
         optionsGrupos={[
-          {value: '', label: 'Selecione um Grupo'},
+          { value: '', label: 'Selecione um Grupo' },
           ...dadosGrupos.map((item) => ({
             value: item.ID_GRUPO,
             label: item.GRUPO
@@ -149,13 +140,13 @@ export const ActionPesquisaEstoqueVendaGrupoSubGrupo = () => {
         ]}
         labelSelectGrupo={"Por Grupo"}
         valueSelectGrupo={grupoSelecionado}
-        onChangeSelectGrupo={handleGrupoChange}   
+        onChangeSelectGrupo={handleGrupoChange}
 
         MultSelectSubGrupoComponent={MultSelectAction}
         optionsMultSelectSubGrupo={dadosSubGrupos.map((item) => ({
-            value: item.ID_ESTRUTURA,
-            label: item.ESTRUTURA,
-          }))
+          value: item.ID_ESTRUTURA,
+          label: item.ESTRUTURA,
+        }))
         }
         labelMultSelectSubGrupo={"SubGrupo"}
         valueMultSelectSubGrupoo={subGrupoSelecionado}
@@ -164,10 +155,10 @@ export const ActionPesquisaEstoqueVendaGrupoSubGrupo = () => {
         InputSelectMarcasComponent={InputSelectAction}
         labelSelectMarcas={"Marcas"}
         optionsMarcas={[
-          { value: null, label: 'Selecione uma Marca' },          
-          ...optionsMarcas.map((empresa) => ({
-          value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.DSGRUPOEMPRESARIAL,
+          { value: '', label: 'Selecione uma Marca' },
+          ...dadosMarcas.map((empresa) => ({
+            value: empresa.IDGRUPOEMPRESARIAL,
+            label: empresa.GRUPOEMPRESARIAL,
 
           }))
         ]}
@@ -181,11 +172,11 @@ export const ActionPesquisaEstoqueVendaGrupoSubGrupo = () => {
         IconSearch={AiOutlineSearch}
 
       />
-   
+
       {tabelaVisivel && (
-        <ActionListaEstoqueVendaGrupoSubGrupo />
+        <ActionListaEstoqueVendaGrupoSubGrupo dadosGrupoSubGrupo={dadosGrupoSubGrupo} />
       )}
-  
+
     </Fragment>
   )
 }

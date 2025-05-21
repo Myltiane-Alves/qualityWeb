@@ -10,15 +10,24 @@ import * as XLSX from 'xlsx';
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import { toFloat } from "../../../../utils/toFloat";
 import { MdOutlineAttachMoney } from "react-icons/md";
-import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/actionRelacaoRecebimentosModal";
+import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/ActionRecebimentos/actionRelacaoRecebimentosModal";
 import { get } from "../../../../api/funcRequest";
+import { ColumnGroup } from "primereact/columngroup";
+import { Row } from "primereact/row";
 
-export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
+export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio, usuarioLogado, optionsModulos}) => {
   const [modalPagamentoVisivel, setModalPagamentoVisivel] = useState(false);
-  const [dadosPagamentoModal, setDadosPagamentoModal] = useState([]);
+  const [dadosDetalheRecebimentos, setDadosDetalheRecebimentos] = useState([]);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
+    
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  }  
+  
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -77,7 +86,7 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
 
   const dados = dadosVendasConvenio.map((item, index) => {
     let contador = index + 1;
-    let NVENDA;
+   
     return {
       contador,
       IDCAIXAWEB: item.IDCAIXAWEB,
@@ -95,6 +104,25 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
     }
   });
 
+  const calcularTotal = (field) => {
+    return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
+  };
+
+  const calcularTotalValorBruto = () => {
+    const total = calcularTotal('VRBRUTOPAGO');
+    return `${formatMoeda(total)}`;
+  };
+
+  const calcularTotalValorDesconto = () => {
+    const total = calcularTotal('VRDESPAGO');
+    return `${formatMoeda(total)}`;
+  };
+ 
+  const calcularTotalValorLiquido = () => {
+    const total = calcularTotal('VRLIQPAGO');
+    return `${formatMoeda(total)}`;
+  };
+
   const colunasVendas = [
     {
       field: 'contador',
@@ -105,7 +133,7 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
     {
       field: 'IDCAIXAWEB',
       header: 'Caixa',
-      body: row => <th>{row.IDCAIXAWEB} - {row.DSCAIXA}</th>,
+      body: row => <p style={{width: '100px', margin: 0}}>{row.IDCAIXAWEB} - {row.DSCAIXA}</p>,
       sortable: true,
     },
     {
@@ -123,19 +151,19 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
     {
       field: 'DTHORAFECHAMENTO',
       header: 'Abertura',
-      body: row => <th>{row.DTHORAFECHAMENTO}</th>,
+      body: row => <p style={{width: '200px', margin: 0}}>{row.DTHORAFECHAMENTO}</p>,
       sortable: true,
     },
     {
       field: 'NOFUNCIONARIO',
       header: 'Operador',
-      body: row => <th>{row.NOFUNCIONARIO}</th>,
+      body: row => <p style={{width: '250px', margin: 0}}>{row.NOFUNCIONARIO}</p>,
       sortable: true,
     },
     {
       field: 'NOCONVENIADO',
       header: 'Conveniado',
-      body: row => <th>{row.NOCONVENIADO}</th>,
+      body: row => <p style={{width: '250px', margin: 0}}>{row.NOCONVENIADO}</p>,
       sortable: true,
     },
     {
@@ -165,7 +193,7 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
     {
       field: 'TXTMOTIVODESCONTO',
       header: 'Obs',
-      body: row => <th>{row.TXTMOTIVODESCONTO}</th>,
+      body: row => <p style={{width: '250px', margin: 0}}>{row.TXTMOTIVODESCONTO}</p>,
       sortable: true,
     },
     {
@@ -181,8 +209,10 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
               titleButton={"Detalhar Recebimentos"}
               onClickButton={() => handleClickPagamento(row)}
               Icon={MdOutlineAttachMoney}
-              iconSize={20}
+              iconSize={25}
               cor={"success"}
+              width="35px"
+              height="35px"
             />
           </div>
         </div>
@@ -193,7 +223,7 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
   const handleEditPagamento = async (IDVENDA) => {
     try {
       const response = await get(`/recebimento?idVenda=${IDVENDA}`)    
-      setDadosPagamentoModal(response.data)
+      setDadosDetalheRecebimentos(response.data)
       setModalPagamentoVisivel(true)
     
       return response.data;
@@ -204,11 +234,22 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
 
   const handleClickPagamento = (row) => {
     if (row && row.IDVENDA) {
-      console.log(row.IDVENDA, 'idvenda')
       handleEditPagamento(row.IDVENDA)
     }
   }
 
+  const footerGroup = (
+    <ColumnGroup>
+
+      <Row> 
+        <Column footer="Total Vendas Convênio Desconto" colSpan={8} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
+        <Column footer={calcularTotalValorBruto()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />  
+        <Column footer={calcularTotalValorDesconto()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />  
+        <Column footer={calcularTotalValorLiquido()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />  
+        <Column footer={""} colSpan={6}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+      </Row>
+    </ColumnGroup>
+  )
 
   return (
 
@@ -229,14 +270,20 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
         </div>
         <div className="card" ref={dataTableRef}>
           <DataTable
-            title="Vendas por Loja"
+            title="Vendas por Desconto"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator={true}
-            rows={10}
+            footerColumnGroup={footerGroup}
+            first={first}
+            rows={rows}
+            onPage={onPageChange}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -264,7 +311,9 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenio}) => {
       <ActionRelacaoRecebimentosModal
         show={modalPagamentoVisivel}
         handleClose={() => setModalPagamentoVisivel(false)}
-        dadosPagamentoModal={dadosPagamentoModal}
+        dadosDetalheRecebimentos={dadosDetalheRecebimentos}
+        optionsModulos={optionsModulos} 
+        usuarioLogado={usuarioLogado} 
       />
     </Fragment>
   )

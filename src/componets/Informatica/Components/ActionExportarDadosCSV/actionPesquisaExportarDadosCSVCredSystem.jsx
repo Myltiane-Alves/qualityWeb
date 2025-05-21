@@ -445,7 +445,7 @@ export const ActionPesquisaExportarDadosCSVCredSystem = () => {
   }
 
   const handleClick = () => {
-    setCurrentPage(+1);
+    setCurrentPage(prevPage => prevPage + 1);
     refetchListaVendas(empresaSelecionada)
     setTabelaVisivel(true);
   }
@@ -457,6 +457,7 @@ export const ActionPesquisaExportarDadosCSVCredSystem = () => {
 
     if(clientes.data.length) {
       exportToExcelCliente(clientes.data);
+      console.log('clientes', clientes.data);
     } else {
       Swal.fire({
         position: 'center',
@@ -478,7 +479,7 @@ export const ActionPesquisaExportarDadosCSVCredSystem = () => {
 
     if(pagamentos.data.length) {
       exportToExcelPagamento(pagamentos.data);
-   
+      console.log('pagamentos', pagamentos.data);
     } else {
       Swal.fire({
         position: 'center',
@@ -500,7 +501,7 @@ export const ActionPesquisaExportarDadosCSVCredSystem = () => {
 
     if(parceria.data.length) {
       exportToExcelParceria(parceria.data);
-
+      console.log(parceria.data, 'parceria.data');
     } else {
       Swal.fire({
         position: 'center',

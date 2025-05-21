@@ -5,9 +5,9 @@ import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
-const InputField = lazy(() => import("../componets/Buttons/Input").then(module => ({ default: module.InputField })));
-const ButtonSearch = lazy(() => import("../componets/Buttons/ButtonSearch").then(module => ({ default: module.ButtonSearch })));
-const ActionMain = lazy(() => import("../componets/Actions/actionMain").then(module => ({ default: module.ActionMain })));
+import { get } from "../api/funcRequest";
+import { useQuery } from "react-query";
+
 const ActionPesquisaVendasDigitalMarca = lazy(() => import("../componets/Markerting/Components/ActionVendasDigitais/ActionPesquisaVendasDigitalMarca").then(module => ({ default: module.ActionPesquisaVendasDigitalMarca })));
 const ActionPesquisaPromocao = lazy(() => import("../componets/Markerting/Components/ActionListaPromocao/actionPesquisaPromocao").then(module => ({ default: module.ActionPesquisaPromocao })));
 const ActionPesquisaCampanha = lazy(() => import("../componets/Markerting/Components/ActionCampanha/actionPesquisaCampanha").then(module => ({ default: module.ActionPesquisaCampanha })));
@@ -16,9 +16,10 @@ const ActionPesquisaCliente = lazy(() => import("../componets/Markerting/Compone
 export const DashBoardMarketing = ({ }) => {
   const [resumoVisivel, setResumoVisivel] = useState(false);
   const [actionVisivel, setActionVisivel] = useState(true);
-  const [clickContador, setClickContador] = useState(0);
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [componentToShow, setComponentToShow] = useState("");
+  const storedModule = localStorage.getItem('moduloselecionado');
+  const selectedModule = JSON.parse(storedModule);
   const navigate = useNavigate();
 
   function handleShowComponent(componentName) {
@@ -44,15 +45,15 @@ export const DashBoardMarketing = ({ }) => {
 
   }, [usuarioLogado]);
 
-  const handleClick = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setResumoVisivel(false)
-    } else {
-      setResumoVisivel(true)
-    }
-  }
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
 
   let component = null;
 
@@ -87,7 +88,7 @@ export const DashBoardMarketing = ({ }) => {
                 handleShowComponent={handleShowComponent}
               />
               <div className="page-content-wrapper">
-                <HeaderMain />
+                <HeaderMain optionsModulos={optionsModulos}/>
 
                 <main id="js-page-content" role="main" className="page-content">
                   <div className="row">

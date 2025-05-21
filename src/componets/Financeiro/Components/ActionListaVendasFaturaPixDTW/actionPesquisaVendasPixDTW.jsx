@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useState } from "react"
 import { ActionMain } from "../../../Actions/actionMain"
 import { InputField } from "../../../Buttons/Input"
-import { ButtonSearch } from "../../../Buttons/ButtonSearch"
 import { ButtonType } from "../../../Buttons/ButtonType"
 import { get } from "../../../../api/funcRequest"
 import { MultSelectAction } from "../../../Select/MultSelectAction"
@@ -19,7 +18,7 @@ import { ActionListaVendasPIXCompensacaoCredito } from "./actionListaVendasPixCo
 import { ActionListaVendasPIXCompensacaoDebito } from "./actionListaVendasPixCompensacaoDebito"
 
 
-export const ActionPesquisaVendasPixDTW = () => {
+export const ActionPesquisaVendasPixDTW = ({usuarioLogado, ID }) => {
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState([]);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
@@ -46,6 +45,15 @@ export const ActionPesquisaVendasPixDTW = () => {
    setDataCompensacaoInicio(dataInicial);
     setDataCompensacaoFim(dataFinal);
   }, [])
+
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas, refetch: refetchMarcas } = useQuery(
     'marcasLista',
@@ -190,7 +198,7 @@ export const ActionPesquisaVendasPixDTW = () => {
       setPixCompensacaoCredito(false)
       
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1); 
+      setCurrentPage(prevPage => prevPage + 1); 
       refetchVendasPix()
     }  else {
       Swal.fire('Erro', 'Por favor, selecione uma Marca e datas válidas.', 'error');
@@ -208,7 +216,7 @@ export const ActionPesquisaVendasPixDTW = () => {
       setPixCompensacaoCredito(false)
       
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setCurrentPage(prevPage => prevPage + 1);
       refetchVendasPixCompensacao()
       
     } else {
@@ -224,7 +232,7 @@ export const ActionPesquisaVendasPixDTW = () => {
       setTabelaVendasPixVisivel(false)
 
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setCurrentPage(prevPage => prevPage + 1);
       refetchVendasPixCompensacao()
       
     } else {
@@ -239,7 +247,7 @@ export const ActionPesquisaVendasPixDTW = () => {
       setTabelaVendasPixVisivel(false)
 
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setCurrentPage(prevPage => prevPage + 1);
       refetchVendasPixCompensacao()
       
     } else {
@@ -255,7 +263,7 @@ export const ActionPesquisaVendasPixDTW = () => {
       setTabelaVendasPixVisivel(false)
 
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setCurrentPage(prevPage => prevPage + 1);
       refetchVendasPixCompensacao()
       
     } else {
@@ -271,8 +279,7 @@ export const ActionPesquisaVendasPixDTW = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista de Vendas e Faturas PIX"]}
         title="Vendas / Faturas PIX por Período"
-        subTitle="Nome da Loja"
-
+    
         InputFieldDTInicioAComponent={InputField}
         labelInputDTInicioA={"Data Início"}
         valueInputFieldDTInicioA={dataPesquisaInicio}
@@ -284,12 +291,12 @@ export const ActionPesquisaVendasPixDTW = () => {
         onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
 
         InputFieldDTInicioBComponent={InputField}
-        labelInputDTInicioB={"Data Compensação"}
+        labelInputDTInicioB={"Data Compensação Início"}
         valueInputFieldDTInicioB={dataCompenscaoInicio}
         onChangeInputFieldDTInicioB={(e) => setDataCompensacaoInicio(e.target.value)}
         
         InputFieldDTFimBComponent={InputField}
-        labelInputDTFimB={"Data Compensação"}
+        labelInputDTFimB={"Data Compensação Fim"}
         valueInputFieldDTFimB={dataCompenscaoFim}
         onChangeInputFieldDTFimB={(e) => setDataCompensacaoFim(e.target.value)}
         
@@ -298,7 +305,7 @@ export const ActionPesquisaVendasPixDTW = () => {
         optionsMarcas={[
           ...optionsMarcas.map((empresa) => ({
             value: empresa.IDGRUPOEMPRESARIAL,
-            label: empresa.DSGRUPOEMPRESARIAL,
+            label: empresa.GRUPOEMPRESARIAL,
 
           }))
         ]}
@@ -359,7 +366,12 @@ export const ActionPesquisaVendasPixDTW = () => {
 
 
       {tabelaVendasPixVisivel && (
-        <ActionListaVendasPIX dadosVendasPix={dadosVendasPix}/>
+        <ActionListaVendasPIX 
+          dadosVendasPix={dadosVendasPix} 
+          optionsModulos={optionsModulos} 
+          usuarioLogado={usuarioLogado}
+          handleClickVendasPix={handleClickVendasPix}
+        />
       )}
       {tabelaVendasPixCompensacao && (
         <ActionListaVendasPIXCompensacao dadosVendasPixCompensacao={dadosVendasPixCompensacao}/>

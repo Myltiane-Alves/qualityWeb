@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { formatMoeda } from "../../../../utils/formatMoeda";
-import { formatarDataDTW, formatMesAnoDTW } from "../../../../utils/dataFormatada";
+import { formatarDataDTW, formatMesAnoDTW} from "../../../../utils/dataFormatada";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -14,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 
 export const ActionListaVendasPIXCompensacaoCapa = ({ dadosVendasPixCompensacao }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [ipUsuario, setIpUsuario] = useState('');
@@ -101,12 +100,12 @@ export const ActionListaVendasPIXCompensacaoCapa = ({ dadosVendasPixCompensacao 
 
     return {
       contador,
-      DATA_COMPENSACAO: formatarDataDTW(item.DATA_COMPENSACAO),
+      DATA_COMPENSACAO: item.DATA_COMPENSACAO,
       NOFANTASIA: item.NOFANTASIA,
-      DSTIPOPAGAMENTO: `Vendas ${item.DSTIPOPAGAMENTO} ${formatMesAnoDTW(item.DATA_COMPENSACAO)} `,
+      DSTIPOPAGAMENTO: `Vendas ${item.DSTIPOPAGAMENTO} ${item.DATA_COMPENSACAO} `,
       NUAUTORIZACAO: item.NUAUTORIZACAO,
-      DATA_COMP: formatarDataDTW(item.DATA_COMPENSACAO),
-      DATA_COM: formatarDataDTW(item.DATA_COMPENSACAO),
+      DATA_COMP: item.DATA_COMPENSACAO,
+      DATA_COM: item.DATA_COMPENSACAO,
 
     }
   }) : [];
@@ -119,7 +118,7 @@ export const ActionListaVendasPIXCompensacaoCapa = ({ dadosVendasPixCompensacao 
       contador,
       NOFANTASIA: item.NOFANTASIA,
       IDVENDA: item.IDVENDA,
-      DSTIPOPAGAMENTO: `Vendas ${item.DSTIPOPAGAMENTO} ${formatMesAnoDTW(item.DATA_COMPENSACAO)} `,
+      DSTIPOPAGAMENTO: `Vendas ${item.DSTIPOPAGAMENTO} ${item.DATA_COMPENSACAO} `,
       PIX: item.PIX,
       DATAVENDA: item.DATAVENDA,
       DATA_COMPENSACAO: item.DATA_COMPENSACAO,
@@ -204,12 +203,15 @@ export const ActionListaVendasPIXCompensacaoCapa = ({ dadosVendasPixCompensacao 
                     title="Vendas por PIX"
                     value={dadosListaVendasPix}
                     globalFilter={globalFilterValue}
-                    size={size}
+                    size="small"
                     sortField="VRTOTALPAGO"
                     sortOrder={-1}
                     paginator={true}
                     rows={10}
                     rowsPerPageOptions={[10, 20, 50, 100, dadosListaVendasPix.length]}
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                    filterDisplay="menu"
                     showGridlines
                     stripedRows
                     emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

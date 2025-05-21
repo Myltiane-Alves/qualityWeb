@@ -103,10 +103,11 @@ export const ActionListaRelatorioBi = ({ dadosBI }) => {
                 titleButton={"Visualizar Dados do Cliente"}
                 onClickButton={() => handleClickDetalhar(row)}
                 Icon={GrView}
-                iconSize={18}
+                iconSize={25}
                 iconColor={"#fff"}
                 cor={"success"}
-
+                width="40px"
+                height="40px"
               />
 
             </div>
@@ -170,6 +171,9 @@ export const ActionListaRelatorioBi = ({ dadosBI }) => {
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

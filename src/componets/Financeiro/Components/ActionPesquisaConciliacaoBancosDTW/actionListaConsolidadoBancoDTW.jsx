@@ -11,7 +11,6 @@ import HeaderTable from "../../../Tables/headerTable";
 
 export const ActionListaConsolidadoBancoDTW = ({ dadosConciliarBancoConsolidado }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -379,7 +378,7 @@ export const ActionListaConsolidadoBancoDTW = ({ dadosConciliarBancoConsolidado 
 
     <Fragment>
 
-      <div className="resultado">
+      <div className="panel">
         <div className="panel-hdr">
           <h2>
             Lista de Depósitos <span class="fw-300"><i> Consolidado Por Marca e Por Bancos</i> Pesquisa pela data do Movimento</span>
@@ -400,12 +399,15 @@ export const ActionListaConsolidadoBancoDTW = ({ dadosConciliarBancoConsolidado 
           <DataTable
             title="Vendas por Loja"
             value={dadosListaConciliarBancoConsolidado}
-            size={size}
+            size="small"
             globalFilter={globalFilterValue}
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50]}
+            rowsPerPageOptions={[10, 20, 50, 100, dadosListaConciliarBancoConsolidado.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

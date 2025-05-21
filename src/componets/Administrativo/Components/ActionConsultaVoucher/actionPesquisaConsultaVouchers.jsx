@@ -9,10 +9,11 @@ import { ActionListaConsultaVouchers } from "./actionListaConsultaVouchers";
 import { getDataAtual } from "../../../../utils/dataAtual";
 import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
 
 export const ActionPesquisaConsultaVouchers = () => {
-  const [dadosVoucher, setDadosVoucher] = useState([]);
+  // const [dadosVoucher, setDadosVoucher] = useState([]);
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [clickContador, setClickContador] = useState(0);
   const [pesquisaVendas, setPesquisaVendas] = useState(false)
@@ -24,6 +25,8 @@ export const ActionPesquisaConsultaVouchers = () => {
   const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
   const [grupoSelecionado, setGrupoSelecionado] = useState('')
   const [marcaSelecionada, setMarcaSelecionada] = useState('')
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000)
 
   useEffect(() => {
     const dataInicial = getDataAtual()
@@ -31,7 +34,7 @@ export const ActionPesquisaConsultaVouchers = () => {
     setDataPesquisaInicio(dataInicial)
     setDataPesquisaFim(dataFinal)
    
-    getDetalheVoucherDados(dataPesquisaInicio, dataPesquisaFim)
+    // getDetalheVoucherDados(dataPesquisaInicio, dataPesquisaFim)
     // getDetalheNumeroVoucherDados()
    
   }, []);
@@ -47,7 +50,6 @@ export const ActionPesquisaConsultaVouchers = () => {
     { enabled: true, staleTime: 5 * 60 * 1000 }
   );
   
-  console.log(optionsMarcas, "marcas")
 
   const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch: refetchEmpresas } = useQuery(
     'listaEmpresaComercial',
@@ -61,25 +63,72 @@ export const ActionPesquisaConsultaVouchers = () => {
   useEffect(() => {
     if (marcaSelecionada) {
       refetchEmpresas();
-   
     }
- 
   }, [marcaSelecionada, refetchEmpresas]);
 
 
-  const getDetalheVoucherDados = async () => {
+  // const getDetalheVoucherDados = async () => {
 
-    try {
-      const response = await get(`/detalheVoucherDados?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idSubGrupoEmpresa=${grupoSelecionado}&idEmpresa=${empresaSelecionada}`)
-      if (response.data) {
-        setDadosVoucher(response.data)
+  //   try {
+  //     const response = await get(`/detalheVoucherDados?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idSubGrupoEmpresa=${marcaSelecionada}&idEmpresa=${empresaSelecionada}`)
+  //     if (response.data) {
+  //       setDadosVoucher(response.data)
+  //     }
+  //     return response.data
+  //   } catch (error) {
+  //     console.log(error, "não foi possivel pegar os dados da tabela ")
+  //   }
+
+  // }
+
+   const fetchListaVouchers = async () => {
+      try {
+        
+        const urlApi = `/voucher-completo?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idSubGrupoEmpresa=${marcaSelecionada}&idEmpresa=${empresaSelecionada}`;
+        const response = await get(urlApi);
+        
+        if (response.data.length && response.data.length === pageSize) {
+          let allData = [...response.data];
+          animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+    
+          async function fetchNextPage(currentPage) {
+            try {
+              currentPage++;
+              const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+              if (responseNextPage.length) {
+                allData.push(...responseNextPage.data);
+                return fetchNextPage(currentPage);
+              } else {
+                return allData;
+              }
+            } catch (error) {
+              console.error('Erro ao buscar próxima página:', error);
+              throw error;
+            }
+          }
+    
+          await fetchNextPage(currentPage);
+          return allData;
+        } else {
+         
+          return response.data;
+        }
+    
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+      } finally {
+        fecharAnimacaoCarregamento();
       }
-      return response.data
-    } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
-    }
-
-  }
+    };
+     
+    const { data: dadosVoucher = [], error: errorVendasMarca, isLoading: isLoadingVendasMarca, refetch: refetchDetalheVoucherDados } = useQuery(
+      ['voucher-completo',  empresaSelecionada, marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+      () => fetchListaVouchers(empresaSelecionada, marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+      {
+        enabled: false, 
+      }
+    );
 
   const optionsTroca = [
     { value: '0', label: 'CORTESIA' },
@@ -107,19 +156,9 @@ export const ActionPesquisaConsultaVouchers = () => {
     setEmpresaSelecionadaNome(empresa.NOFANTASIA)
   }
 
-  const handlePesquisaVendasVisivel = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setPesquisaVendas(false)
-    } else {
-      setPesquisaVendas(true)
-    }
-  }
-
   const handleClick = () => {
     setTabelaVisivel(true)
-    getDetalheVoucherDados()
+    refetchDetalheVoucherDados()
     
   }
 
@@ -152,7 +191,7 @@ export const ActionPesquisaConsultaVouchers = () => {
             return {
               
               value: marca.IDGRUPOEMPRESARIAL,
-              label: marca.DSGRUPOEMPRESARIAL,
+              label: marca.GRUPOEMPRESARIAL,
             }
           })
         ]}

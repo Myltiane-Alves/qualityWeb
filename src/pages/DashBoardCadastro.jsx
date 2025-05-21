@@ -5,22 +5,24 @@ import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
+import { get } from "../api/funcRequest";
+import { useQuery } from "react-query";
 
-const ActionPesquisaNFE = lazy(() => import("../componets/Cadastro/Components/ActionNotasFiscais/actionPesquisaNostasNFE").then(module => ({ default: module.ActionPesquisaNFE })));
 const ActionPesquisaHome = lazy(() => import("../componets/Cadastro/Components/ActionHome/actionPesquisaHome").then(module => ({ default: module.ActionPesquisaHome })));
+const ActionPesquisaNFE = lazy(() => import("../componets/Cadastro/Components/ActionNotasFiscais/actionPesquisaNotasNFE").then(module => ({ default: module.ActionPesquisaNFE })));
 const ActionPesquisaProdutosAvulso = lazy(() => import("../componets/Cadastro/Components/ActionProdutosAvulso/actionPesquisaProdutosAvulso").then(module => ({ default: module.ActionPesquisaProdutosAvulso })));
 const ActionPesquisaEstilos = lazy(() => import("../componets/Cadastro/Components/ActionEstilos/actionPesquisaEstilos").then(module => ({ default: module.ActionPesquisaEstilos })));
 const ActionPesquisaAlteracaoPreco = lazy(() => import("../componets/Cadastro/Components/ActionAlteracaoPrecoProduto/actionPesquisaAlteracaoPreco").then(module => ({ default: module.ActionPesquisaAlteracaoPreco })));
 const ActionPesquisaProdutoEtiqueta = lazy(() => import("../componets/Cadastro/Components/ActionProdutoEtiqueta/actionPesquisaProdutoEtiqueta").then(module => ({ default: module.ActionPesquisaProdutoEtiqueta })));
 const ActionPesquisaPreco = lazy(() => import("../componets/Cadastro/Components/ActionListaPreco/actionPesquisaPreco").then(module => ({ default: module.ActionPesquisaPreco })));
 
-export const DashBoardCadastro = ({ }) => {
+export const DashBoardCadastro = () => {
   const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const navigate = useNavigate();
   const storedModule = localStorage.getItem('moduloselecionado');
   const selectedModule = JSON.parse(storedModule);
   const [resumoVisivel, setResumoVisivel] = useState(true);
   const [componentToShow, setComponentToShow] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const usuarioArmazenado = localStorage.getItem('usuario');
@@ -42,6 +44,17 @@ export const DashBoardCadastro = ({ }) => {
   useEffect(() => {
   }, [usuarioLogado]);
 
+
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
+
   function handleShowComponent(componentName) {
     setComponentToShow(componentName);
   }
@@ -49,12 +62,12 @@ export const DashBoardCadastro = ({ }) => {
 
   let component = null;
 
+  // case "/cadastro/ReceberNFePedido":
+  //   component = <CadastroActionProdutosAvulso />;
+  //   break;
   switch (componentToShow) {
     case "/cadastro/ActionPesquisaHome":
       component = < ActionPesquisaHome />;
-      break;
-    case "/cadastro/ReceberNFePedido":
-      component = <CadastroActionProdutosAvulso />;
       break;
     case "/cadastro/ActionPesquisaProdutosAvulso":
       component = <ActionPesquisaProdutosAvulso />;
@@ -95,7 +108,7 @@ export const DashBoardCadastro = ({ }) => {
                 handleShowComponent={handleShowComponent}
               />
               <div className="page-content-wrapper">
-                <HeaderMain />
+                <HeaderMain optionsModulos={optionsModulos}/>
 
                 <main id="js-page-content" role="main" className="page-content">
                   <div className="row">

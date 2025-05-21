@@ -1,5 +1,4 @@
 import React, { Fragment, useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
 import { ActionMain } from "../../../Actions/actionMain";
 import { InputField } from "../../../Buttons/Input";
 import { ButtonType } from "../../../Buttons/ButtonType";
@@ -14,8 +13,9 @@ import { ActionVoucherEmProcessamentoModal } from "./actionVoucherEmProcessament
 import { ActionListaDetalhesVoucherEmitido } from "./actionListaDetalhesVoucherEmitido";
 import Swal from "sweetalert2";
 import { ActionPesquisaCreateVoucherCliente } from "./actionPesquisaCreateVoucherCliente";
+import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 
-export const ActionPesquisaCreateVoucher = () => {
+export const ActionPesquisaCreateVoucher = ({usuarioLogado, ID, optionsEmpresas }) => {
   const [actionPrincipal, setActionPrincipal] = useState(true);
   const [actionSecundaria, setActionSecundaria] = useState(false);
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
@@ -24,11 +24,13 @@ export const ActionPesquisaCreateVoucher = () => {
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [numeroVoucherSelecionado, setNumeroVoucherSelecionado] = useState('');
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  const [marcaSelecionado, setMarcaSelecionado] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
   const [dadosDetalheVoucherSelecionado, setDadosDetalheVoucherSelecionado] = useState([])
-  const navigate = useNavigate();
+  const [isQueryData, setIsQueryData] = useState(false);
+
 
   useEffect(() => {
     const dadosArmazenadosVoucher = localStorage.getItem('dadosDetalheVoucher');
@@ -37,7 +39,7 @@ export const ActionPesquisaCreateVoucher = () => {
       setDadosDetalheVoucherSelecionado(dadosArmazenadosVoucherParse);
       setTabelaVisivelVoucherSelecionados(true);
       setTabelaVisivel(false);
-  
+
     }
   }, [])
 
@@ -47,81 +49,27 @@ export const ActionPesquisaCreateVoucher = () => {
     const dataFim = getDataAtual()
     setDataPesquisaInicio(dataInicio)
     setDataPesquisaFim(dataFim)
+  }, []);
 
-    const usuarioArmazenado = localStorage.getItem('usuario');
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
 
-  useEffect(() => {
-  
-  }, [usuarioLogado]);
-
-  // const fetchListaVouchersProcessamento = async () => {
-  //   try {
-  //     const urlApi = `/detalheVoucherDados?idEmpresa=${usuarioLogado?.IDEMPRESA}&stStatus='EM ANALISE'`;
-  //     const response = await get(urlApi);
-      
-  //     if (response.data.length && response.data.length === pageSize) {
-  //       let allData = [...response.data];
-  //       animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
-  
-  //       async function fetchNextPage(currentPage) {
-  //         try {
-  //           currentPage++;
-  //           const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
-  //           if (responseNextPage.length) {
-  //             allData.push(...responseNextPage.data);
-  //             return fetchNextPage(currentPage);
-  //           } else {
-  //             return allData;
-  //           }
-  //         } catch (error) {
-  //           console.error('Erro ao buscar próxima página:', error);
-  //           throw error;
-  //         }
-  //       }
-  
-  //       await fetchNextPage(currentPage);
-  //       return allData;
-  //     } else {
-       
-  //       return response.data;
-  //     }
-  
-  //   } catch (error) {
-  //     console.error('Error fetching data:', error);
-  //     throw error;
-  //   } finally {
-  //     fecharAnimacaoCarregamento();
-  //   }
-  // };
-   
-  // const { data: dadosVoucherProcessamento = [], error: errorVouchersProcessamento, isLoading: isLoadingVouchersProcessamnto, refetch: refetchVouchersProcessamento } = useQuery(
-  //   ['detalheVoucherDados', usuarioLogado?.IDEMPRESA, currentPage, pageSize],
-  //   () => fetchListaVouchersProcessamento(usuarioLogado?.IDEMPRESA, currentPage, pageSize),
-  //   {
-  //     enabled: Boolean(usuarioLogado?.IDEMPRESA), 
-  //     staleTime: 5 * 60 * 1000,
-  //     cacheTime: 5 * 60 * 1000
-  //   }
-  // );
-
+ 
   const fetchListaVouchers = async () => {
     try {
-      const urlApi = `/detalheVoucherDados?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&dadosVoucher=${numeroVoucherSelecionado}&idSubGrupoEmpresa=${usuarioLogado.IDGRUPOEMPRESARIAL}&idEmpresa=${usuarioLogado.IDEMPRESA}`;
+      const idEmpresa = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      const idGrupoEmpresarial = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDGRUPOEMPRESARIAL : marcaSelecionado;
+      const urlApi = `/detalheVoucherDados?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&dadosVoucher=${numeroVoucherSelecionado}&idSubGrupoEmpresa=${idGrupoEmpresarial}&idEmpresa=${idEmpresa}`;
       const response = await get(urlApi);
       
-      if (response.data.length && response.data.length === pageSize) {
+      if (response.data && response.data.length === pageSize) {
         let allData = [...response.data];
         animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
   
@@ -157,32 +105,40 @@ export const ActionPesquisaCreateVoucher = () => {
   };
    
   const { data: dadosVoucher = [], error: errorVouchers, isLoading: isLoadingVouchers, refetch: refetchListaVouchers } = useQuery(
-    ['detalheVoucherDados', usuarioLogado?.IDEMPRESA, usuarioLogado?.IDGRUPOEMPRESARIAL, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
-    () => fetchListaVouchers(usuarioLogado?.IDEMPRESA, usuarioLogado?.IDGRUPOEMPRESARIAL, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+    ['detalheVoucherDados', dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    () => fetchListaVouchers( dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     {
-      enabled: false, 
+      enabled: Boolean(isQueryData), 
     }
   );
 
 
   const handleClick = () => {
-    
-    setCurrentPage(+1);
-    refetchListaVouchers()
+    setIsQueryData(true);
     setTabelaVisivel(true);
     setTabelaVendasClientes(false);
     setTabelaVisivelVoucherSelecionados(false);
     setActionPrincipal(true);
     setActionSecundaria(false);
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchListaVouchers()
    
   }
 
   const handleClickCadastro = () => {
-    setActionPrincipal(false);
-    setActionSecundaria(true);
-    // refetchListaEmpresaVouchers( )
+    if(optionsModulos[0]?.CRIAR == 'True'){
+      setActionPrincipal(false);
+      setActionSecundaria(true);
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para criar um novo voucher.',
+        timer: 3000,
+      });
+    }
   }
-
+ 
   return (
 
     <Fragment>
@@ -195,16 +151,33 @@ export const ActionPesquisaCreateVoucher = () => {
           title="Vouchers "
           subTitle="Nome da Loja"
 
-        
-          InputFieldDTInicioComponent={InputField}
-          labelInputFieldDTInicio={"Data Início"}
-          valueInputFieldDTInicio={dataPesquisaInicio}
-          onChangeInputFieldDTInicio={e => setDataPesquisaInicio(e.target.value)}
-
-          InputFieldDTFimComponent={InputField}
-          labelInputFieldDTFim={"Data Fim"}
-          valueInputFieldDTFim={dataPesquisaFim}
-          onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
+          InputSelectPendenciaComponent={InputSelectAction}
+          labelSelectPendencia="Selecione a Empresa"
+          optionsPendencia={[
+            { value: '', label: 'Todas' },
+            ...optionsEmpresas?.map((empresa) => ({
+              value: empresa.IDEMPRESA,
+              label: empresa.NOFANTASIA,
+              idGrupoEmpresarial: empresa.IDGRUPOEMPRESARIAL,
+            }))
+          ]}
+          onChangeSelectPendencia={(e) => {
+            const empresaSelecionadaObj = optionsEmpresas.find(empresa => empresa.IDEMPRESA === e.value);
+            setMarcaSelecionado(empresaSelecionadaObj?.IDGRUPOEMPRESARIAL || '');
+            setEmpresaSelecionada(e.value);
+          }}
+          valueSelectPendencia={empresaSelecionada}
+          isVisible={{display: optionsModulos[0]?.ADMINISTRADOR == false ? "none" : "block"}}
+  
+          InputFieldDTInicioAComponent={InputField}
+          valueInputFieldDTInicioA={dataPesquisaInicio}
+          labelInputDTInicioA={"Data Início"}
+          onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
+          
+          InputFieldDTFimAComponent={InputField}
+          labelInputDTFimA={"Data Fim"}
+          valueInputFieldDTFimA={dataPesquisaFim}
+          onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
 
           InputFieldNumeroVoucherComponent={InputField}
           valueInputFieldNumeroVoucher={numeroVoucherSelecionado}
@@ -238,8 +211,12 @@ export const ActionPesquisaCreateVoucher = () => {
       )}
 
       {tabelaVisivel &&
-        <ActionListaVoucherEmitido dadosVoucher={dadosVoucher} usuarioLogado={usuarioLogado}/>
-        }
+        <ActionListaVoucherEmitido 
+          dadosVoucher={dadosVoucher} 
+          usuarioLogado={usuarioLogado}
+          optionsModulos={optionsModulos}    
+        />
+      }
 
       {tabelaVisivelVoucherSelecionados && (
 

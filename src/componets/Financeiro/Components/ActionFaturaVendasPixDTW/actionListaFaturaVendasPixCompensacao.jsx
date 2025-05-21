@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { formatMoeda } from "../../../../utils/formatMoeda";
@@ -11,7 +11,6 @@ import HeaderTable from "../../../Tables/headerTable";
 
 export const ActionFaturaListaVendasPIXCompensacao = ({ dadosFaturaVendasPixCompensacao }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -166,12 +165,15 @@ export const ActionFaturaListaVendasPIXCompensacao = ({ dadosFaturaVendasPixComp
                     title="Vendas por PIX"
                     value={dadosListaVendasPix}
                     globalFilter={globalFilterValue}
-                    size={size}
+                    size="small"
                     sortField="VRTOTALPAGO"
                     sortOrder={-1}
                     paginator={true}
                     rows={10}
                     rowsPerPageOptions={[10, 20, 50, 100, dadosListaVendasPix.length]}
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                    filterDisplay="menu"
                     showGridlines
                     stripedRows
                     emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

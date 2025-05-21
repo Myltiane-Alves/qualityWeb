@@ -11,6 +11,7 @@ import { HeaderModal } from "../../../../Modais/HeaderModal/HeaderModal";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+import { toFloat } from "../../../../../utils/toFloat";
 
 
 export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosDetalheAlteracao }) => {
@@ -317,7 +318,7 @@ export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosDetal
                     type={"text"}
 
                     id={"idListaPreco"}
-                    value={dadosDetalheAlteracao[0]?.listaPreco.IDRESUMOLISTAPRECO}
+                    value={dadosDetalheAlteracao[0]?.alteracaoPreco.IDRESUMOALTERACAOPRECOPRODUTO}
                     onChangeModal={""}
 
                     {...register("idListaPreco", { required: "Campo obrigatório Informe a Descrição do Grupo Estrutura Mercadológica", })}
@@ -347,8 +348,8 @@ export const ActionEditarAlteracaoPrecosModal = ({ show, handleClose, dadosDetal
                     type={"text"}
 
                     id={"idListaPreco"}
-                    value={""}
-                    onChangeModal={""}
+                    value={toFloat(dadosDetalheAlteracao[0]?.alteracaoPreco.QTDITENS)}
+                    onChangeModal={''}
 
                     {...register("idListaPreco", { required: "Campo obrigatório Informe a Descrição do Grupo Estrutura Mercadológica", })}
                     required={true}

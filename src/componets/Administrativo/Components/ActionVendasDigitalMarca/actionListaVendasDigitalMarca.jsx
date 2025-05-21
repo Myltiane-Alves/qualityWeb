@@ -61,6 +61,8 @@ export const ActionListaVendasDigitalMarca = ({ dadosVendasMarca }) => {
     }
   });
 
+  const filteredData = dados.filter(item => item.QTDTOTAL > 0);
+
 
   const colunasVendas = [
     {
@@ -104,13 +106,16 @@ export const ActionListaVendasDigitalMarca = ({ dadosVendasMarca }) => {
 
           <DataTable
             title="Vendas por Loja"
-            value={dados}
+            value={filteredData}
             globalFilter={globalFilterValue}
             size={size}
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+            rowsPerPageOptions={[5, 10, 20, 50, 100, filteredData.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

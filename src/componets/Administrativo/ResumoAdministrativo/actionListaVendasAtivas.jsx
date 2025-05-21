@@ -14,7 +14,7 @@ import { toFloat } from "../../../utils/toFloat";
 import { get } from "../../../api/funcRequest";
 import { ActionDetalheVendaModal } from "../Components/ActionsModaisVendas/actionDetalheVendaModal";
 import { ActionDetalheVendaProdutosModal } from "../Components/ActionsModaisVendas/actionDetalheVendaProdutosModal";
-import { ActionRelacaoRecebimentosModal } from "../Components/ActionsModaisVendas/actionRelacaoRecebimentosModal";
+import { ActionRelacaoRecebimentosModal } from "../Components/ActionsModaisVendas/ActionRecebimentos/actionRelacaoRecebimentosModal";
 
 export const ActionListaVendasAtivas = ({ dadosVendasAtivas, empresaSelecionada }) => {
   const [modalVendaVisivel, setModalVendaVisivel] = useState(false);

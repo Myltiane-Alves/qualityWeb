@@ -161,6 +161,9 @@ export const ActionListaVendasProdutos = ({ dadosVendasLojaProdutos }) => {
             rows={10}
             sortOrder={-1}
             rowsPerPageOptions={[25, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             rowGroupMode="subheader"
             groupRowsBy="IDVENDA"
             sortMode="single"

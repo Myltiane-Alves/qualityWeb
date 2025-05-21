@@ -11,7 +11,6 @@ import HeaderTable from "../../../Tables/headerTable";
 
 export const ActionListaVendasPIX = ({ dadosVendasPix }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -106,7 +105,7 @@ export const ActionListaVendasPIX = ({ dadosVendasPix }) => {
     {
       field: 'DATAVENDA',
       header: 'Data Venda',
-      body: row => <th style={{ color: 'blue' }}>{dataFormatada(row.DATAVENDA)}</th>,
+      body: row => <th style={{ color: 'blue' }}>{row.DATAVENDA}</th>,
       sortable: true,
     },
     {
@@ -145,13 +144,15 @@ export const ActionListaVendasPIX = ({ dadosVendasPix }) => {
                     title="Vendas por PIX"
                     value={dadosListaVendasPix}
                     globalFilter={globalFilterValue}
-                    size={size}
+                    size="small"
                     sortField="VRTOTALPAGO"
                     sortOrder={-1}
                     paginator={true}
                     rows={10}
                     rowsPerPageOptions={[10, 20, 50, 100, dadosListaVendasPix.length]}
-                   
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                    filterDisplay="menu"
                     showGridlines
                     stripedRows
                     emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

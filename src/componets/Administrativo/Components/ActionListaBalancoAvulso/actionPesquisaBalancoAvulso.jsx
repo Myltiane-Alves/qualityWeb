@@ -10,6 +10,8 @@ import { AiOutlineSave, AiOutlineSearch } from "react-icons/ai";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 import { ActionListaProduto } from "./actionListaProduto";
+import Swal from "sweetalert2";
+import { useConfirmarBalancoAvulso } from "./hooks/useConfirmarBalancoAvulso";
 
 export const ActionPesquisaBalancoAvulso = () => {
   const [usuarioLogado, setUsuarioLogado] = useState(null)
@@ -24,26 +26,27 @@ export const ActionPesquisaBalancoAvulso = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(1000)
  
-
+  
+  
   useEffect(() => {
     const usuarioArmazenado = localStorage.getItem('usuario');
-
+    
     if (usuarioArmazenado) {
       const parsedUsuario = JSON.parse(usuarioArmazenado);
       setUsuarioLogado(parsedUsuario);
     }
   }, [])
-
+  
   useEffect(() => {
-
+    
     const timer = setTimeout(() => {
       setDescricaoColetor('COLETOR WEB - ' + usuarioLogado.NOFUNCIONARIO)
     }, 2000);
-
+    
     return () => clearTimeout(timer);
-
+    
   }, [usuarioLogado])
-
+  
   const { data: dadosEmpresa = [], error: errorEmpresas, isLoading: isLoadingEmpresas } = useQuery(
     'empresas',
     async () => {
@@ -52,19 +55,23 @@ export const ActionPesquisaBalancoAvulso = () => {
     },
     { staleTime: 5 * 60 * 1000 }
   );
-
-
+  
+  
   const { data: dadosBalancoAvulso = [], error: errorBalanco, isLoading: isLoadingBalanco, refetch } = useQuery(
     [ 'detalheBalancoAvulso', empresaSelecionada, usuarioLogado?.id],
     async () => {
       const response = await get(`/detalheBalancoAvulso?idFilial=${empresaSelecionada}&coletor=${usuarioLogado.id}`);
-      console.log('response', response.data)
       return response.data;
     },
     {
       enabled: Boolean(empresaSelecionada), 
     }
   );
+  
+  const  { enviarConfirmacao, loading } = useConfirmarBalancoAvulso({ dadosBalancoAvulso});
+  const handleConfirmarBalanco = async () => {
+    await enviarConfirmacao();
+  };
 
   const fetchListaColetorBalanco = async () => {
     try {
@@ -89,14 +96,15 @@ export const ActionPesquisaBalancoAvulso = () => {
             throw error;
           }
         }
-  
+        
         await fetchNextPage(currentPage);
         return allData;
-      } else {
-
+      } else {  
+        console.log(response.data, 'response.data')
+        
         return response.data;
       }
-  
+      
     } catch (error) {
       console.error('Error fetching data:', error);
       throw error;
@@ -104,21 +112,21 @@ export const ActionPesquisaBalancoAvulso = () => {
       fecharAnimacaoCarregamento();
     }  
   };
-   
+  
   const { data: dadosColetorBalanco = [], refetch: refetchListaColetorBalanco } = useQuery(
     ['listaProdutos', empresaSelecionada, descricaoProduto, currentPage, pageSize],
     () => fetchListaColetorBalanco(empresaSelecionada, descricaoProduto, currentPage, pageSize),
-    {
-      enabled: Boolean(empresaSelecionada && descricaoProduto),
-    },
+    { enabled: Boolean(descricaoProduto.length > 7) },
   );
   
+  // console.log(dadosColetorBalanco, 'dadosColetorBalanco')
   const handleSelectEmpresa = (e) => {
     const empresa = dadosEmpresa.find((empresa) => empresa.IDEMPRESA === e.value);
     setEmpresaSelecionada(e.value);
     setEmpresaSelecionadaNome(empresa.NOFANTASIA);
     setTabelaVisivel(true)
   };
+  // console.log(dadosBalancoAvulso, 'dadosBalancoAvulso pesquisa')
 
 
   const isDisabledEmpresa = empresaSelecionada ? true : false;
@@ -129,13 +137,23 @@ export const ActionPesquisaBalancoAvulso = () => {
   }
 
   const handleClick = () => {   
-    setTabelaVisivel(false)
-    setTabelaProduto(true)
-    setCurrentPage(prevPage => prevPage + 1)
-    refetchListaColetorBalanco(empresaSelecionada, descricaoProduto)
+    if(!empresaSelecionada) {
+      
+      Swal.fire({
+        icon: 'info',
+        text: 'Digite a descrição do produto ou o código de barras!',
+        timer: 3000,
+      })
+    } else {
+      setTabelaVisivel(false)
+      setTabelaProduto(true)
+      setCurrentPage(prevPage => prevPage + 1)
+      refetchListaColetorBalanco(empresaSelecionada, descricaoProduto)
+    }
 
   }
 
+   
 
   return (
 
@@ -185,7 +203,7 @@ export const ActionPesquisaBalancoAvulso = () => {
 
         ButtonTypeCadastro={ButtonType}
         linkNome={"Salvar"}
-        onButtonClickCadastro={handleClick}
+        onButtonClickCadastro={handleConfirmarBalanco}
         corCadastro={"success"}
         IconCadastro={AiOutlineSave}
       />
@@ -197,9 +215,10 @@ export const ActionPesquisaBalancoAvulso = () => {
        
         {tabelaProduto && (
 
-          <ActionListaProduto dadosColetorBalanco={dadosColetorBalanco} empresaSelecionada={empresaSelecionada} />
+          <ActionListaProduto dadosColetorBalanco={dadosColetorBalanco} empresaSelecionada={empresaSelecionada} quantidade={quantidade}/>
         )}
     
+    {console.log(dadosColetorBalanco, 'dadosColetorBalanco')}
       <ActionColetorBalancoModal 
         show={modalVisivel}
         handleClose={handleClosseModal}

@@ -7,16 +7,77 @@ import { FaCheck, FaShoppingBag } from 'react-icons/fa';
 import { AiOutlineDelete} from 'react-icons/ai';
 import { CiEdit } from 'react-icons/ci';
 import { formatMoeda } from '../../../../utils/formatMoeda';
-import { Fragment, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSend } from 'react-icons/fi';
 import { BsTrash3 } from 'react-icons/bs';
-
+import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import HeaderTable from '../../../Tables/headerTable';
 
 export const ActionListaPedidos = ({ dadosPedidos }) => {
   const [actionListaPedidos, setActionListaPedidos] = useState(true)
   const [actionPedidoResumido, setActionPedidoResumido] = useState(true)
-  const navigate = useNavigate();
+    const [globalFilterValue, setGlobalFilterValue] = useState('');
+    const dataTableRef = useRef();
+  
+  
+    const onGlobalFilterChange = (e) => {
+      setGlobalFilterValue(e.target.value);
+    };
+  
+    const handlePrint = useReactToPrint({
+      content: () => dataTableRef.current,
+      documentTitle: 'Pedidos Periodo',
+    });
+  
+    const exportToPDF = () => {
+      const doc = new jsPDF();
+      doc.autoTable({
+        head: [['Nº', 'Data', 'Nº Pedido', 'Marca', 'Comprador', 'Fornecedor', 'Fabricante', 'Vr Pedido', 'Setor', 'Status', 'Situação']],
+        body: dados.map(item => [
+          item.contador,
+          item.DTPEDIDOFORMATADABR,
+          item.IDPEDIDO,
+          item.NOFANTASIA,
+          item.NOMECOMPRADOR,
+          item.NOFORNECEDOR,
+          item.FABRICANTE,
+          formatMoeda(item.VRTOTALLIQUIDO),
+          item.DSSETOR == 'CADASTRO' ? 'CADASTRO' : item.DSSETOR == 'COMPRAS' ? 'COMPRAS' : item.DSSETOR == 'COMPRAS ADM' ? 'COMPRAS ADM' : '',
+          item.DSANDAMENTO == 'PRODUTOS/INCLUSÃO INICIADA' ? 'PRODUTOS/INCLUSÃO INICIADA' : item.DSANDAMENTO == 'PRODUTOS/INCLUSÃO FINALIZADA' ? 'PRODUTOS/INCLUSÃO FINALIZADA' : item.DSANDAMENTO == 'PEDIDO EM ANÁLISE' ? 'PEDIDO EM ANÁLISE' : item.DSANDAMENTO == 'PEDIDO CANCELADO' ? 'PEDIDO CANCELADO' : item.DSANDAMENTO == 'PEDIDO INICIADO' ? 'PEDIDO INICIADO' : '',
+          item.STMIGRADOSAP == null ? 'NÃO MIGRADO SAP' : 'MIGRADO SAP'
+        ]),
+        horizontalPageBreak: true,
+        horizontalPageBreakBehaviour: 'immediately'
+      });
+      doc.save('pedidos_periodos.pdf');
+    };
+  
+    const exportToExcel = () => {
+      const worksheet = XLSX.utils.json_to_sheet(dados);
+      const workbook = XLSX.utils.book_new();
+      const header = ['Nº', 'Data', 'Nº Pedido', 'Marca', 'Comprador', 'Fornecedor', 'Fabricante', 'Vr Pedido', 'Setor', 'Status', 'Situação'];
+      worksheet['!cols'] = [
+        { wpx: 70, caption: 'Nº' },
+        { wpx: 70, caption: 'Data' },
+        { wpx: 70, caption: 'Nº Pedido' },
+        { wpx: 70, caption: 'Marca' },
+        { wpx: 70, caption: 'Comprador' },
+        { wpx: 70, caption: 'Fornecedor' },
+        { wpx: 70, caption: 'Fabricante' },
+        { wpx: 70, caption: 'Vr Pedido' },
+        { wpx: 70, caption: 'Setor' },
+        { wpx: 70, caption: 'Status' },
+        { wpx: 70, caption: 'Situação' },
+      ];
+      XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Pedidos Periodo');
+      XLSX.writeFile(workbook, 'pedidos_periodo.xlsx');
+    };
+  
 
   const calcularTotalFabricante = () => {
     let total = 0;
@@ -56,51 +117,51 @@ export const ActionListaPedidos = ({ dadosPedidos }) => {
     {
       field: 'contador',
       header: 'Nº',
-      body: row => row.contador,
+      body: row => <th>{row.contador}</th>,
       sortable: true,
     },
     {
       field: 'DTPEDIDO',
       header: 'Data',
-      body: row => row.DTPEDIDO,
+      body: row => <th>{row.DTPEDIDO}</th>,
       sortable: true,
     },
     {
       field: 'IDPEDIDO',
       header: 'Nº Pedido',
-      body: row => row.IDPEDIDO,
+      body: row => <th>{row.IDPEDIDO}</th>,
       sortable: true,
     },
     {
       field: 'NOFANTASIA',
       header: 'Marca',
-      body: row => row.NOFANTASIA,
+      body: row => <th>{row.NOFANTASIA}</th>,
       sortable: true,
     },
     {
       field: 'NOMECOMPRADOR',
       header: 'Comprador',
-      body: row => row.NOMECOMPRADOR,
+      body: row => <th>{row.NOMECOMPRADOR}</th>,
       sortable: true,
     },
     {
       field: 'NOFORNECEDOR',
       header: 'Fornecedor',
-      body: row => row.NOFORNECEDOR,
+      body: row => <th>{row.NOFORNECEDOR}</th>,
       footer: 'Total ',
       sortable: true,
     },
     {
       field: 'FABRICANTE',
       header: 'Fabricante',
-      body: row => row.FABRICANTE,
+      body: row => <th>{row.FABRICANTE}</th>,
 
       sortable: true,
     },
     {
       field: 'VRTOTALLIQUIDO',
       header: 'Vr Pedido',
-      body: row => formatMoeda(row.VRTOTALLIQUIDO),
+      body: row => <th>{formatMoeda(row.VRTOTALLIQUIDO)}</th>,
       footer: formatMoeda(calcularTotalFabricante()),
       sortable: true,
     },
@@ -110,7 +171,7 @@ export const ActionListaPedidos = ({ dadosPedidos }) => {
       body: row => {
         return (
           <div>
-            <p style={{ color: row.DSSETOR == 'CADASTRO' ? 'green' : row.DSSETOR == 'COMPRAS' ? 'blue' : row.DSSETOR == 'COMPRAS ADM' ? 'gray' : '' }} >{row.DSSETOR}</p>
+            <th style={{ color: row.DSSETOR == 'CADASTRO' ? 'green' : row.DSSETOR == 'COMPRAS' ? 'blue' : row.DSSETOR == 'COMPRAS ADM' ? 'gray' : '' }} >{row.DSSETOR}</th>
           </div>
         )
       },
@@ -122,13 +183,13 @@ export const ActionListaPedidos = ({ dadosPedidos }) => {
       body: row => {
         return (
           <div>
-            <p style={{ color: 
+            <th style={{ color: 
               row.DSANDAMENTO == 'PRODUTOS/INCLUSÃO INICIADA' ? 'blue' : 
               row.DSANDAMENTO == 'PRODUTOS/INCLUSÃO FINALIZADA' ? 'black' : 
               row.DSANDAMENTO == 'PEDIDO EM ANÁLISE' ? 'green' : row.DSANDAMENTO == 'PEDIDO CANCELADO' ? 'red' : row.DSANDAMENTO == 'PEDIDO INICIADO' ? 'blue' : ''}}
             >
               {row.DSANDAMENTO}
-            </p>
+            </th>
           </div>
         )
       },
@@ -141,29 +202,29 @@ export const ActionListaPedidos = ({ dadosPedidos }) => {
         if(row.DSSETOR == 'CADASTRO') {
           if(row.DSANDAMENTO == 'PRODUTOS/INCLUSÃO INICIADA') {
             return ( 
-              <p >{row.STMIGRADOSAP = ''}</p>
+              <th >{row.STMIGRADOSAP = ''}</th>
             )
 
           } else if(row.DSANDAMENTO == 'PRODUTOS/INCLUSÃO FINALIZADA') {
             if(row.STMIGRADOSAP == null) {
               return (
-                <p style={{ color: row.STMIGRADOSAP = '#fd3995', fontWeight: 700 }}>{row.STMIGRADOSAP =  'NÃO MIGRADO SAP'}</p>
+                <th style={{ color: row.STMIGRADOSAP = '#fd3995', fontWeight: 700 }}>{row.STMIGRADOSAP =  'NÃO MIGRADO SAP'}</th>
               )
 
             } else {
               return (
-                <p style={{ color: row.STMIGRADOSAP = '#2196F3', fontWeight: 700 }}>{row.STMIGRADOSAP = 'MIGRADO SAP'}</p>
+                <th style={{ color: row.STMIGRADOSAP = '#2196F3', fontWeight: 700 }}>{row.STMIGRADOSAP = 'MIGRADO SAP'}</th>
               )
             
             }
           }
         } else if(row.DSSETOR == 'COMPRAS') {
           return (
-            <p style={{ color: row.STMIGRADOSAP = '#fd3995', fontWeight: 700 }}>{row.STMIGRADOSAP = ''}</p>
+            <th style={{ color: row.STMIGRADOSAP = '#fd3995', fontWeight: 700 }}>{row.STMIGRADOSAP = ''}</th>
           )
         } else if(row.DSSETOR == 'COMPRASADM') {
           return (
-            <p style={{ color: row.STMIGRADOSAP = '#fd3995', fontWeight: 700 }}>{row.STMIGRADOSAP = '' }</p>
+            <th style={{ color: row.STMIGRADOSAP = '#fd3995', fontWeight: 700 }}>{row.STMIGRADOSAP = '' }</th>
           )
         }
       },
@@ -395,34 +456,48 @@ export const ActionListaPedidos = ({ dadosPedidos }) => {
 
   return (
     <Fragment>
-      <div className="card">
-        <DataTable
-          title="Vendas por Loja"
-          value={dados}
-          sortField="VRTOTALPAGO"
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-        >
-          {colunasPedidos.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
+      <div className="panel">
+        
+        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <HeaderTable
+            globalFilterValue={globalFilterValue}
+            onGlobalFilterChange={onGlobalFilterChange}
+            handlePrint={handlePrint}
+            exportToExcel={exportToExcel}
+            exportToPDF={exportToPDF}
+          />
 
-            />
-          ))}
-        </DataTable>
+        </div>
+        <div className="card mb-4" ref={dataTableRef}>
+
+          <DataTable
+            title="Lista de Pedidos"
+            value={dados}
+            size='small'
+            globalFilter={globalFilterValue}
+            sortOrder={-1}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+          >
+            {colunasPedidos.map(coluna => (
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                header={coluna.header}
+                body={coluna.body}
+                footer={coluna.footer}
+                sortable={coluna.sortable}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                footerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '0.8rem' }}
+              />
+            ))}
+          </DataTable>
+        </div>
       </div>
     </Fragment>
   )

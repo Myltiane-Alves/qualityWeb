@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { formatMoeda } from "../../../../utils/formatMoeda";
@@ -9,47 +9,19 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 import Swal from "sweetalert2";
-import { post, put } from "../../../../api/funcRequest";
-import { useNavigate } from "react-router-dom";
 import { BsTrash3 } from "react-icons/bs";
 import { formatarDataDTW } from "../../../../utils/dataFormatada";
 import { toFloat } from "../../../../utils/toFloat";
+import { useEditarDeposito } from "./hooks/useEditarDeposito";
 
 
-export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelecionada }) => {
+export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelecionada, optionsModulos, usuarioLogado, handleClick }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [ipUsuario, setIpUsuario] = useState('');
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    getIPUsuario();
-  }, [usuarioLogado]);
-
-  const getIPUsuario = async () => {
-    const response = await fetch('http://ipwho.is/')
-    if (response.data) {
-      setIpUsuario(response.data);
-    }
-    return response.data;
-  }
+  const {
+    handleCancelar
+  } = useEditarDeposito({ optionsModulos, usuarioLogado, handleClick })
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -65,14 +37,14 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
     doc.autoTable({
       head: [['Loja', 'Conta Crédito', 'Conta Transitória', 'Data Depósito', 'Data Movimento', 'Banco', 'Valor', 'Doc.', 'Status', 'Situação']],
       body: dadosListaConciliarBanco.map(item => [
-        item.NOFANTASIA, 
+        item.NOFANTASIA,
         item.CONTACREDITOSAP,
         item.contaTransitoriaSap,
-        item.DTDEPOSITO, 
-        item.DTMOVIMENTOCAIXA, 
-        item.DSBANCO, 
-        formatMoeda(item.VRDEPOSITO),  
-        parseFloat(item.NUDOCDEPOSITO).toFixed(2), 
+        item.DTDEPOSITO,
+        item.DTMOVIMENTOCAIXA,
+        item.DSBANCO,
+        formatMoeda(item.VRDEPOSITO),
+        parseFloat(item.NUDOCDEPOSITO).toFixed(2),
         item.STCANCELADO === 'False' ? 'Dep. Ativo' : 'Dep. Cancelado',
         item.STCONFERIDO === 'True' ? 'Conciliado' : 'Não Conciliado'
       ]),
@@ -87,17 +59,17 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
     const workbook = XLSX.utils.book_new();
     const header = ['Loja', 'Conta Crédito', 'Conta Transitória', 'Data Depósito', 'Data Movimento', 'Banco', 'Valor', 'Doc.', 'Status', 'Situação'];
     worksheet['!cols'] = [
-      { wpx: 200, caption: 'Loja' }, 
-      { wpx: 100, caption: 'Conta Crédito' }, 
-      { wpx: 100, caption: 'Conta Transitória' }, 
-      { wpx: 150, caption: 'Data Depósito' }, 
-      { wpx: 150, caption: 'Data Movimento' }, 
-      { wpx: 150, caption: 'Banco' }, 
-      { wpx: 100, caption: 'Valor' }, 
-      { wpx: 150, caption: 'Doc' }, 
-      { wpx: 100, caption: 'Status' }, 
+      { wpx: 200, caption: 'Loja' },
+      { wpx: 100, caption: 'Conta Crédito' },
+      { wpx: 100, caption: 'Conta Transitória' },
+      { wpx: 150, caption: 'Data Depósito' },
+      { wpx: 150, caption: 'Data Movimento' },
+      { wpx: 150, caption: 'Banco' },
+      { wpx: 100, caption: 'Valor' },
+      { wpx: 150, caption: 'Doc' },
+      { wpx: 100, caption: 'Status' },
       { wpx: 100, caption: 'Situação' }
-    ]; 
+    ];
     XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Conciliação de Depósitos');
     XLSX.writeFile(workbook, 'deposito_conciliacao_banco.xlsx');
@@ -116,7 +88,7 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
 
   const dadosExcel = dadosConciliarBanco.map((item) => {
     let contaTransitoriaSap = '';
-   
+
 
     if (contaSelecionada === 43 || contaSelecionada === 218 || contaSelecionada === 58 || contaSelecionada === 10006 || contaSelecionada === 10018 || contaSelecionada === 10008) {
       contaTransitoriaSap = '1.01.01.01.0003';
@@ -126,7 +98,7 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
       contaTransitoriaSap = '4.01.01.09.0004';
     } else if (contaSelecionada === 10) {
       contaTransitoriaSap = '1.01.01.01.0002';
-    } 
+    }
 
     return {
       NOFANTASIA: item.NOFANTASIA,
@@ -140,12 +112,12 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
       STCANCELADO: item.STCANCELADO === 'False' ? 'Dep. Ativo' : 'Dep. Cancelado',
       STCONFERIDO: item.STCONFERIDO === 'True' ? 'Conciliado' : 'Não Conciliado'
 
-  
+
     }
   })
+
   const dadosListaConciliarBanco = dadosConciliarBanco.map((item) => {
     let contaTransitoriaSap = '';
-   
 
     if (contaSelecionada === 43 || contaSelecionada === 218 || contaSelecionada === 58 || contaSelecionada === 10006 || contaSelecionada === 10018 || contaSelecionada === 10008) {
       contaTransitoriaSap = '1.01.01.01.0003';
@@ -155,7 +127,7 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
       contaTransitoriaSap = '4.01.01.09.0004';
     } else if (contaSelecionada === 10) {
       contaTransitoriaSap = '1.01.01.01.0002';
-    } 
+    }
 
     return {
       NOFANTASIA: item.NOFANTASIA,
@@ -170,77 +142,78 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
       STCONFERIDO: item.STCONFERIDO,
       IDDEPOSITOLOJA: item.IDDEPOSITOLOJA,
       DTCOMPENSACAO: item.DTCOMPENSACAO,
-  
+
     }
   })
- 
+  
+  
   const colunasConciliarBanco = [
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => <p style={{ color: '' }}>{row.NOFANTASIA}</p>,
+      body: row => <th style={{ color: '' }}>{row.NOFANTASIA}</th>,
       sortable: true
     },
     {
       field: 'CONTACREDITOSAP',
       header: 'Conta Crédito',
-      body: row => <p style={{ color: '' }}>{row.CONTACREDITOSAP}</p>,
+      body: row => <th style={{ color: '' }}>{row.CONTACREDITOSAP}</th>,
       sortable: true
     },
     {
       field: 'contaTransitoriaSap',
       header: 'Conta Transitória',
-      body: row => <p style={{ color: '' }}>{row.contaTransitoriaSap}</p>,
+      body: row => <th style={{ color: '' }}>{row.contaTransitoriaSap}</th>,
       sortable: true
     },
     {
       field: 'DTDEPOSITO',
       header: 'Data Depósito',
-      body: row => <p style={{ color: '' }}>{row.DTDEPOSITO}</p>,
+      body: row => <th style={{ color: '' }}>{row.DTDEPOSITO}</th>,
       sortable: true
     },
     {
       field: 'DTMOVIMENTOCAIXA',
       header: 'Data Movimento',
-      body: row => <p style={{ color: '' }}>{row.DTMOVIMENTOCAIXA}</p>,
+      body: row => <th style={{ color: '' }}>{row.DTMOVIMENTOCAIXA}</th>,
       sortable: true
     },
     {
       field: 'DSBANCO',
       header: 'Banco',
-      body: row => <p style={{ color: '' }}>{row.DSBANCO}</p>,
+      body: row => <th style={{ color: '' }}>{row.DSBANCO}</th>,
       footer: 'Total',
       sortable: true
     },
     {
       field: 'VRDEPOSITO',
       header: 'Valor',
-      body: row => <p style={{ color: '' }}>{formatMoeda(row.VRDEPOSITO)}</p>,
+      body: row => <th style={{ color: '' }}>{formatMoeda(row.VRDEPOSITO)}</th>,
       footer: formatMoeda(calcularValorDeposito()),
       sortable: true
     },
     {
       field: 'NUDOCDEPOSITO',
       header: 'Doc.',
-      body: row => <p style={{ color: '' }}>{toFloat(row.NUDOCDEPOSITO)}</p>,
+      body: row => <th style={{ color: '' }}>{toFloat(row.NUDOCDEPOSITO)}</th>,
       sortable: true
     },
     {
       field: 'STCANCELADO',
       header: 'Status',
       body: row => (
-        <p style={{ color: row.STCANCELADO === 'False' ? 'blue' : 'red' }}>
+        <th style={{ color: row.STCANCELADO === 'False' ? 'blue' : 'red' }}>
           {row.STCANCELADO === 'False' ? 'Dep. Ativo' : 'Dep. Cancelado'}
-        </p>
+        </th>
       ),
     },
     {
       field: 'STCONFERIDO',
       header: 'Situação',
       body: row => (
-        <p style={{ color: row.STCONFERIDO === 'True' ? 'green' : 'red' }}>
+        <th style={{ color: row.STCONFERIDO === 'True' ? 'green' : 'red' }}>
           {row.STCONFERIDO === 'True' ? 'Conciliado' : 'Não Conciliado'}
-        </p>
+        </th>
       ),
     },
     {
@@ -259,7 +232,9 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
                   titleButton={"Cancelar Conciliação"}
                   cor={"danger"}
                   Icon={BsTrash3}
-                  iconSize={20}
+                  iconSize={25}
+                  width="35px"
+                  height="35px"
                   onClickButton={() => handleClickCancelar(row)}
                 />
               </div>
@@ -271,56 +246,21 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
     },
   ]
 
-  const handleCancelar = async (IDDEPOSITOLOJA) => {
-    Swal.fire({
-      title: 'Tem Certeza que Deseja Cancelar a Conciliação do Depósito?',
-      text: 'Você não poderá reverter esta ação!',
-      icon: 'warning',
-      showCancelButton: true,
-      showConfirmButton: true,
-      cancelButtonText: 'Cancelar',
-      confirmButtonText: 'OK',
-      customClass: {
-        confirmButton: 'btn btn-primary',
-        cancelButton: 'btn btn-danger',
-        loader: 'custom-loader'
-      },
-      buttonsStyling: false
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const putData = {  
-            IDDEPOSITOLOJA: IDDEPOSITOLOJA,
-    
-          }
-          const response = await put('/atualizar-deposito-loja', putData)
-          console.log('response: ', putData)
-          const textDados = JSON.stringify(putData)
-          let textoFuncao = 'FINANCEIRO/CANCELADO CONCILIAÇÃO DO DEPOSITO';
-       
-          const postData = {  
-            IDFUNCIONARIO: usuarioLogado.id,
-            PATHFUNCAO:  textoFuncao,
-            DADOS: textDados,
-            IP: ipUsuario
-          }
-  
-          const responsePost = await post('/logWeb', postData)
-          console.log('responsePost: ', responsePost)
-          Swal.fire({
-            title: 'Cancelado', 
-            text: 'Conciliação do Depósito cancelado com Sucesso', 
-            icon: 'success'
-          })
-        } catch (error) {
-          console.error('Erro ao buscar detalhes da venda: ', error);
-        }
-      }
-    })
-    
-  }
-  
   const handleClickCancelar = (row) => {
+    if (optionsModulos[0]?.ALTERAR == 'False') {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Erro!',
+        text: 'Você não tem permissão para cancelar a conciliação do depósito!',
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 4000
+      });
+      return
+    }
     if (row && row.IDDEPOSITOLOJA) {
       handleCancelar(row.IDDEPOSITOLOJA);
     }
@@ -330,8 +270,8 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
 
     <Fragment>
 
-     
-      <div className="card " style={{marginTop: "5rem"}}>
+
+      <div className="panel">
         <div className="panel-hdr">
           <h2>
             Lista de Depósitos <span class="fw-300"><i>Por Bancos</i> Pesquisa pela data do Depósito</span>
@@ -346,17 +286,20 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
             exportToPDF={exportToPDF}
           />
         </div>
-        <div ref={dataTableRef}>
+        <div className="card" ref={dataTableRef}>
 
           <DataTable
             title="Vendas por Loja"
             value={dadosListaConciliarBanco}
-            size={size}
+            size="small"
             globalFilter={globalFilterValue}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dadosListaConciliarBanco.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
@@ -383,4 +326,3 @@ export const ActionListaConciliacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
     </Fragment>
   )
 }
-

@@ -18,7 +18,6 @@ import { Row } from "primereact/row";
 
 export const ActionListaVendasPIXCompensacao = ({ dadosVendasPixCompensacao }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
   const [selecionarVendas, setSelecionarVendas] = useState([]);
   const [selectedVendas, setSelectedVendas] = useState([]);
@@ -323,12 +322,15 @@ export const ActionListaVendasPIXCompensacao = ({ dadosVendasPixCompensacao }) =
                     title="Vendas por PIX"
                     value={dadosListaVendasPix}
                     globalFilter={globalFilterValue}
-                    size={size}
+                    size="small"
                     sortField="VRTOTALPAGO"
                     sortOrder={-1}
                     paginator={true}
                     rows={10}
                     rowsPerPageOptions={[10, 20, 50, 100, dadosListaVendasPix.length]}
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                    filterDisplay="menu"
                     footerColumnGroup={footerGroup}
                     showGridlines
                     stripedRows

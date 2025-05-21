@@ -5,7 +5,8 @@ import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
-const ActionPesquisaProductoPreco = lazy(() => import("../componets/Comercial/Components/ActionProdutoPreco/actionPesquisaProdutosPreco").then(module => ({ default: module.ActionPesquisaProductoPreco })));
+import { useQuery } from "react-query";
+import { get } from "../api/funcRequest";
 const ResumoDashBoardComercial = lazy(() => import("../componets/Comercial/Components/ResumoComercial/ResumoDashBoardComercial").then(module => ({ default: module.ResumoDashBoardComercial })));
 const ActionPesquisaMetas = lazy(() => import("../componets/Comercial/Components/ActionMetas/actionPesquisaMetas").then(module => ({ default: module.ActionPesquisaMetas })));
 const ActionPesquisaPremiacoes = lazy(() => import("../componets/Comercial/Components/ActionPremiacoes/ActionPesquisaPremiacao").then(module => ({ default: module.ActionPesquisaPremiacoes })));
@@ -14,19 +15,21 @@ const ActionPesquisaVendasMarca = lazy(() => import("../componets/Comercial/Comp
 const ActionPesquisaVendasDigitalMarca = lazy(() => import("../componets/Comercial/Components/ActionVendasDigitalMarca/actionPesquisaVendasDigitalMarca").then(module => ({ default: module.ActionPesquisaVendasDigitalMarca })));
 const ActionPesquisaRotatividade = lazy(() => import("../componets/Comercial/Components/ActionRotatividade/actionPesquisaRotatividade").then(module => ({ default: module.ActionPesquisaRotatividade })));
 const ActionPesquisaVendasEstoque = lazy(() => import("../componets/Comercial/Components/ActionVendasEstoque/actionPesquisaVendasEstoque").then(module => ({ default: module.ActionPesquisaVendasEstoque })));
-const ActionPesquisaVendasRelatorio = lazy(() => import("../componets/Comercial/Components/ActionVendasRelatorio/actionPesquisaVendasRelatorio").then(module => ({ default: module.ActionPesquisaVendasRelatorio })));
+const ActionPesquisaProductoPreco = lazy(() => import("../componets/Comercial/Components/ActionProdutoPreco/actionPesquisaProdutosPreco").then(module => ({ default: module.ActionPesquisaProductoPreco })));
 const ActionPesquisaFuncionario = lazy(() => import("../componets/Comercial/Components/ActionFuncionarios/actionPesquisaFuncionarios").then(module => ({ default: module.ActionPesquisaFuncionario })));
+const ActionPesquisaVendasRelatorio = lazy(() => import("../componets/Comercial/Components/ActionVendasRelatorio/actionPesquisaVendasRelatorio").then(module => ({ default: module.ActionPesquisaVendasRelatorio })));
 const ActionPesquisaEstoqueProdutos = lazy(() => import("../componets/Comercial/Components/ActionEstoqueProdutos/actionPesquisaEstoqueProdutos").then(module => ({ default: module.ActionPesquisaEstoqueProdutos })));
 const ActionPesquisaEstoqueVendaGrupoSubGrupo = lazy(() => import("../componets/Comercial/Components/ActionVendaEstoqueGrupoSubGrupo/actionPesquisaEstoqueGrupoSubGrupo").then(module => ({ default: module.ActionPesquisaEstoqueVendaGrupoSubGrupo })));
 const ActionPesquisaPrecoProdutoGrupoSubGrupo = lazy(() => import("../componets/Comercial/Components/ActionEstoquePrecoProdutoGrupoSubGrupo/actionPesquisaPrecoProdutoGrupoSubGrupo").then(module => ({ default: module.ActionPesquisaPrecoProdutoGrupoSubGrupo })));
 
-export const DashBoardComercial = ({ }) => {
-
+export const DashBoardComercial = () => {
   const [resumoVisivel, setResumoVisivel] = useState(true);
   const [actionVisivel, setActionVisivel] = useState(true);
   const [clickContador, setClickContador] = useState(0);
   const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [componentToShow, setComponentToShow] = useState("");
+  const storedModule = localStorage.getItem('moduloselecionado');
+  const selectedModule = JSON.parse(storedModule);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,6 +50,16 @@ export const DashBoardComercial = ({ }) => {
   useEffect(() => {
 
   }, [usuarioLogado]);
+
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+      'menus-usuario',
+      async () => {
+        const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+        
+        return response.data;
+      },
+      { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+    );
 
   function handleShowComponent(componentName) {
     setComponentToShow(componentName);
@@ -116,7 +129,7 @@ export const DashBoardComercial = ({ }) => {
                 handleShowComponent={handleShowComponent}
               />
               <div className="page-content-wrapper">
-                <HeaderMain />
+                <HeaderMain optionsModulos={optionsModulos}/>
 
                 <main id="js-page-content" role="main" className="page-content">
                   <div className="row">

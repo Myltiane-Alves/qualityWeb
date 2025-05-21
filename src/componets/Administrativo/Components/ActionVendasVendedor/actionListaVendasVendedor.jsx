@@ -13,7 +13,6 @@ import { Row } from "primereact/row";
 
 export const ActionListaVendasVendedor = ({ dadosVendasVendedor, percComissaoSelecionada }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -127,7 +126,7 @@ export const ActionListaVendasVendedor = ({ dadosVendasVendedor, percComissaoSel
     {
       field: 'NOFANTASIA',
       header: 'Empresa',
-      body: row => <th style={{ color: 'blue' }}> {row.NOFANTASIA} </th>,
+      body: row => <p style={{ color: 'blue', width: '200px', fontWeight: 600, margin: '0px' }}> {row.NOFANTASIA} </p>,
       sortable: true,
     },
     {
@@ -145,7 +144,7 @@ export const ActionListaVendasVendedor = ({ dadosVendasVendedor, percComissaoSel
     {
       field: 'VENDEDOR_NOME',
       header: 'Nome',
-      body: row => <th style={{ color: 'blue' }}> {row.VENDEDOR_NOME} </th>,
+      body: row => <p style={{ color: 'blue', width: '200px', fontWeight: 600, margin: '0px' }}> {row.VENDEDOR_NOME} </p>,
       footer: 'Total Vendas',
       sortable: true,
     },
@@ -187,12 +186,12 @@ export const ActionListaVendasVendedor = ({ dadosVendasVendedor, percComissaoSel
   const footerGroup = (
     <ColumnGroup>
       <Row> 
-        <Column footer="Total Vendas " colSpan={6} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
-        <Column footer={formatMoeda(calcularTotalVendidoVendedor())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularTotalVoucher())}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+        <Column footer="Total Vendas " colSpan={6} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem', textAlign: 'center' }} />
+        <Column footer={formatMoeda(calcularTotalVendidoVendedor())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={formatMoeda(calcularTotalVoucher())}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}/>
    
-        <Column footer={formatMoeda(calcularValorVendido())}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
-        <Column footer={""}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+        <Column footer={formatMoeda(calcularValorVendido())}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}/>
+        <Column footer={""}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}/>
       </Row>
     </ColumnGroup>
   )
@@ -200,7 +199,7 @@ export const ActionListaVendasVendedor = ({ dadosVendasVendedor, percComissaoSel
 
     <Fragment>
 
-    <div className="panel mt-6">
+    <div className="panel">
       <div className="panel-hdr">
         <h2>Vendas por Vendedor</h2>
       </div>
@@ -219,12 +218,15 @@ export const ActionListaVendasVendedor = ({ dadosVendasVendedor, percComissaoSel
           title="Vendas Vendedor por Loja"
           value={dados}
           globalFilter={globalFilterValue}
-          size={size}
+          size="small"
           footerColumnGroup={footerGroup}
           sortOrder={-1}
           paginator={true}
           rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+          rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+          filterDisplay="menu"
           showGridlines
           stripedRows
           emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -238,7 +240,7 @@ export const ActionListaVendasVendedor = ({ dadosVendasVendedor, percComissaoSel
               footer={coluna.footer}
               sortable={coluna.sortable}
               headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
               bodyStyle={{ fontSize: '0.8rem' }}
 
             />

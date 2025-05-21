@@ -1,12 +1,8 @@
 import React, { Fragment } from "react"
-
-import { allModulos } from "../../../allUsers.json"
 import { useAuth } from "../../Providers/AuthContext";
-import { useForm } from "react-hook-form";
 
 
 export const AuthLogin = () => {
-  const { register, handleSubmit,  } = useForm();
   const {
     usuario,
     senha,
@@ -18,7 +14,7 @@ export const AuthLogin = () => {
 
   return (
     <Fragment>
-      <form id="js-login" onSubmit={handleSubmit(loginSubmit)}>
+      <form id="js-login" onSubmit={loginSubmit}>
         <div className="form-group">
           <label className="form-label" htmlFor="grupempresa">Grupo Empresarial</label>
           <input 
@@ -60,6 +56,7 @@ export const AuthLogin = () => {
               id="Acessar" 
               type="submit" 
               className="btn btn-danger btn-block btn-lg input"
+              // onClick={loginSubmit}
             >
               Entrar
             </button>

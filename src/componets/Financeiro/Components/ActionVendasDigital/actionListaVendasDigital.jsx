@@ -9,9 +9,9 @@ import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 import { dataFormatada } from "../../../../utils/dataFormatada";
 import { toFloat } from "../../../../utils/toFloat";
+import { mascaraValor } from "../../../../utils/mascaraValor";
 
 export const ActionListaVendasDigital = ({ dadosVendasDetalhadas }) => {
-  const [size, setSize] = useState('small')
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
 
@@ -80,10 +80,10 @@ export const ActionListaVendasDigital = ({ dadosVendasDetalhadas }) => {
   }
 
  
-  const dadosListaVendas = Array.isArray(dadosVendasDetalhadas) ? dadosVendasDetalhadas.map((item) => {
+  const dadosListaVendas = dadosVendasDetalhadas.map((item) => {
 
     return {
-      DTHORAFECHAMENTO: item.DTHORAFECHAMENTO,
+      DTHORAFECHAMENTOFORMATADA: item.DTHORAFECHAMENTOFORMATADA,
       NOFANTASIA: item.NOFANTASIA,
       IDVENDA: item.IDVENDA,
       CTRVENDA: item.CTRVENDA,
@@ -92,13 +92,13 @@ export const ActionListaVendasDigital = ({ dadosVendasDetalhadas }) => {
       QTD: toFloat(item.QTD),
       VRTOTALLIQUIDO: toFloat(item.VRTOTALLIQUIDO),
     }
-  }): [];
+  })
 
   const colunasVendasDetalhadas = [
     {
       field: 'DTHORAFECHAMENTOFORMATADA',
       header: 'Data',
-      body: row => <th style={{ color: 'blue' }} > {dataFormatada(row.DTHORAFECHAMENTO)}</th>,
+      body: row => <th style={{ color: 'blue' }} > {row.DTHORAFECHAMENTOFORMATADA}</th>,
       sortable: true,
     },
     {
@@ -137,7 +137,7 @@ export const ActionListaVendasDigital = ({ dadosVendasDetalhadas }) => {
       field: 'QTD',
       header: 'Quantidade',
       body: row => <th style={{ color: 'blue' }} > {row.QTD}</th>,
-      footer: calcularTotalQuantidade(),
+      footer: mascaraValor(calcularTotalQuantidade()),
       sortable: true,
     },
     {
@@ -171,11 +171,14 @@ export const ActionListaVendasDigital = ({ dadosVendasDetalhadas }) => {
           title="Vendas Digitais"
           value={dadosListaVendas}
           globalFilter={globalFilterValue}
-          size={size}
+          size="small"
           sortOrder={-1}
           paginator={true}
           rows={10}
           rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaVendas.length]}
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+          filterDisplay="menu"
           showGridlines
           stripedRows
           emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

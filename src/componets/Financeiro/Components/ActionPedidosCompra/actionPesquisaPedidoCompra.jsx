@@ -89,15 +89,12 @@ export const ActionPesquisaPedidoCompra = () => {
   }
 
   const handleSelectMarca = (e) => {
-    const selectId = e.value
-    if (selectId) {
-      setMarcaSelecionada(selectId)
-    }
+    setMarcaSelecionada(e.value)
   }
 
   const handleClick = () => {
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
+    setCurrentPage(prePage => prePage + 1);
     refetchPedidosCompras()
   }
 
@@ -109,7 +106,6 @@ export const ActionPesquisaPedidoCompra = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista de Pedidos"]}
         title="Pedidos de Compras"
-        subTitle="Nome da Loja"
         InputFieldDTInicioComponent={InputField}
         valueInputFieldDTInicio={dataPesquisaInicio}
         labelInputFieldDTInicio={"Data Início"}
@@ -157,11 +153,10 @@ export const ActionPesquisaPedidoCompra = () => {
         IconSearch={AiOutlineSearch}
       />
 
-      <div className="card" style={{marginTop: '8rem'}}>
-        <ActionListaPedidoCompra dadosPedidosCompras={dadosPedidosCompras} />
-      </div>
+   
+      <ActionListaPedidoCompra dadosPedidosCompras={dadosPedidosCompras} />
+     
 
     </Fragment>
   )
 }
-

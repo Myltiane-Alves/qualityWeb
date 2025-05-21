@@ -12,7 +12,7 @@ import { FaRegTrashAlt,FaRegSave } from "react-icons/fa"
 import { FiSend } from "react-icons/fi";
 import { GrCertificate } from "react-icons/gr";
 import { FaCashRegister, FaUserAltSlash, FaUserTimes,FaExclamation } from "react-icons/fa";
-import { AiOutlineDelete, AiOutlineCloseCircle } from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineCloseCircle, AiOutlineArrowLeft } from "react-icons/ai";
 import { IoIosAdd } from "react-icons/io";
 import { FaProductHunt } from "react-icons/fa";
 import { FaCheck } from "react-icons/fa6";
@@ -32,6 +32,7 @@ import { BsFiletypePdf } from "react-icons/bs";
 export const ButtonTable = ({
   onClickButton, 
   titleButton,
+  textButton,
   className,
   cor,
   tipo,
@@ -39,9 +40,13 @@ export const ButtonTable = ({
   iconColor,
   iconSize,
   disabledBTN,
-  id
+  width = 'auto',
+  height = 'auto',
+  id,
+  size = 'sm',
+  textFontSize = '12px' 
 }) => {
-  let btnClasses = "btn btn-sm btn-icon";
+  let btnClasses = "btn  btn-icon";
 
   if(cor === "primary") {
     btnClasses += " btn-primary";
@@ -59,6 +64,14 @@ export const ButtonTable = ({
     btnClasses += " btn-dark";
   }
 
+  if (size === "sm") {
+    btnClasses += " btn-sm";
+  } else if (size === "md") {
+    btnClasses += " btn-md";
+  } else if (size === "lg") {
+    btnClasses += " btn-lg";
+  }
+
   const typeButton = tipo === "button" ? "button" : "submit";
 
   return (
@@ -67,14 +80,16 @@ export const ButtonTable = ({
         disabled={disabledBTN}
         type="button"
         className={`${btnClasses} ${className}`}
-        style={{ alignItems: "center", fontSize: "22px" }}
+        style={{ alignItems: "center", fontSize: "22px", width, height }}
         onClick={onClickButton}
         title={titleButton}
         id={id}
       >
         {Icon && <Icon size={iconSize} color={iconColor} />}
-        
+        {/* {textButton} */}
+        <span style={{ fontSize: textFontSize }}>{textButton}</span>
       </button>
     </Fragment>
   )
 }
+

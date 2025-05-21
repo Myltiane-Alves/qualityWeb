@@ -1,6 +1,6 @@
 import { AiOutlineMenuFold, AiOutlineMenuUnfold } from 'react-icons/ai';
 import { Fragment, useEffect, useState } from 'react';
-// import { allModulos } from '../../../allUsers.json';
+import { allModulos } from '../../../allUsers.json';
 import { useSidebar } from './SidebarContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,7 +34,7 @@ export const MenuSidebar = ({ handleShowComponent, selectedModule, selectedUser 
                   e.preventDefault();
                   handleClick(sidebarItem.action)
                 }}>
-                  {console.log(sidebarItem)}
+                  {/* {console.log(sidebarItem)} */}
                   <span className="nav-link-text">
                     {sidebarItem.title}
                   </span>

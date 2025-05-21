@@ -6,7 +6,7 @@ import { MdAdd } from "react-icons/md";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../utils/animationCarregamento";
 import { ActionListaDetalhesVoucherEmitido } from "./actionListaDetalhesVoucherEmitido";
-import { ActionPesquisaCreateVoucherCliente } from "./actionPesquisaCreateVoucherCliente";
+import { ActionPesquisaCreateVoucherCliente } from "./ActionCliente/actionPesquisaCreateVoucherCliente";
 import { ActionMain } from "../../Actions/actionMain";
 import { InputField } from "../../Buttons/Input";
 import { ButtonType } from "../../Buttons/ButtonType";

@@ -24,7 +24,6 @@ export const ActionListaRecebimentosLoja = ({
   const [modalDetalheRecebimento, setModalDetalheRecebimento] = useState(false);
   const [dadosDetalheRecebimentosEletronico, setDadosDetalheRecebimentosEletronico] = useState([]);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -103,7 +102,7 @@ export const ActionListaRecebimentosLoja = ({
     };
   }): []
 
-  const dados = Array.isArray(dadosRecebimentosEletronico) ? dadosRecebimentosEletronico.map((item) => {
+  const dados = dadosRecebimentosEletronico.map((item) => {
     const percentualVrRecebido = ((parseFloat(item.VALORRECEBIDO) * 100) / calcularTotalValorRecebido()).toFixed(2);
 
     return {
@@ -115,7 +114,7 @@ export const ActionListaRecebimentosLoja = ({
       NOAUTORIZADOR: item.NOAUTORIZADOR,
       percentualVrRecebido,
     };
-  }): []
+  })
 
   const colunasRecebimento = [
     {
@@ -161,21 +160,25 @@ export const ActionListaRecebimentosLoja = ({
             titleButton={'Detalhar'}
             Icon={GrView}
             cor="success"
+            width="35px"
+            height="35px"
+            iconSize={25}
+
           />
         );
       },
     },
   ];
 
-  const handleEditar = async (NOAUTORIZADOR, NPARCELAS, NOTEF,  ) => {
+  const handleEditar = async (NOAUTORIZADOR, NPARCELAS, NOTEF) => {
     try {
-      const response = await get(`/vendaDetalheRecebimentoEletronico?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&nomeTef=${NOTEF}&nomeAutorizador=${NOAUTORIZADOR}&numeroParcelas=${NPARCELAS}`);
+      const response = await get(`/venda-detalhe-recebimento-eletronico?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&nomeTef=${NOTEF}&nomeAutorizador=${NOAUTORIZADOR}&numeroParcelas=${NPARCELAS}`);
 
-      if (response.data) {
-        setDadosDetalheRecebimentosEletronico(response.data);
+      if (response.data && response.data.length ) {
         setModalDetalheRecebimento(true);
-        console.log(modalDetalheRecebimento)
+        setDadosDetalheRecebimentosEletronico(response.data);
       }
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar detalhes da despesa: ', error);
     }
@@ -207,7 +210,7 @@ export const ActionListaRecebimentosLoja = ({
             title="Lista Recebimentos Eletronico "
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortField="VALORRECEBIDO"
             sortOrder={-1}
             rows={dados.length}

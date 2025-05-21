@@ -110,7 +110,8 @@ export const ActionListaLinkRelatorioBi = ({ dadosBI }) => {
                 iconSize={18}
                 iconColor={"#fff"}
                 cor={"info"}
-
+                width="40px"
+                height="40px"
               />
 
             </div>
@@ -173,6 +174,9 @@ export const ActionListaLinkRelatorioBi = ({ dadosBI }) => {
             paginator={true}
             rows={10}
             rowsPerPageOptions={[5, 10, 20, 50]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

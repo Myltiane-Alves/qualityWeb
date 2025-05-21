@@ -3,30 +3,26 @@ import { formatMoeda } from "../../../../utils/formatMoeda";
 import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionListaDespesas = ({ dadosExtratoLojaPeriodo, dados }) => {
-  const [dadosDespesas, setDadosDespesas] = useState([]);
+  let saldoAnterior = toFloat(dados[0]?.saldoAnteriorFaturas);
 
-  useEffect(() => {
-    let saldoAnterior = toFloat(dados[0]?.saldoAnteriorFaturas);
-    
-    const despesasCalculadas = dadosExtratoLojaPeriodo.flatMap((item) =>
-      item.despesas.map((despesa) => {
-        const saldoAnteriorDespesas = saldoAnterior - toFloat(despesa.VRDESPESA);
-        // const saldoAnteriorDespesas = saldoAnterior;
-        // saldoAnterior = saldoAnteriorDespesas; 
+  const dadosDespesas = dadosExtratoLojaPeriodo.map((item) => {
 
-        return {
-          DTDESPESAFORMATADA: despesa.DTDESPESAFORMATADA,
-          DSHISTORIO: despesa.DSHISTORIO,
-          DSCATEGORIA: despesa.DSCATEGORIA,
-          VRDESPESA: toFloat(despesa.VRDESPESA),
-          DSPAGOA: despesa.DSPAGOA,
-          saldoAnteriorDespesas: saldoAnteriorDespesas,
-        };
-      })
-    );
+    const saldoAnteriorDespesas = saldoAnterior - toFloat(item.despesas[0]?.VRDESPESA);
+    // const saldoAnteriorDespesas = saldoAnterior;
+    // saldoAnterior = saldoAnteriorDespesas; 
 
-    setDadosDespesas(despesasCalculadas);
-  }, [dadosExtratoLojaPeriodo, dados]);
+    return {
+      DTDESPESAFORMATADA: item.despesas[0]?.DTDESPESAFORMATADA,
+      DSHISTORIO: item.despesas[0]?.DSHISTORIO,
+      DSCATEGORIA: item.despesas[0]?.DSCATEGORIA,
+      VRDESPESA: toFloat(item.despesas[0]?.VRDESPESA),
+      DSPAGOA: item.despesas[0]?.DSPAGOA,
+      saldoAnteriorDespesas: saldoAnteriorDespesas,
+    };
+
+  });
+
+
 
   return (
     <Fragment>

@@ -15,7 +15,7 @@ import { ActionListaVendasCanceladasEmTelaPDV } from "./actionListaVendasCancela
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
 
 
-export const ActionPesquisaVendasCanceladas = () => {
+export const ActionPesquisaVendasCanceladas = ({usuarioLogado, ID}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [tabelaVendaWebVisivel, setTabelaVendaWebVisivel] = useState(false);
   const [tabelaVendaEmitidaPDVVisivel, setTabelaVendaEmitidaPDVVisivel] = useState(false);
@@ -28,6 +28,11 @@ export const ActionPesquisaVendasCanceladas = () => {
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000); 
+  const [isqueryCancelPDVTela, setIsQueryCancelPDVTela] = useState(false)
+  const [isqueryCanceladaEmitidaPDV, setIsQueryCanceladaEmitidaPDV] = useState(false)
+  const [isqueryVendaCancelada, setIsQueryVendaCancelada] = useState(false)
+  const [isqueryVendaCancelada30Minutos, setIsQueryVendaCancelada30Minutos] = useState(false)
+  const [isqueryVendaCanceladaWeb, setIsQueryVendaCanceladaWeb] = useState(false)
 
   useEffect(() => {
     const dataInicial =  getDataAtual()
@@ -35,7 +40,17 @@ export const ActionPesquisaVendasCanceladas = () => {
     setDataPesquisaInicio(dataInicial)
     setDataPesquisaFim(dataFinal)
     
-  }, [marcaSelecionada])
+  }, [])
+
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas, refetch: refetchMarcas } = useQuery(
     'marcasLista',
@@ -65,8 +80,8 @@ export const ActionPesquisaVendasCanceladas = () => {
 
   const fetchVendasCanceladas = async () => {
     try {
-      
-      const urlApi = `venda-ativa?idGrupo=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      //  statusContingencia, statusCanceladoWeb, stCanceladoPDVEmitida, stCanceladoPDVEmTela, statusCanceladoDepois30Minutos, cpfCliente
+      const urlApi = `/venda-ativa?idGrupo=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&statusCancelado=True`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -108,10 +123,7 @@ export const ActionPesquisaVendasCanceladas = () => {
   const { data: dadosVendasCanceladas = [], error: errorVendasMarca, isLoading: isLoadingVendasMarca, refetch: refetchVendasCanceladas } = useQuery(
     ['venda-ativa',  marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchVendasCanceladas(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    {
-      enabled: false, 
-      staleTime: 5 * 60 * 1000,
-    }
+    { enabled: isqueryVendaCancelada, staleTime: 5 * 60 * 1000}
   );
 
   const fetchVendasCanceladas30Minutos = async () => {
@@ -158,10 +170,7 @@ export const ActionPesquisaVendasCanceladas = () => {
   const { data: dadosVendasCanceladasMinutos = [], error: errorVendasCanceladas30Minutos, isLoading: isLoadingVendasCanceladas30Minutos, refetch: refetchVendasCanceladas30Minutos } = useQuery(
     ['venda-ativa',  marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchVendasCanceladas30Minutos(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    {
-      enabled: false, 
-      staleTime: 5 * 60 * 1000,
-    }
+    {enabled: isqueryVendaCancelada30Minutos, staleTime: 5 * 60 * 1000 }
   );
 
   const fetchVendasCanceladasWeb = async () => {
@@ -208,10 +217,7 @@ export const ActionPesquisaVendasCanceladas = () => {
   const { data: dadosVendasCanceladasWeb = [], error: errorVendasCanceladasWeb, isLoading: isLoadingVendasCanceladasWeb, refetch: refetchVendasCanceladasWeb } = useQuery(
     ['venda-ativa',  marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchVendasCanceladasWeb(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    {
-      enabled: false, 
-      staleTime: 5 * 60 * 1000,
-    }
+    {enabled: isqueryVendaCanceladaWeb,  staleTime: 5 * 60 * 1000}
   );
 
   const fetchVendasCanceladasEmitidasPDV = async () => {
@@ -258,26 +264,24 @@ export const ActionPesquisaVendasCanceladas = () => {
   const { data: dadosVendasCanceladasEmitidasPDV = [], error: errorVendasCanceladasEmitidasPDV, isLoading: isLoadingVendasCanceladasEmitidasPDV, refetch: refetchVendasCanceladasEmitidasPDV } = useQuery(
     ['venda-ativa',  marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchVendasCanceladasEmitidasPDV(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    {
-      enabled: false, 
-      staleTime: 5 * 60 * 1000,
-    }
+    {enabled: isqueryCanceladaEmitidaPDV, staleTime: 5 * 60 * 1000 }
   );
 
 
   const fetchVendasCanceladasEmTelaPDV  = async () => {
     try {
                                                                                                                                                                        
-      const urlApi = `venda-ativa?idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&stCanceladoPDVEmTela=True`;
+      const urlApi = `/venda-ativa?idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&stCanceladoPDVEmTela=True`;
       const response = await get(urlApi);
+      
       
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
         animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
-  
         async function fetchNextPage(currentPage) {
           try {
             currentPage++;
+            console.log(currentPage, 'currentPage')
             const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
             if (responseNextPage.length) {
               allData.push(...responseNextPage.data);
@@ -292,9 +296,9 @@ export const ActionPesquisaVendasCanceladas = () => {
         }
   
         await fetchNextPage(currentPage);
+        
         return allData;
       } else {
-       
         return response.data;
       }
   
@@ -309,10 +313,7 @@ export const ActionPesquisaVendasCanceladas = () => {
   const { data: dadosVendasCanceladasEmTelaPDV = [], error: errorVendasCanceladasEmTelaPDV, isLoading: isLoadingVendasCanceladasEmTelaPDV, refetch: refetchVendasCanceladasEmTelaPDV} = useQuery(
     ['venda-ativa',  marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchVendasCanceladasEmTelaPDV(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    {
-      enabled: false, 
-      staleTime: 5 * 60 * 1000,
-    }
+    {enabled: isqueryCancelPDVTela, staleTime: 5 * 60 * 1000}
   );
  
   const handleSelectEmpresa = (e) => {
@@ -325,7 +326,12 @@ export const ActionPesquisaVendasCanceladas = () => {
 
   const handleClick = () => {
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
+    setCurrentPage(prevPage => prevPage + 1);
+    setIsQueryVendaCancelada(true)
+    setIsQueryVendaCancelada30Minutos(false)
+    setIsQueryVendaCanceladaWeb(false)
+    setIsQueryCanceladaEmitidaPDV(false)
+    setIsQueryCancelPDVTela(false)
     refetchVendasCanceladas()
     setTabelaVisivel(true)
     setTabelaVendaCanceladaMinutoVisivel(false)
@@ -336,7 +342,12 @@ export const ActionPesquisaVendasCanceladas = () => {
 
   const handleClickMinutos = () => {
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
+    setCurrentPage(prevPage => prevPage + 1);
+    setIsQueryVendaCancelada30Minutos(true)
+    setIsQueryVendaCancelada(false)
+    setIsQueryVendaCanceladaWeb(false)
+    setIsQueryCanceladaEmitidaPDV(false)
+    setIsQueryCancelPDVTela(false)
     refetchVendasCanceladas30Minutos()
     setTabelaVendaCanceladaMinutoVisivel(true)
     setTabelaVisivel(false)
@@ -347,7 +358,12 @@ export const ActionPesquisaVendasCanceladas = () => {
 
   const handleClickWeb = () => {
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
+    setCurrentPage(prevPage => prevPage + 1);
+    setIsQueryVendaCanceladaWeb(true)
+    setIsQueryVendaCancelada30Minutos(false)
+    setIsQueryVendaCancelada(false)
+    setIsQueryCanceladaEmitidaPDV(false)
+    setIsQueryCancelPDVTela(false)
     refetchVendasCanceladasWeb()
     setTabelaVendaWebVisivel(true)
     setTabelaVisivel(false)
@@ -358,7 +374,12 @@ export const ActionPesquisaVendasCanceladas = () => {
 
   const handleClickEmitidasPDV = () => {
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
+    setCurrentPage(prevPage => prevPage + 1);
+    setIsQueryCanceladaEmitidaPDV(true)
+    setIsQueryVendaCanceladaWeb(false)
+    setIsQueryVendaCancelada30Minutos(false)
+    setIsQueryVendaCancelada(false)
+    setIsQueryCancelPDVTela(false)
     refetchVendasCanceladasEmitidasPDV()
     setTabelaVendaEmitidaPDVVisivel(true)
     setTabelaVendaWebVisivel(false)
@@ -369,7 +390,13 @@ export const ActionPesquisaVendasCanceladas = () => {
   }
   const handleClickVendasCanceladaPDV = () => {
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
+    setCurrentPage(prevPage => prevPage + 1);
+    setIsQueryCancelPDVTela(true)
+
+    setIsQueryCanceladaEmitidaPDV(false)
+    setIsQueryVendaCanceladaWeb(false)
+    setIsQueryVendaCancelada30Minutos(false)
+    setIsQueryVendaCancelada(false)
     refetchVendasCanceladasEmTelaPDV()
     setTabelaVendaCanceladaTelaPDV(true)
     setTabelaVendaEmitidaPDVVisivel(false)
@@ -400,7 +427,7 @@ export const ActionPesquisaVendasCanceladas = () => {
 
         InputSelectEmpresaComponent={InputSelectAction}
         optionsEmpresas={[
-          { value: '', label: 'Todas' },
+          { value: '0', label: 'Todas' },
           ...optionsEmpresas.map((empresa) => ({
             value: empresa.IDEMPRESA,
             label: empresa.NOFANTASIA,
@@ -415,7 +442,7 @@ export const ActionPesquisaVendasCanceladas = () => {
           { value: '0', label: 'Selecione uma Marca' },
           ...optionsMarcas.map((item) => ({
             value: item.IDGRUPOEMPRESARIAL,
-            label: item.DSGRUPOEMPRESARIAL,
+            label: item.GRUPOEMPRESARIAL,
 
           }))
         ]}
@@ -456,7 +483,11 @@ export const ActionPesquisaVendasCanceladas = () => {
 
 
      {tabelaVisivel &&
-        <ActionListaVendasCanceladas dadosVendasCanceladas={dadosVendasCanceladas} />
+        <ActionListaVendasCanceladas 
+          dadosVendasCanceladas={dadosVendasCanceladas} 
+          optionsModulos={optionsModulos}
+          usuarioLogado={usuarioLogado}  
+        />
       }
 
       {tabelaVendaCanceladaMinutoVisivel &&
@@ -464,9 +495,7 @@ export const ActionPesquisaVendasCanceladas = () => {
       }
 
       {tabelaVendaWebVisivel && 
-        <ActionListaVendasCanceladasWeb
-          dadosVendasCanceladasWeb={dadosVendasCanceladasWeb}
-        />
+        <ActionListaVendasCanceladasWeb dadosVendasCanceladasWeb={dadosVendasCanceladasWeb} />
       }
 
      {tabelaVendaEmitidaPDVVisivel &&

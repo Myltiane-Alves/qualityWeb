@@ -12,7 +12,6 @@ import * as XLSX from 'xlsx';
 
 export const ActionListaCaixaStatus = ({ dadosCaixaStatus }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size] = useState('small')
   const dataTableRef = useRef();
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -97,57 +96,57 @@ export const ActionListaCaixaStatus = ({ dadosCaixaStatus }) => {
     {
       field: 'contador',
       header: 'Nº',
-      body: row => row.contador,
+      body: row => <th>{row.contador}</th>,
       sortable: true,
     },
     {
       field: 'NOFANTASIA',
       header: 'Loja',
       body: row => {
-        return <p style={{ width: '150px' }}>{row.NOFANTASIA}</p>
+        return <p style={{ width: '170px', fontWeight: 600, margin: '0px' }}>{row.NOFANTASIA}</p>
       },
       sortable: true,
     },
     {
       field: 'DSCAIXAFECHAMENTO',
       header: 'Caixa',
-      body: row => row.DSCAIXAFECHAMENTO,
+      body: row => <th>{row.DSCAIXAFECHAMENTO}</th>,
       sortable: true,
     },
     {
       field: 'DTHORAABERTURACAIXA',
       header: 'Data Abertura',
-      body: row => row.DTHORAABERTURACAIXA,
+      body: row => <th>{row.DTHORAABERTURACAIXA}</th>,
       sortable: true,
     },
     {
       field: 'DTHORAFECHAMENTOCAIXA',
       header: 'Data Fechamento',
-      body: row => row.DTHORAFECHAMENTOCAIXA,
+      body: row => <th>{row.DTHORAFECHAMENTOCAIXA}</th>,
       sortable: true,
     },
     {
       field: 'OPERADORFECHAMENTO',
       header: 'Operador',
-      body: row =>{ return <p style={{ width: '150px' }}>{row.OPERADORFECHAMENTO}</p>},
+      body: row =>{ return <th style={{ width: '150px' }}>{row.OPERADORFECHAMENTO}</th>},
       sortable: true,
     },
     {
       field: 'STFECHADO',
       header: 'Status',
-      body: row => <p style={{ color: row.STFECHADO === 'True' ? 'red' : 'blue' }}>{row.STFECHADO === 'True' ? 'Fechado' : 'Aberto'}</p>,
+      body: row => <th style={{ color: row.STFECHADO === 'True' ? 'red' : 'blue' }}>{row.STFECHADO === 'True' ? 'Fechado' : 'Aberto'}</th>,
       sortable: true,
     },
     {
       field: 'STCONFERIDO',
       header: 'Conferido',
-      body: row => <p style={{ color: row.STCONFERIDO > 0 ? 'blue' : 'black' }}>{row.STCONFERIDO > 0 ? 'Conferido' : 'Sem Conferir'}</p>,
+      body: row => <th style={{ color: row.STCONFERIDO > 0 ? 'blue' : 'black' }}>{row.STCONFERIDO > 0 ? 'Conferido' : 'Sem Conferir'}</th>,
       sortable: true,
     },
     {
       field: 'totalQuebraCaixa',
       header: 'Valor Quebra',
-      body: row => <p style={{ color: row.totalQuebraCaixa >= 0 ? 'blue' : 'red' }}>{formatMoeda(row.totalQuebraCaixa) >= 0 ? formatMoeda(row.totalQuebraCaixa) : formatMoeda(row.totalQuebraCaixa)}</p>,
+      body: row => <th style={{ color: row.totalQuebraCaixa >= 0 ? 'blue' : 'red' }}>{formatMoeda(row.totalQuebraCaixa) >= 0 ? formatMoeda(row.totalQuebraCaixa) : formatMoeda(row.totalQuebraCaixa)}</th>,
       sortable: true,
     },
   ]
@@ -157,7 +156,7 @@ export const ActionListaCaixaStatus = ({ dadosCaixaStatus }) => {
     <Fragment>
 
 
-      <div className="panel">
+      <div className="panel" style={{ marginTop: "4rem"}}>
         <div className="panel-hdr">
           <h2>
             Lista de Caixas
@@ -177,11 +176,14 @@ export const ActionListaCaixaStatus = ({ dadosCaixaStatus }) => {
             title="Lista de Status Caixa"
             value={dadosListaCaixaStatus}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaCaixaStatus.length]}
+            rowsPerPageOptions={[10, 20, 50, 100, dadosListaCaixaStatus.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

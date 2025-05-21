@@ -47,6 +47,11 @@ export const ActionEditarStatusVoucherModal = ({ show, handleClose, dadosEditarV
     return response.data;
   }
 
+    useEffect(() => {
+      setStatusSelecionado(dadosEditarVoucher[0]?.voucher.STSTATUS)
+      setTrocaSelecionado(dadosEditarVoucher[0]?.voucher.STTIPOTROCA)
+    },[dadosEditarVoucher])
+
   const dados = dadosEditarVoucher.map((item) => {
     let funcaoFuncionario = usuarioLogado;
     let lojaLogada = usuarioLogado.loja;
@@ -65,6 +70,7 @@ export const ActionEditarStatusVoucherModal = ({ show, handleClose, dadosEditarV
       IDRESUMOVENDAWEBDESTINO: item.voucher.IDRESUMOVENDAWEBDESTINO,
       IDRESUMOVENDAWEB: item.voucher.IDRESUMOVENDAWEB,
       STTIPOTROCA: item.voucher.STTIPOTROCA,
+      VRVOUCHER: item.voucher.VRVOUCHER,
     }
   });
 
@@ -72,43 +78,43 @@ export const ActionEditarStatusVoucherModal = ({ show, handleClose, dadosEditarV
     {
       field: 'NUCODBARRAS',
       header: 'Código Barras',
-      body: row => row.NUCODBARRAS,
+      body: row => <th>{row.NUCODBARRAS}</th>,
       sortable: true,
     },
     {
       field: 'DSPRODUTO',
       header: 'Descrição',
-      body: row => row.DSPRODUTO,
+      body: row => <th>{row.DSPRODUTO}</th>,
       sortable: true,
     },
     {
       field: 'VRUNIT',
       header: 'Vr Unit',
-      body: row => formatMoeda(row.VRUNIT),
+      body: row => <th>{formatMoeda(row.VRUNIT)}</th>,
       sortable: true,
     },
     {
       field: 'QTD',
       header: 'QTD',
-      body: row => row.QTD,
+      body: row => <th>{row.QTD}</th>,
       sortable: true,
     },
     {
       field: 'VRTOTALBRUTO',
       header: 'Vr Bruto',
-      body: row => formatMoeda(row.VRTOTALBRUTO),
+      body: row => <th>{formatMoeda(row.VRTOTALBRUTO)}</th>,
       sortable: true,
     },
     {
       field: 'VRDESCONTO',
       header: 'Vr Desconto',
-      body: row => formatMoeda(row.VRDESCONTO),
+      body: row => <th>{formatMoeda(row.VRDESCONTO)}</th>,
       sortable: true,
     },
     {
       field: 'VRTOTALLIQUIDO',
       header: 'Vr Líquido',
-      body: row => formatMoeda(row.VRTOTALLIQUIDO),
+      body: row => <th>{formatMoeda(row.VRTOTALLIQUIDO)}</th>,
       sortable: true,
     },
   ]
@@ -165,25 +171,36 @@ export const ActionEditarStatusVoucherModal = ({ show, handleClose, dadosEditarV
   }
 
   const optionsTroca = [
-    { value: '0', label: 'CORTESIA' },
-    { value: '1', label: 'DEFEITO' },
+    { value: 'CORTESIA', label: 'CORTESIA', color: 'blue' },
+    { value: 'DEFEITO', label: 'DEFEITO', color: 'red' },
   ]
 
-  const optionsSatus = [
-    { value: '0', label: 'NOVO' },
-    { value: '1', label: 'EM ANALISE' },
-    { value: '2', label: 'LIBERADO PARA O CLIENTE' },
-    { value: '3', label: 'FINALIZADO' },
-    { value: '4', label: 'NEGADO' },
-    { value: '5', label: 'CANCELADO' },
+  const optionsStatus = [
+    { value: 'NOVO', label: 'NOVO', color: 'blue' },
+    { value: 'EM ANALISE', label: 'EM ANALISE', color: 'orange' },
+    { value: 'LIBERADO PARA O CLIENTE', label: 'LIBERADO PARA O CLIENTE', color: 'green' },
+    { value: 'FINALIZADO', label: 'FINALIZADO', color: 'red' },
+    { value: 'NEGADO', label: 'NEGADO', color: 'red' },
+    { value: 'CANCELADO', label: 'CANCELADO', color: 'red' },
   ]
+
+  const customStyles = {
+    option: (provided, state) => ({
+      ...provided,
+      color: state.data.color,
+    }),
+    singleValue: (provided, state) => ({
+      ...provided,
+      color: state.data.color,
+    }),
+  };
 
   return (
     <Fragment>
       <Modal
         show={show}
         onHide={handleClose}
-        size="lg"
+        size="xl"
         className="modal fade"
         tabIndex={-1}
         role="dialog"
@@ -202,16 +219,17 @@ export const ActionEditarStatusVoucherModal = ({ show, handleClose, dadosEditarV
 
               <div>
                 <div>
-                  <p>Cliente: {dadosEditarVoucher[0]?.DSNOMERAZAOSOCIAL} </p>
+                  <p>Cliente: {dadosEditarVoucher[0]?.voucher.DSNOMERAZAOSOCIAL} </p>
                 </div>
                 <div>
-                  <p>CPF/CNPJ: {dadosEditarVoucher[0]?.NUCPFCNPJ} </p>
+                  <p>CPF/CNPJ: {dadosEditarVoucher[0]?.voucher.NUCPFCNPJ} </p>
                 </div>
                 <div>
-                  <p>Voucher: {dadosEditarVoucher[0]?.NUVOUCHER} </p>
-                  <p>Valor Voucher: {formatMoeda(dadosEditarVoucher[0]?.VRVOUCHER)} </p>
-                  <p>Venda Origem: {dadosEditarVoucher[0]?.IDRESUMOVENDAWEB ? 'Não Disponível' : 'Não Disponível'} </p>
-                  <p>Motivo Troca: {dadosEditarVoucher[0]?.STCANCELADO == 'True' ? 'Motivo do Cancelamento/Negação' : dadosEditarVoucher[0]?.DSMOTIVOCANCELAMENTO ? '' : dadosEditarVoucher[0]?.MOTIVOTROCA ? '' : ''} </p>
+                
+                  <p>Voucher: {dadosEditarVoucher[0]?.voucher.NUVOUCHER} </p>
+                  <p>Valor Voucher: {formatMoeda(dados[0]?.VRVOUCHER)} </p>
+                  <p>Venda Origem: {dadosEditarVoucher[0]?.voucher.IDRESUMOVENDAWEB ? dadosEditarVoucher[0]?.voucher.IDRESUMOVENDAWEB : 'Não Disponível'} </p>
+                  <p>Motivo Troca: {dadosEditarVoucher[0]?.voucher.STCANCELADO == 'True' ? 'Motivo do Cancelamento/Negação' : dadosEditarVoucher[0]?.voucher.DSMOTIVOCANCELAMENTO ? '' : dadosEditarVoucher[0]?.voucher.MOTIVOTROCA ? '' : ''} </p>
 
                 </div>
                 <div className="row">
@@ -221,9 +239,11 @@ export const ActionEditarStatusVoucherModal = ({ show, handleClose, dadosEditarV
                     </label>
                 
                     <Select
-                      defaultValue={trocaSelecionado}
+                      value={optionsTroca.find(option => option.value === trocaSelecionado)}
                       options={optionsTroca}
                       onChange={handleChangeTroca}
+                      isDisabled={trocaSelecionado == 'FINALIZADO' && usuarioLogado?.DSFUNCAO !== 'TI' ? 'disabled' : ''}
+                      styles={customStyles}
                     />
                   </div>
 
@@ -234,17 +254,12 @@ export const ActionEditarStatusVoucherModal = ({ show, handleClose, dadosEditarV
                     <label>
                       Status do Voucher:
                     </label>
-                    {/* <AsyncSelect
-                        cacheOptions
-                        loadOptions={loadOptionsStatus}
-                        defaultOptions
-                        isSearchable
-                      /> */}
                     <Select
-                      defaultValue={statusSelecionado}
-                      options={optionsSatus}
+                      value={statusSelecionado}
+                      options={optionsStatus}
                       onChange={handleChangeStatus}
-                    />
+                      styles={customStyles}
+                   />
                   </div>
                 </div>
               </div>
@@ -254,7 +269,7 @@ export const ActionEditarStatusVoucherModal = ({ show, handleClose, dadosEditarV
             <div className="mt-2 panel">
               <div className="panel-hdr">
 
-                <h2 className="p-3">{`Produtos Venda de Origem:  ` ? dadosEditarVoucher[0]?.IDRESUMOVENDAWEB ? 'Produtos Venda de Origem: Não Disponível' : 'Produtos Venda de Origem: Não Disponível' : 'Produtos Venda de Origem: Não Disponível'}  </h2>
+                <h2 className="p-3">{`Produtos Venda de Origem:  ` ? dadosEditarVoucher[0]?.voucher.IDRESUMOVENDAWEB ? 'Produtos Venda de Origem: Não Disponível' : 'Produtos Venda de Origem: Não Disponível' : 'Produtos Venda de Origem: Não Disponível'}  </h2>
               </div>
               <div className="panel-container">
                 <div className="panel-content">
@@ -289,8 +304,8 @@ export const ActionEditarStatusVoucherModal = ({ show, handleClose, dadosEditarV
 
             <div className="mt-2 panel">
               <div className="panel-hdr">
-
-                <h2 className="p-3">{`Produtos Venda de Destino: ` ? dadosEditarVoucher[0]?.IDRESUMOVENDAWEB ? 'Produtos Venda de Destino: Não Disponível' : 'Produtos Venda de Destino: Não Disponível' : 'Produtos Venda de Destino: Não Disponível'} </h2>
+                    {console.log(dadosEditarVoucher[0])}
+                <h2 className="p-3">{`Produtos Venda de Destino: ` ? dadosEditarVoucher[0]?.voucher.IDRESUMOVENDAWEB ? 'Produtos Venda de Destino: Não Disponível' : 'Produtos Venda de Destino: Não Disponível' : 'Produtos Venda de Destino: Não Disponível'} </h2>
               </div>
               <div className="panel-container">
                 <div className="panel-content">

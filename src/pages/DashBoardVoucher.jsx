@@ -5,13 +5,16 @@ import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
+import { get } from "../api/funcRequest";
+import { useQuery } from "react-query";
 
-const ActionPesquisaCreateVoucher = lazy(() => import("..//componets/Vouchers/ActionCreateVoucher/actionPesquisaCreateVoucher").then(module => ({ default: module.ActionPesquisaCreateVoucher })));
+const ActionPesquisaCreateVoucher = lazy(() => import("../componets/Vouchers/ActionCreateVoucher/ActionPesquisaCreateVoucher").then(module => ({ default: module.ActionPesquisaCreateVoucher })));
 
-export const DashBoardVoucher = ({}) => {
+export const DashBoardVoucher = () => {
   const [actionVisivel, setActionVisivel] = useState(true);
   const [usuarioLogado, setUsuarioLogado] = useState(null);
-
+   const storedModule = localStorage.getItem('moduloselecionado');
+  const selectedModule = JSON.parse(storedModule);
   const [componentToShow, setComponentToShow] = useState("");
   const navigate = useNavigate();
 
@@ -37,8 +40,17 @@ export const DashBoardVoucher = ({}) => {
   useEffect(() => {
 
   }, [usuarioLogado]);
-
-
+ 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
+  
   let component = null;
 
   switch (componentToShow) {
@@ -64,7 +76,7 @@ export const DashBoardVoucher = ({}) => {
             handleShowComponent={handleShowComponent}
           />
           <div className="page-content-wrapper">
-            <HeaderMain />
+            <HeaderMain optionsModulos={optionsModulos}/>
 
             <main id="js-page-content" role="main" className="page-content">
               <div className="row">

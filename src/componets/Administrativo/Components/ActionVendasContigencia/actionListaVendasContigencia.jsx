@@ -19,8 +19,9 @@ import { Row } from "jspdf-autotable";
 import { ColumnGroup } from "primereact/columngroup";
 import { ActionVendaXMLModal } from "./actionVendaXMLModal";
 import { TbFileTypeXml } from "react-icons/tb";
+import { toFloat } from "../../../../utils/toFloat";
 
-export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia }) => {
+export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia, usuarioLogado, optionsModulos }) => {
   const [detalheVendaModal, setDetalheVendaModal] = useState(false);
   const [detalheVendaXMLModal, setDetalheVendaXMLModal] = useState(false);
   const [detalheRecebimentoModal, setDetalheRecebimentoModal] = useState(false);
@@ -30,8 +31,15 @@ export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia }) =
   const [dadosDetalheProduto, setDadosDetalheProduto] = useState([]);
   const [dadosDetalheRecebimentos, setDadosDetalheRecebimentos] = useState([]);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
   const dataTableRef = useRef();
+    
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  }  
+  
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -134,14 +142,25 @@ export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia }) =
     }
   });
 
-  const calcularTotal = (field) => {
+
+  const calcularTotalPagina = (field) => {
     return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
+  };
+
+  const calcularTotal = (field) => {
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dados.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + toFloat(item[field] || 0), 0);
   };
 
   const calcularTotalValor = () => {
     const totalDinheiro = calcularTotal('VRTOTALPAGO');
-    return `${formatMoeda(totalDinheiro)}`;
+    const totalVendas = calcularTotalPagina('VRTOTALPAGO' );
+    return `${formatMoeda(totalDinheiro)}   (${formatMoeda(totalVendas)} total)`;
   };
+
+  
 
   const colunasVendasAtiva = [
     {
@@ -256,6 +275,8 @@ export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia }) =
               Icon={FcCurrencyExchange}
               cor={"primary"}
               iconSize={20}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -265,6 +286,8 @@ export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia }) =
               Icon={FaProductHunt}
               cor={"info"}
               iconSize={20}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -274,6 +297,8 @@ export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia }) =
               Icon={MdOutlineAttachMoney}
               cor={"success"}
               iconSize={20}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -283,6 +308,8 @@ export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia }) =
               Icon={TbFileTypeXml}
               cor={"danger"}
               iconSize={20}
+              width="30px"
+              height="30px"
             />
           </div>
         </div>
@@ -368,7 +395,7 @@ export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia }) =
 
   return (
     <Fragment>
-      <div className="panel" style={{ marginTop: "5rem"}} >
+      <div className="panel"  >
         <div className="panel-hdr ">
           <h2>Vendas Contigência</h2>
         </div>
@@ -392,12 +419,17 @@ export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia }) =
                 title="Vendas Contigência"
                 value={dados}
                 globalFilter={globalFilterValue}
-                size={size}
+                size="small"
                 footerColumnGroup={footerGroup}
                 rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                filterDisplay="menu"
                 sortOrder={-1}
                 paginator={true}
-                rows={10}
+                first={first}
+                rows={rows}
+                onPage={onPageChange}
                 showGridlines
                 stripedRows
                 emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -438,6 +470,8 @@ export const ActionListaVendasContigencia = ({ dadosVendasAtivasContigencia }) =
         show={detalheRecebimentoModal}
         handleClose={() => setDetalheRecebimentoModal(false)}
         dadosDetalheRecebimentos={dadosDetalheRecebimentos}
+        usuarioLogado={usuarioLogado} 
+        optionsModulos={optionsModulos}
       />
 
       <ActionVendaXMLModal

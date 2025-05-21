@@ -22,10 +22,10 @@ export const ActionVisualizarImprimirPrestacaoContas = ({ show, handleClose, dad
 
     return (
       toFloat(item?.listagem.VRESTOQUEANTERIOR) +
-      toFloat(item?.entmerrec.VLRTOTALENTRADA) +
-      toFloat(item?.entsobmer.VLRTOTALSOBRA) +
-      toFloat(item?.entaltmer.VLRTOTALALTA) +
-      toFloat(item?.entvoucher.VLRTOTALVOUCHER)
+      toFloat(item?.entmerrec.VLRTOTALENTRADA) 
+      // toFloat(item?.entsobmer.VLRTOTALSOBRA) +
+      // toFloat(item?.entaltmer.VLRTOTALALTA) +
+      // toFloat(item?.entvoucher.VLRTOTALVOUCHER)
     )
   }
 
@@ -35,9 +35,9 @@ export const ActionVisualizarImprimirPrestacaoContas = ({ show, handleClose, dad
   
       toFloat(item?.saidevmer.VLRTOTALDEVOLUCAO) +
       toFloat(item?.saivenda.VLRDESCONTOCAIXA) +
-      toFloat(item?.saivenda.VLRVENDACAIXA) +
-      toFloat(item?.saifalmer.VLRTOTALFALTA) +
-      toFloat(item?.saibaimer.VLRTOTALBAIXA)
+      toFloat(item?.saivenda.VLRVENDACAIXA) 
+      // toFloat(item?.saifalmer.VLRTOTALFALTA) 
+      // toFloat(item?.saibaimer.VLRTOTALBAIXA)
     );
   }
 
@@ -46,7 +46,12 @@ export const ActionVisualizarImprimirPrestacaoContas = ({ show, handleClose, dad
     let VlrTotalGeralSaida = calculoTotalGeralSaida(item);
     let VlrTotalPrestarContas = calculoTotalGeralEntrada(item) - calculoTotalGeralSaida(item);
     let VlrTotalDiferenca = VlrTotalPrestarContas - item?.listagem.VRESTOQUEATUAL;
-    let TotalPercentualFalta = (parseFloat(VlrTotalDiferenca) / parseFloat(item?.saivenda.VLRVENDACAIXA)) * 100;
+    // let TotalPercentualFalta = (parseFloat(VlrTotalDiferenca) / parseFloat(item?.saivenda.VLRVENDACAIXA)) * 100;
+    if(parseFloat(item?.saivenda.VLRVENDACAIXA) == 0) {
+      var TotalPercentualFalta = 0
+    } else {
+      TotalPercentualFalta = (parseFloat(VlrTotalDiferenca) / parseFloat(item?.saivenda.VLRVENDACAIXA)) * 100;
+    }
 
     return {
       VRESTOQUEANTERIOR: item?.listagem.VRESTOQUEANTERIOR,
@@ -83,7 +88,7 @@ export const ActionVisualizarImprimirPrestacaoContas = ({ show, handleClose, dad
                     <div>
                       <p>Balanço Nº: <b>{dadosListaContasBalanco[0]?.listagem.IDRESUMOBALANCO} </b> </p>
                       <p> Loja: <b> {dadosListaContasBalanco[0]?.listagem.NOFANTASIA} </b> </p>
-                      <p>Período: <b>{toFloat(dadosListaContasBalanco[0]?.listagem.DTESTOQUEANTERIOR)} - {dadosListaContasBalanco[0]?.listagem.DTABERTURAFORMATADA} </b> </p>
+                      <p>Período: <b>{dadosListaContasBalanco[0]?.listagem.DTESTOQUEANTERIOR} - {dadosListaContasBalanco[0]?.listagem.DTABERTURAFORMATADA} </b> </p>
                     </div>
                   </div>
                 </header>
@@ -106,14 +111,14 @@ export const ActionVisualizarImprimirPrestacaoContas = ({ show, handleClose, dad
                     <th style={{ border: 'none' }}>Data</th>
                     <td style={{ border: 'none' }}>{dadosListaContasBalanco[0]?.listagem.DTESTOQUEANTERIOR} - {dadosListaContasBalanco[0]?.listagem.DTABERTURAFORMATADA}</td>
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <th>Sobra Mercadoria</th>
                     <td style={{ border: 'none' }}>
                       {formatMoeda(toFloat(dadosListaContasBalanco[0]?.entsobmer.VLRTOTALSOBRA))}
                     </td>
                     <th style={{ border: 'none' }}>Data</th>
                     <td style={{ border: 'none' }}>{dadosListaContasBalanco[0]?.listagem.DTESTOQUEANTERIOR} - {dadosListaContasBalanco[0]?.listagem.DTABERTURAFORMATADA}</td>
-                  </tr>
+                  </tr> */}
                   <tr>
                     <th>Alta de Mercadoria</th>
                     <td style={{ border: 'none' }}>
@@ -122,14 +127,14 @@ export const ActionVisualizarImprimirPrestacaoContas = ({ show, handleClose, dad
                     <th style={{ border: 'none' }}>Data</th>
                     <td style={{ border: 'none' }}>{dadosListaContasBalanco[0]?.listagem.DTESTOQUEANTERIOR} - {dadosListaContasBalanco[0]?.listagem.DTABERTURAFORMATADA}</td>
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <th>Voucher</th>
                     <td style={{ border: 'none' }}>
                       {formatMoeda(toFloat(dadosListaContasBalanco[0]?.entvoucher.VLRTOTALVOUCHER))}
                     </td>
                     <th style={{ border: 'none' }}>Data</th>
                     <td style={{ border: 'none' }}>{dadosListaContasBalanco[0]?.listagem.DTESTOQUEANTERIOR} - {dadosListaContasBalanco[0]?.listagem.DTABERTURAFORMATADA}</td>
-                  </tr>
+                  </tr> */}
                   <tr>
                     <th style={{ fontWeight: 800 }}>TOTAL GERAL ENTRADAS</th>
                     <th style={{ border: 'none' }}>{formatMoeda(dadosModalImprimir[0]?.VlrTotalGeralEntrada)}</th>
@@ -146,12 +151,12 @@ export const ActionVisualizarImprimirPrestacaoContas = ({ show, handleClose, dad
                     <th style={{ border: 'none' }}>Data</th>
                     <td style={{ border: 'none' }}>{dadosListaContasBalanco[0]?.listagem.DTESTOQUEANTERIOR} - {dadosListaContasBalanco[0]?.listagem.DTABERTURAFORMATADA}</td>
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <th style={{ border: 'none' }}>Falta de Mercadorias</th>
                     <td style={{ border: 'none' }}>{formatMoeda(toFloat(dadosListaContasBalanco[0]?.saifalmer.VLRTOTALFALTA))}</td>
                     <th style={{ border: 'none' }}>Data</th>
                     <td style={{ border: 'none' }}>{dadosListaContasBalanco[0]?.listagem.DTESTOQUEANTERIOR} - {dadosListaContasBalanco[0]?.listagem.DTABERTURAFORMATADA}</td>
-                  </tr>
+                  </tr> */}
                   <tr>
                     <th style={{ border: 'none' }}>Baixa de Mercadorias</th>
                     <td style={{ border: 'none' }}>{formatMoeda(toFloat(dadosListaContasBalanco[0]?.saibaimer.VLRTOTALBAIXA))}</td>
@@ -194,7 +199,7 @@ export const ActionVisualizarImprimirPrestacaoContas = ({ show, handleClose, dad
                   </tr>
                   <tr>
                     <th style={{ border: 'none' }}>Falta Percentual</th>
-                    <td style={{ border: 'none' }}>{formatarPorcentagem(dadosModalImprimir[0]?.TotalPercentualFalta)}</td>
+                    <td style={{ border: 'none' }}>{formatarPorcentagem(dadosModalImprimir[0]?.TotalPercentualFalta, 3)}</td>
                   </tr>
 
                 </table>

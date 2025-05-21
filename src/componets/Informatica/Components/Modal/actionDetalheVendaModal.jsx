@@ -24,18 +24,18 @@ export const ActionDetalheVendaModal = ({show, handleClose,dadosVendas}) => {
         >
 
           <HeaderModal
-            title={""}
-            subTitle={""}
+            title={"Detalhe da Venda"}
+            subTitle={"Relação de Produtos da Venda"}
             handleClose={handleClose}
           />
 
           <Modal.Body>
-          <header>
+          {/* <header>
             <h3><b> Venda Nº {dadosVendas[0]?.IDVENDA} </b></h3>
             <p>Operador: {dadosVendas[0]?.NOFUNCIONARIO}</p>
             <p>Cliente: Consumidor Final</p>
             <p>CPF: Não Informado</p>
-          </header>
+          </header> */}
             
 
             <div class="form-group">
@@ -78,7 +78,7 @@ export const ActionDetalheVendaModal = ({show, handleClose,dadosVendas}) => {
                     className="form-control input"
                     readOnly={true}
                     label="Data Abertura"
-                    value={dataFormatada(dadosVendas[0]?.DTHORAABERTURA) || ""}
+                    value={dadosVendas[0]?.DTHORAABERTURA}
                   />
                 </div>
                 <div class="col-sm-6 col-md-3 col-xl-3">
@@ -87,7 +87,7 @@ export const ActionDetalheVendaModal = ({show, handleClose,dadosVendas}) => {
                     className="form-control input"
                     readOnly={true}
                     label="Data Fechamento"
-                    value={dataFormatada(dadosVendas[0]?.DTHORAFECHAMENTO) || ""}
+                    value={dadosVendas[0]?.DTHORAFECHAMENTO}
                   />
                 </div>
                 <div class="col-sm-6 col-md-6 col-xl-6">

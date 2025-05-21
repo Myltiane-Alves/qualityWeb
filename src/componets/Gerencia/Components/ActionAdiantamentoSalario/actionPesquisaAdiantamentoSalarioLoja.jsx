@@ -8,35 +8,20 @@ import { ButtonType } from "../../../Buttons/ButtonType";
 import { AiOutlineSearch } from "react-icons/ai";
 import { getDataAtual } from "../../../../utils/dataAtual";
 import { get } from "../../../../api/funcRequest";
-import { ActionCadastrarAdiantamentoSalarial } from "./actionCadastrarAdiantamentoSalarial";
+import { ActionCadastrarAdiantamentoSalarial } from "./ActionCadastrarAdiantamentoSalarial/actionCadastrarAdiantamentoSalarial";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { InputSelectAction } from "../../../Inputs/InputSelectAction";
+import Swal from "sweetalert2";
 
-export const ActionPesquisaAdiantamentoSalarioLoja = () => {
+export const ActionPesquisaAdiantamentoSalarioLoja = ({usuarioLogado, ID, optionsEmpresas }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
   const [dataPesquisaFim, setDataPesquisaFim] = useState('')
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
-
-  const navigate = useNavigate();
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
 
   useEffect(() => {
     const dataInicial = getDataAtual();
@@ -44,14 +29,23 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
     setDataPesquisaInicio(dataInicial);
     setDataPesquisaFim(dataFinal);
 
-  }, [usuarioLogado]);
+  }, []);
 
+  const empresa = usuarioLogado && usuarioLogado.IDEMPRESA;
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const fetchAdiantamentos = async () => {
     try {
-      
-      const urlApi = `/adiantamento-funcionarios?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const idEmpresa = optionsModulos[0]?.ADMINISTRADOR  == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      const urlApi = `/adiantamento-funcionarios?idEmpresa=${idEmpresa}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -96,20 +90,39 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
   );
 
 
+
+
   const handleClick = () => {
+  
     setCurrentPage(prevPage => prevPage + 1);
-    refetchAdiantamentos(usuarioLogado.IDEMPRESA);
+    refetchAdiantamentos();
     setTabelaVisivel(true);
+    
   }
 
 
   const handleShowModal = () => {
-    setModalVisivel(true);
+    if(optionsModulos[0]?.CRIAR == 'True') {
+      setModalVisivel(true);
+    } else  {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Você não tem permissão para cadastrar!',
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 3000,
+      })
+      return;
+    }
   };
 
 
   const handleCloseModal = () => {
     setModalVisivel(false);
+
   };
 
 
@@ -122,14 +135,29 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
         linkComponent={["Adiantamento de Salário da Loja"]}
         title="Adiantamento de Salário da Loja"
         subTitle="Nome da Loja"
-        InputFieldDTInicioComponent={InputField}
-        valueInputFieldDTInicio={dataPesquisaInicio}
-        labelInputFieldDTInicio={"Data Início"}
-        onChangeInputFieldDTInicio={(e) => setDataPesquisaInicio(e.target.value)}
-        InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
+
+        InputSelectPendenciaComponent={InputSelectAction}
+        labelSelectPendencia="Selecione a Empresa"
+        optionsPendencia={[
+          { value: '', label: 'Todas' },
+          ...optionsEmpresas.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+          }))
+        ]}
+        onChangeSelectPendencia={(e) => setEmpresaSelecionada(e.value)}
+        valueSelectPendencia={empresaSelecionada}
+        isVisible={{display: optionsModulos[0]?.ADMINISTRADOR == false ? "none" : "block"}}
+
+        InputFieldDTInicioAComponent={InputField}
+        valueInputFieldDTInicioA={dataPesquisaInicio}
+        labelInputDTInicioA={"Data Início"}
+        onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
+        
+        InputFieldDTFimAComponent={InputField}
+        labelInputDTFimA={"Data Fim"}
+        valueInputFieldDTFimA={dataPesquisaFim}
+        onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
 
 
         ButtonSearchComponent={ButtonType}
@@ -147,14 +175,14 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
 
 
       {tabelaVisivel &&
-        <ActionListaAdiantamentoSalarioLoja 
-          dadosAdiantamentoFuncionarios={dadosAdiantamentoFuncionarios} 
-        />
+        <ActionListaAdiantamentoSalarioLoja dadosAdiantamentoFuncionarios={dadosAdiantamentoFuncionarios} />
       }
 
       <ActionCadastrarAdiantamentoSalarial 
         show={modalVisivel}
         handleClose={handleCloseModal}
+        usuarioLogado={usuarioLogado}
+        optionsModulos={optionsModulos}
 
       />
     </Fragment>

@@ -373,6 +373,13 @@
 					"url": "/gerencia/ActionPesquisaQuebraCaixa"
 				},
 				{
+					"id": 12,
+					"title": "Envio de Molotes",
+					"linkText": "Envio de Molotes",
+					"url": "/gerencia/ActionPesquisaConferenciaMalote"
+				},
+				
+				{
 					"id": 13,
 					"title": "Ordem de Transferência",
 					"linkText": "Ordem de Transferência",
@@ -757,49 +764,7 @@
 				}
 			]
 		},
-		{
-			"id": 8,
-			"nome": "Compras DM",
-			"url": "/DashBoardComprasDM",
-			"src": "./public/img/icons/compras.png",
-			"alt": "Imagem modulo compras dm",
-			"sideBar": [
-				{
-					"id": 1,
-					"title": "Home",
-					"linkText": "Home",
-					"action": "ActionComprasADMHome",
-					"url": "/comprasadm/ActionComprasADMHome"
-				},
-				{
-					"id": 2,
-					"title": "-- Rotinas --",
-					"linkText": "Rotinas",
-					"action": "#"
-				},
-				{
-					"id": 3,
-					"title": "Distribuição de Compras",
-					"linkText": "Distribuição de Compras",
-					"action": "ActionPesquisaDistribuicaoHistorico",
-					"url": "/comprasadm/ActionPesquisaDistribuicaoHistorico"
-				},
-				{
-					"id": 4,
-					"title": "Promoções",
-					"linkText": "Promoções",
-					"action": "ActionPesquisaPromocao",
-					"url": "/comprasadm/ActionPesquisaPromocao"
-				},
-				{
-					"id": 5,
-					"title": "Imagem de Produtos",
-					"linkText": "Imagem de Produtos",
-					"action": "ActionPesquisaProdutoImagem",
-					"url": "/comprasadm/ActionPesquisaProdutoImagem"
-				}
-			]
-		},
+		
 		{
 			"id": 9,
 			"nome": "Contabilidade",
@@ -842,19 +807,31 @@
 			"sideBar": [
 				{
 					"id": 1,
+					"title": "Home",
+					"linkText": "",
+					"action": ""
+				},
+				{
+					"id": 2,
+					"title": "-- Lançamentos --",
+					"linkText": "Lançamentos",
+					"action": "#"
+				},
+				{
+					"id": 3,
 					"title": "Ordem de Transferência",
 					"linkText": "Ordem de Transferência",
 					"action": "ActionPesquisaOT",
 					"url": "/expedicao/ActionPesquisaOT"
 				},
 				{
-					"id": 2,
+					"id": 4,
 					"title": "Status Divergência",
 					"linkText": "Status Divergência",
 					"url": "/expedicao/ExpedicaoActionStatusDivergencia"
 				},
 				{
-					"id": 3,
+					"id": 5,
 					"title": "Faturamento O.T.",
 					"linkText": "Faturamento O.T.",
 					"action": "ActionPesquisaFaturamentoOT",

@@ -17,9 +17,7 @@ import { useQuery } from 'react-query';
 
 export const ResumoDashBoardContabilidade = () => {
   const [resumoVisivel, setResumoVisivel] = useState(false);
-  const [resumoVendas, setResumoVendas] = useState([]);
   const [dataPesquisa, setDataPesquisa] = useState('');
-  const [clickContador, setClickContador] = useState(0);
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(1000)
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(true)

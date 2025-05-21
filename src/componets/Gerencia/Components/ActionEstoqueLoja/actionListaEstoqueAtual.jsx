@@ -13,7 +13,6 @@ import { formatarPorcentagem } from "../../../../utils/formatarPorcentagem";
 
 export const ActionListaEstoqueAtual = ({ dadosEstoqueAtual }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -184,11 +183,11 @@ export const ActionListaEstoqueAtual = ({ dadosEstoqueAtual }) => {
     <ColumnGroup>
 
       <Row>
-        <Column footer="Total " colSpan={4} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
-        <Column footer={calcularEstoque()} colSpan={1} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularTotalCusto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularTotalVenda())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={""} colSpan={3} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer="Total " colSpan={4} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem', textAlign: 'center' }} />
+        <Column footer={calcularEstoque()} colSpan={1} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={formatMoeda(calcularTotalCusto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={formatMoeda(calcularTotalVenda())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={""} colSpan={3} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
       </Row>
     </ColumnGroup>
   )
@@ -197,7 +196,7 @@ export const ActionListaEstoqueAtual = ({ dadosEstoqueAtual }) => {
   return (
 
     <Fragment>
-      <div className="panel">
+      <div className="panel" style={{ marginTop: "6rem" }}>
         <div className="panel-hdr">
           <h2>Estoque Atual</h2>
         </div>
@@ -217,12 +216,15 @@ export const ActionListaEstoqueAtual = ({ dadosEstoqueAtual }) => {
             title="Estoque Atual"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
@@ -236,9 +238,9 @@ export const ActionListaEstoqueAtual = ({ dadosEstoqueAtual }) => {
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
                 footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

@@ -12,7 +12,6 @@ import { ColumnGroup } from 'primereact/columngroup';
 
 export const ActionListaDespesasLoja = ({ dadosDespesasLoja }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -65,13 +64,10 @@ export const ActionListaDespesasLoja = ({ dadosDespesasLoja }) => {
     XLSX.writeFile(workbook, 'despesas_loja.xlsx');
   };
   
-  const calcularTotal = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.VRDESPESA), 0);
-  }
-
+  
   const dados = dadosDespesasLoja.map((item, index) => {
     let contador = index + 1;
-
+    
     return {
       contador,
       DTDESPESA: item.DTDESPESA,
@@ -82,11 +78,23 @@ export const ActionListaDespesasLoja = ({ dadosDespesasLoja }) => {
       DSHISTORIO: item.DSHISTORIO,
       NUNOTAFISCAL: item.NUNOTAFISCAL,
       STCANCELADO: item.STCANCELADO, 
-    
+      
     }
   });
+  
 
+    const calcularTotal = (field) => {
+      return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
+    };
+  
+  
+    const calcularTotalValor = () => {
+      const totalDinheiro = calcularTotal('VRDESPESA');
 
+      return `${formatMoeda(totalDinheiro)} `;
+    };
+  
+    
   const colunasDespesas = [
     {
       field: 'contador',
@@ -150,8 +158,8 @@ export const ActionListaDespesasLoja = ({ dadosDespesasLoja }) => {
     <ColumnGroup>
 
       <Row> 
-        <Column footer="Total Lançamentos" colSpan={3} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
-        <Column footer={formatMoeda(calcularTotal())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer="Total Lançamentos" colSpan={3} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem', textAlign: 'center' }} />
+        <Column footer={calcularTotalValor()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
         <Column footer={""} colSpan={4}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
       </Row>
     </ColumnGroup>
@@ -176,13 +184,16 @@ export const ActionListaDespesasLoja = ({ dadosDespesasLoja }) => {
           <DataTable
             title="Lista de Despesas da Loja"
             value={dados}
-            size={size}
+            size="small"
             footerColumnGroup={footerGroup}
             globalFilter={globalFilterValue}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
@@ -196,9 +207,9 @@ export const ActionListaDespesasLoja = ({ dadosDespesasLoja }) => {
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

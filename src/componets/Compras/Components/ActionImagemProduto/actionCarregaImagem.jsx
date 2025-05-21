@@ -2,9 +2,13 @@ import React, { useRef, useState } from 'react';
 import { Toast } from 'primereact/toast';
 import { FileUpload } from 'primereact/fileupload';
 import { ProgressBar } from 'primereact/progressbar';
-import { Button } from 'primereact/button';
 import { Tooltip } from 'primereact/tooltip';
 import { Tag } from 'primereact/tag';
+import { FaRegImages } from 'react-icons/fa';
+import { AiOutlineCloseCircle, AiOutlineCloudUpload } from 'react-icons/ai';
+import { IoMdCloseCircleOutline } from 'react-icons/io';
+import { ButtonType } from '../../../Buttons/ButtonType';
+import { Button } from 'primereact/button';
 
 export const ActionCarregaImagem = () => {
   const toast = useRef(null);
@@ -70,39 +74,65 @@ export const ActionCarregaImagem = () => {
             <small>{new Date().toLocaleDateString()}</small>
           </span>
         </div>
-        <Tag value={props.formatSize} severity="warning" className="px-3 py-2" />
-        <Button type="button" icon="pi pi-times" className="p-button-outlined p-button-rounded p-button-danger ml-auto" onClick={() => onTemplateRemove(file, props.onRemove)} />
+        <Tag value={props.formatSize} severity="warning" className="px-3 py-2" style={{ marginRight: '1rem'}} />
+        <Button 
+          type="button" 
+          icon={<AiOutlineCloseCircle size={25}/>} 
+          className="p-button-outlined p-button-rounded p-button-danger ml-auto" 
+          onClick={() => onTemplateRemove(file, props.onRemove)} 
+        />
       </div>
     );
   };
 
   const emptyTemplate = () => {
     return (
-      <div className="flex align-items-center flex-column">
-        <i className="pi pi-image mt-3 p-5" style={{ fontSize: '5em', borderRadius: '50%', backgroundColor: 'var(--surface-b)', color: 'var(--surface-d)' }}></i>
-        <span style={{ fontSize: '1.2em', color: 'var(--text-color-secondary)' }} className="my-5">
-          Drag and Drop Image Here
-        </span>
+      <div className="flex align-items-center flex-column" style={{ width: '100%', height: '100%', textAlign: 'center' }}>
+        <FaRegImages size={200} className="pi pi-image mt-3 p-5" style={{ fontSize: '5em', borderRadius: '50%', backgroundColor: '#f9fafb', color: '#e5e7eb' }}></FaRegImages>
+        <p style={{ fontSize: '1.2em', color: 'var(--text-color-secondary)' }} className="my-5">
+          Selecione os Produtos para a Imagem
+        </p>
       </div>
     );
   };
 
-  const chooseOptions = { icon: 'pi pi-fw pi-images', iconOnly: true, className: 'custom-choose-btn p-button-rounded p-button-outlined' };
-  const uploadOptions = { icon: 'pi pi-fw pi-cloud-upload', iconOnly: true, className: 'custom-upload-btn p-button-success p-button-rounded p-button-outlined' };
-  const cancelOptions = { icon: 'pi pi-fw pi-times', iconOnly: true, className: 'custom-cancel-btn p-button-danger p-button-rounded p-button-outlined' };
+  const chooseOptions = { icon:  <FaRegImages size={25} />,  label: 'Selecionar', className: 'custom-choose-btn p-button p-button-outlined',};
+  const uploadOptions = { icon: <AiOutlineCloudUpload size={25}/>, label: 'Enviar', className: 'custom-upload-btn p-button-success p-button-rounded p-button-outlined' };
+  const cancelOptions = { icon: <AiOutlineCloseCircle size={25}/>, className: 'custom-cancel-btn p-button-danger p-button-rounded p-button-outlined', label: 'Limpar', };
 
   return (
-    <div>
-      <Toast ref={toast}></Toast>
+    <div className="panel">
 
-      <Tooltip target=".custom-choose-btn" content="Choose" position="bottom" />
-      <Tooltip target=".custom-upload-btn" content="Upload" position="bottom" />
-      <Tooltip target=".custom-cancel-btn" content="Clear" position="bottom" />
+      <div style={{backgroundColor: 'panel-hdr', container: 'custom-swal',}}>
+        <Toast ref={toast}></Toast>
 
-      <FileUpload ref={fileUploadRef} name="demo[]" url="/api/upload" multiple accept="image/*" maxFileSize={1000000}
-        onUpload={onTemplateUpload} onSelect={onTemplateSelect} onError={onTemplateClear} onClear={onTemplateClear}
-        headerTemplate={headerTemplate} itemTemplate={itemTemplate} emptyTemplate={emptyTemplate}
-        chooseOptions={chooseOptions} uploadOptions={uploadOptions} cancelOptions={cancelOptions} />
+
+          <Tooltip target=".custom-choose-btn" content="Selecionar Imagem" position="top"  />
+          <Tooltip target=".custom-upload-btn" content="Enviar Imagens" position="top" />
+          <Tooltip target=".custom-cancel-btn" content="Limpar" position="right" />
+
+        <FileUpload 
+            ref={fileUploadRef} 
+            name="demo[]" 
+            url="/api/upload" 
+            multiple 
+            accept="image/*" 
+            maxFileSize={1000000}
+            onUpload={onTemplateUpload} 
+            onSelect={onTemplateSelect} 
+            onError={onTemplateClear} 
+            onClear={onTemplateClear}
+            headerTemplate={headerTemplate} 
+            itemTemplate={itemTemplate} 
+            emptyTemplate={emptyTemplate}
+            chooseOptions={chooseOptions} 
+            uploadOptions={uploadOptions} 
+            cancelOptions={cancelOptions} 
+          
+          />
+      </div>
     </div>
+
+
   )
 }

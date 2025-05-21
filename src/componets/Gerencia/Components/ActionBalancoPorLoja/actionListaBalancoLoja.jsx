@@ -17,21 +17,19 @@ import { useReactToPrint } from "react-to-print";
 import { ActionColetorBalancoModal } from "./actionColetorBalancoModal";
 import { ActionPreviaBalancoModal } from "./actionPreviaBalancoModal";
 import { ActionVisualizarImprimirPrestacaoContas } from "./actionVisualizarImprimirPrestacaoContas";
-import { useQuery } from "react-query";
+import Swal from "sweetalert2";
 
 
 
-export const ActionListaBalanco = ({dadosListaBalanco}) => {
+
+export const ActionListaBalanco = ({dadosListaBalanco, usuarioLogado, optionsModulos, empresaUsada}) => {
   const [modalPreviaBalanco, setModalPreviaBalanco] = useState(false)
   const [dadosPreviaBalancoModal, setDadosPreviaBalancoModal] = useState([])
   const [modalResumoBalanco, setModalResumoBalanco] = useState(false)
   const [dadosResumoBalancoModal, setDadosResumoBalancoModal] = useState([])
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [modalImprimirVisivel, setModalImprimirVisivel] = useState(false);
   const [dadosListaContasBalanco, setDadosListaContasBalanco] = useState([]);
-  const [size, setSize] = useState('small');
-  const navigate = useNavigate();
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -84,25 +82,6 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
   };
 
 
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-  
-  }, [usuarioLogado]);
-
   const dados = dadosListaBalanco.map((item, index) => {
 
    
@@ -116,8 +95,6 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
       DIFERENCA: item.QTDTOTALCONTAGEM - item.QTDTOTALANTERIOR,
       STCONCLUIDO: item.STCONCLUIDO,
       IDEMPRESA: item.IDEMPRESA,
-    
-   
     }
   });
 
@@ -186,7 +163,9 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
               titleButton={"Prévia Balanço Diferença"}
               cor={"primary"}
               Icon={FaBalanceScaleLeft}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickPreviaBalancoDiferenca(row)}
             />
           </div>
@@ -195,7 +174,9 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
               titleButton={"Detalhar Balanço"}
               cor={"success"}
               Icon={GrFormView}
-              iconSize={18}
+              iconSize={30}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickResumoBalanco(row)}
             />
           </div>
@@ -204,7 +185,9 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
               titleButton={"Prévia Balanço"}
               cor={"warning"}
               Icon={FaScaleUnbalanced}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickPreviaBalanco(row)}
             />
           </div>
@@ -213,7 +196,9 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
               titleButton={"Prestação de Contas"}
               cor={"danger"}
               Icon={FcCurrencyExchange}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickContaBalanco(row)}
             />
           </div>
@@ -223,7 +208,9 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
               titleButton={"Prévia Balanço Geral"}
               cor={"info"}
               Icon={FaBalanceScale}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickPreviaBalancoGeral(row)}
             />
           </div>
@@ -237,68 +224,101 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
   ]
 
   const handleEditPreviaBalancoGeral = async (IDRESUMOBALANCO) => {
-    if(usuarioLogado && usuarioLogado.IDEMPRESA) {
-      try {
-        const response = await get(`/novoPreviaBalanco?idResumo=${IDRESUMOBALANCO}&idEmpresa=${usuarioLogado.IDEMPRESA}&diferenca=0&processa=0`)
-        if (response.data) {
-          setDadosPreviaBalancoModal(response.data)
-        }
-      } catch (error) {
-        console.log(error, "não foi possivel pegar os dados da tabela ")
+    try {
+      const response = await get(`/novoPreviaBalanco?idResumo=${IDRESUMOBALANCO}&idEmpresa=${empresaUsada}&diferenca=0&processa=0`)
+      if (response.data) {
+        setDadosPreviaBalancoModal(response.data)
       }
+    } catch (error) {
+      console.log(error, "não foi possivel pegar os dados da tabela ")
     }
-
   }
 
   const handleClickPreviaBalancoGeral = async (row) => {
-    if (row.IDRESUMOBALANCO) {
-      setModalPreviaBalanco(true)
-      handleEditPreviaBalancoGeral(row.IDRESUMOBALANCO)
-    }
+    if(optionsModulos[0]?.ALTERAR ==  'True') {
+      if (row.IDRESUMOBALANCO) {
+        setModalPreviaBalanco(true)
+        handleEditPreviaBalancoGeral(row.IDRESUMOBALANCO)
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de conferência do caixa.',
+        confirmButtonColor: '#7352A5',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    }  
   }
 
-  const handleEditPreviaBalanco = async (IDRESUMOBALANCO) => {
-    if(usuarioLogado && usuarioLogado.IDEMPRESA) {
-      try {
-        const response = await get(`/novoPreviaBalanco?idResumo=${IDRESUMOBALANCO}&idEmpresa=${usuarioLogado.IDEMPRESA}&diferenca=1&processa=0`)
-        if (response.data) {
-          setDadosPreviaBalancoModal(response.data)
-        }
-      } catch (error) {
-        console.log(error, "não foi possivel pegar os dados da tabela ")
+  const handleEditPreviaBalanco = async (IDRESUMOBALANCO) => {  
+    try {
+      const response = await get(`/novoPreviaBalanco?idResumo=${IDRESUMOBALANCO}&idEmpresa=${empresaUsada}&diferenca=1&processa=0`)
+      if (response.data) {
+        setDadosPreviaBalancoModal(response.data)
       }
+    } catch (error) {
+      console.log(error, "não foi possivel pegar os dados da tabela ")
     }
-
   }
   
   const handleClickPreviaBalanco = async (row) => {
-    if (row.IDRESUMOBALANCO) {
-      setModalPreviaBalanco(true)
-      handleEditPreviaBalanco(row.IDRESUMOBALANCO)
-    }
+    if(optionsModulos[0]?.ALTERAR ==  'True') {
+      if (row.IDRESUMOBALANCO) {
+        setModalPreviaBalanco(true)
+        handleEditPreviaBalanco(row.IDRESUMOBALANCO)
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de conferência do caixa.',
+        confirmButtonColor: '#7352A5',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    }  
   }
 
   const handleEditPreviaBalancoDiferenca = async (IDRESUMOBALANCO) => {
-    if(usuarioLogado && usuarioLogado.IDEMPRESA) {
-      try {
-        const response = await get(`/novoPreviaBalanco?idResumo=${IDRESUMOBALANCO}&idEmpresa=${usuarioLogado.IDEMPRESA}&diferenca=1&processa=0`)
-        if (response.data) {
-          setDadosPreviaBalancoModal(response.data)
-        }
-      } catch (error) {
-        console.log(error, "não foi possivel pegar os dados da tabela ")
+   
+    try {
+      const response = await get(`/novoPreviaBalanco?idResumo=${IDRESUMOBALANCO}&idEmpresa=${empresaUsada}&diferenca=1&processa=0`)
+      if (response.data) {
+        setDadosPreviaBalancoModal(response.data)
       }
+    } catch (error) {
+      console.log(error, "não foi possivel pegar os dados da tabela ")
     }
+    
 
   }
   
 
 
   const handleClickPreviaBalancoDiferenca = async (row) => {
-    if (row.IDRESUMOBALANCO) {
-      setModalPreviaBalanco(true)
-      handleEditPreviaBalancoDiferenca(row.IDRESUMOBALANCO)
-    }
+    if(optionsModulos[0]?.ALTERAR ==  'True') {
+      if (row.IDRESUMOBALANCO) {
+        setModalPreviaBalanco(true)
+        handleEditPreviaBalancoDiferenca(row.IDRESUMOBALANCO)
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de conferência do caixa.',
+        confirmButtonColor: '#7352A5',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    }  
   }
 
   const handleEditResumoBalanco = async (IDRESUMOBALANCO) => {
@@ -318,10 +338,23 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
   }
 
   const handleClickResumoBalanco = async (row) => {
-    if (row.IDRESUMOBALANCO) {
-      setModalResumoBalanco(true)
-      handleEditResumoBalanco(row.IDRESUMOBALANCO)
-    }
+    if(optionsModulos[0]?.ALTERAR ==  'True') {
+      if (row.IDRESUMOBALANCO) {
+        setModalResumoBalanco(true)
+        handleEditResumoBalanco(row.IDRESUMOBALANCO)
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de conferência do caixa.',
+        confirmButtonColor: '#7352A5',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    }  
   }
 
   const handleEditContaBalanco = async (IDRESUMOBALANCO) => {
@@ -329,6 +362,7 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
       const response = await get(`/prestacao-contas-balanco?idResumoBalanco=${IDRESUMOBALANCO}`)
       if(response.data) {
         setDadosListaContasBalanco(response.data)
+        setModalImprimirVisivel(true)
       }
     } catch (error) {
       console.log(error, 'não foi possivel pegar os dados da tabela')
@@ -336,10 +370,22 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
   }
 
   const handleClickContaBalanco = (row) => {
-    if(row.IDRESUMOBALANCO) {
-      setModalImprimirVisivel(true)
-      handleEditContaBalanco(row.IDRESUMOBALANCO)
-    }
+    if(optionsModulos[0]?.ALTERAR ==  'True') {
+      if(row.IDRESUMOBALANCO) {
+        handleEditContaBalanco(row.IDRESUMOBALANCO)
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de conferência do caixa.',
+        confirmButtonColor: '#7352A5',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    }  
   }
 
   return (
@@ -364,11 +410,14 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
             title="Lista de Balanço"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -382,9 +431,9 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
                 footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}
@@ -397,20 +446,25 @@ export const ActionListaBalanco = ({dadosListaBalanco}) => {
         show={modalResumoBalanco}
         handleClose={() => setModalResumoBalanco(false)}
         dadosResumoBalancoModal={dadosResumoBalancoModal}
+        usuarioLogado={usuarioLogado}
+        optionsModulos={optionsModulos} 
       />
 
       <ActionPreviaBalancoModal 
         show={modalPreviaBalanco}
         handleClose={() => setModalPreviaBalanco(false)}
         dadosPreviaBalancoModal={dadosPreviaBalancoModal}
+        usuarioLogado={usuarioLogado}
+        optionsModulos={optionsModulos} 
       />
 
       <ActionVisualizarImprimirPrestacaoContas
         show={modalImprimirVisivel}
         handleClose={() => setModalImprimirVisivel(false)}
         dadosListaContasBalanco={dadosListaContasBalanco}
+        usuarioLogado={usuarioLogado}
+        optionsModulos={optionsModulos} 
       />
     </Fragment>
   )
 }
-

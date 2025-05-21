@@ -27,7 +27,7 @@ export const ActionMain = ({
   corHeader,
 
   readOnlyDescricao,
-
+  readOnlyPendencia,
   valueSelectEmpresa,
   valueSelectMarca,
   valueSelectUF,
@@ -44,7 +44,8 @@ export const ActionMain = ({
   valueSelectSituacao,
   valueSelectCampanha,
   valueSelectTipoPedido,
-
+  valueSelectPendencia,
+  
   defaultOptionsEmpresasAsync,
   defaultOptionsMarcaAsync,
   defaultOptionsFornecedoresAsync,
@@ -156,7 +157,7 @@ export const ActionMain = ({
   onChangeSelectCampanha,
   onChangeSelectTipoPedido,
   onChangeSelectGrade,
-
+  onChangeSelectPendencia,
   
   onChangeSelectEmpresaAsync,
   onChangeSelectMarcaAsync,
@@ -204,6 +205,7 @@ export const ActionMain = ({
   optionsSelectTransportadora,
   optionsSelectRotina,
   optionsFieldLojaOrigemComponent,
+  optionsPendencia,
   
   optionsEmpresasAsync,
   optionsMarcaAsync,
@@ -293,6 +295,7 @@ export const ActionMain = ({
 
   TextAreaFieldComponent,
 
+  onKeyDownInputField,
 
   // Inputs Selects
   InputSelectEmpresaComponent,
@@ -325,6 +328,10 @@ export const ActionMain = ({
   InputSelectTipoPedido,
   InputSelectTransportadora,
   InputSelectRotina,
+  InputSelectPendenciaComponent,
+
+ 
+
   
   // Selects Async
   InputSelectEmpresaComponentAync,
@@ -490,6 +497,7 @@ export const ActionMain = ({
   labelSelectNFE,
   labelSelectSituacao,
   labelSelectFuncionario,
+  labelSelectPendencia,
   // labelSelectFornecedor,
   // labelSelectFabricantes,
   labelSelectComprador,
@@ -501,7 +509,11 @@ export const ActionMain = ({
   id,
 
   isDisabledEmpresa,
-
+  isDisabledCodBarra,
+  
+  styleVendasEstrutura,
+  stylePendencia,
+  styleEmpresa,
   // Funções
 
   onButtonClickSearch,
@@ -601,7 +613,23 @@ export const ActionMain = ({
                       />
                     )}
                   </div>
+
                   <div className="row">
+                    
+                  </div>
+                  <div className="row">
+                  {InputSelectPendenciaComponent && (
+                      <InputSelectPendenciaComponent
+                        label={labelSelectPendencia}
+                        id={id}
+                        options={optionsPendencia}
+                        onChange={onChangeSelectPendencia}
+                        value={valueSelectPendencia}
+                        readOnly={readOnlyPendencia}
+                        isVisible={stylePendencia}
+                        type="select"
+                      />
+                    )}
                     {InputFieldDTInicioAComponent && (
                       <InputFieldDTInicioAComponent
                         label={labelInputDTInicioA}
@@ -886,6 +914,8 @@ export const ActionMain = ({
                         defaultValue={[valueSelectEmpresa]}
                         onChange={onChangeSelectEmpresa}
                         filtroOptions={optionsEmpresas}
+                        // isVisible={styleEmpresa}
+                       
                       />
                     )}
 
@@ -899,6 +929,7 @@ export const ActionMain = ({
                         onChange={onChangeSelectGrupo}
                       />
                     )}
+                    
                     {InputSelectSubGrupoComponent && (
                       <InputSelectSubGrupoComponent
                         label={labelSelectSubGrupo}
@@ -1131,7 +1162,8 @@ export const ActionMain = ({
                         id={id}
                         isMulti={true}
                         optionsMultSelect={optionsMultSelectEmpresa}
-                        defaultValue={valueMultSelectEmpresa}
+                        // value={valueMultSelectEmpresa}
+                        defaultValue={[valueMultSelectEmpresa]}
                         onChange={onChangeMultSelectEmpresa}
                         animatedComponents={animatedComponentsEmpresa}
                       />
@@ -1176,6 +1208,7 @@ export const ActionMain = ({
                         placeHolder={placeHolderInputFieldCodBarra}
                         value={valueInputFieldCodBarra}
                         onChange={onChangeInputFieldCodBarra}
+                        readOnly={isDisabledCodBarra}
                       />
                     )}
 
@@ -1187,6 +1220,7 @@ export const ActionMain = ({
                         placeHolder={placeHolderInputFieldComponent}
                         value={valueInputField}
                         onChange={onChangeInputField}
+                        onKeyDow={onKeyDownInputField}
                       />
                     )}
 
@@ -1698,6 +1732,7 @@ export const ActionMain = ({
                         Icon={iconVendasEstrutura}
                         iconColor="#fff"
                         iconSize={16}
+                        style={styleVendasEstrutura}
                       />
                     )}
                     {ButtonTypeVendasVendedor && (

@@ -10,7 +10,6 @@ import HeaderTable from "../../../Tables/headerTable";
 
 export const ActionListaVendasConciliacao = ({dadosVendasConciliacao}) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -74,7 +73,6 @@ export const ActionListaVendasConciliacao = ({dadosVendasConciliacao}) => {
 
   const dados = Array.isArray(dadosVendasConciliacao) ? dadosVendasConciliacao.map((item, index) => {
     let contador = index + 1;
-    console.log(item)
     return {
 
       IDEMPRESA: item.IDEMPRESA,
@@ -85,7 +83,7 @@ export const ActionListaVendasConciliacao = ({dadosVendasConciliacao}) => {
       VRTOTALDESCONTO: item.VRTOTALDESCONTO,
       VRPAGO: item.VRPAGO,
       DSTIPOPAGAMENTO: item.DSTIPOPAGAMENTO,
-      NSU: item.NSU,
+      NSU: item.NSU || "",
       NUAUTORIZACAO: item.NUAUTORIZACAO,
       DSADQUIRENTE: item.DSADQUIRENTE,
       contador
@@ -170,7 +168,7 @@ export const ActionListaVendasConciliacao = ({dadosVendasConciliacao}) => {
   return (
 
     <Fragment>
-      <div className="panel">
+      <div className="panel" >
         <div className="panel-hdr">
           <h2>Vendas Conciliação</h2>
         </div>
@@ -187,12 +185,15 @@ export const ActionListaVendasConciliacao = ({dadosVendasConciliacao}) => {
           <DataTable
             title="Vendas por Loja"
             value={dados}
-            size={size}
+            size="small"
             globalFilter={globalFilterValue}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

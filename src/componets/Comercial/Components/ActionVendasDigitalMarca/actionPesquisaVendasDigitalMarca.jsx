@@ -5,53 +5,76 @@ import { InputField } from "../../../Buttons/Input";
 import { ButtonType } from "../../../Buttons/ButtonType";
 import { getDataAtual } from "../../../../utils/dataAtual";
 import { ActionListaVendasDigitalMarca } from "./actionListaVendasDigitalMarca";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { get } from "../../../../api/funcRequest";
 
 
 export const ActionPesquisaVendasDigitalMarca = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [dadosVendasMarca, setDadosVendasMarca] = useState([])
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
   useEffect(() => {
     const dataInicial = getDataAtual()
     const dataFinal = getDataAtual()
     setDataPesquisaInicio(dataInicial)
     setDataPesquisaFim(dataFinal)
-    if (dataPesquisaInicio && dataPesquisaFim) {
-      getListaVendasMarca()
 
-    }
-  }, [dataPesquisaInicio, dataPesquisaFim])
+  }, [])
 
-
-  const getListaVendasMarca = async () => {
-
+  const fetchListaVendasMarca = async () => {
     try {
-      const response = await get(`vendasDigitalResumidaMarca?page=1&dataPesqInicio=${dataPesquisaInicio}&dataPesqFim=${dataPesquisaFim}`)
-      if (response.data) {
-        setDadosVendasMarca(response.data)
+
+      const urlApi = `/venda-digital-marca?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const response = await get(urlApi);
+
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
+        return response.data;
       }
-      return response.data
     } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela venda digital por marca")
+      console.error('Erro ao buscar dados:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
+  };
 
-  }
-
-
+  const { data: dadosVendasMarca = [], error: errorVendas, isLoading: isLoadingVendas, refetch: refetchListaVendasMarca } = useQuery(
+    ['venda-digital-marca', dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    () => fetchListaVendasMarca(dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+    { enabled: Boolean(dataPesquisaInicio && dataPesquisaFim), staleTime: 5 * 60 * 1000 }
+  );
 
   const handleClick = () => {
-    
-    setClickContador(prevContador => prevContador + 1);
-    
-    if (clickContador % 2 === 0) {
-      getListaVendasMarca()
-      setTabelaVisivel(true)
-    } 
-
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchListaVendasMarca()
+    setTabelaVisivel(true)
   }
 
   return (
@@ -81,7 +104,7 @@ export const ActionPesquisaVendasDigitalMarca = () => {
 
       />
 
-    
+
       {tabelaVisivel && (
         <ActionListaVendasDigitalMarca dadosVendasMarca={dadosVendasMarca} />
       )}

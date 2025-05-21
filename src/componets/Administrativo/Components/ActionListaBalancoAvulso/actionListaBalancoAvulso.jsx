@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
@@ -9,13 +9,71 @@ import { post, put } from "../../../../api/funcRequest";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
-
-export const ActionListaBalancoAvulso = ({ dadosBalancoAvulso}) => {
+import HeaderTable from "../../../Tables/headerTable";
+import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
+import * as XLSX from 'xlsx';
+import 'jspdf-autotable';
+export const ActionListaBalancoAvulso = ({ dadosBalancoAvulso }) => {
   const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [ipUsuario, setIpUsuario] = useState('')
   const [quantidade, setQuantidade] = useState(0)
 
-  const navigate = useNavigate();
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+    const [first, setFirst] = useState(0);
+    const [rows, setRows] = useState(10);
+    const navigate = useNavigate();
+    const dataTableRef = useRef();
+  
+    const onPageChange = (event) => {
+      setFirst(event.first);
+      setRows(event.rows);
+    }
+  
+    const onGlobalFilterChange = (e) => {
+      setGlobalFilterValue(e.target.value);
+    };
+  
+    const handlePrint = useReactToPrint({
+      content: () => dataTableRef.current,
+      documentTitle: 'Produtos Balanço',
+    });
+  
+    const exportToPDF = () => {
+      const doc = new jsPDF();
+      doc.autoTable({
+        head: [['Produto', 'Cod. Barra', 'Descrição', 'R$ Custo', 'R$ Venda', 'Qtd']],
+        body: dados.map(item => [
+          item.IDPRODUTO,
+          item.NUCODBARRAS,
+          item.DSNOME,
+          formatMoeda(item.PRECOCUSTO),
+          formatMoeda(item.PRECOVENDA),
+          item.TOTALCONTAGEMGERAL,
+  
+        ]),
+        horizontalPageBreak: true,
+        horizontalPageBreakBehaviour: 'immediately'
+      });
+      doc.save('lista_produtos_balanco.pdf');
+    };
+  
+    const exportToExcel = () => {
+      const worksheet = XLSX.utils.json_to_sheet(dados);
+      const workbook = XLSX.utils.book_new();
+      const header = ['Produto',  'Cod. Barra', 'Descrição', 'R$ Custo', 'R$ Venda', 'Qtd'];
+      worksheet['!cols'] = [
+        { wpx: 100, caption: 'Produto' },
+        { wpx: 100, caption: 'Cod. Barras'},
+        { wpx: 250, caption: 'Descrição'},
+        { wpx: 100, caption: 'R$ Venda'},
+        { wpx: 100, caption: 'R$ Custo'},
+        { wpx: 100, caption: 'Qtd'}
+      ];
+      XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Produtos Balanço');
+      XLSX.writeFile(workbook, 'lista_produtos_balanco.xlsx');
+    };
 
   useEffect(() => {
     const usuarioArmazenado = localStorage.getItem('usuario');
@@ -38,15 +96,15 @@ export const ActionListaBalancoAvulso = ({ dadosBalancoAvulso}) => {
 
   const getIPUsuario = async () => {
     const response = await axios.get('http://ipwho.is/')
-    if(response.data) {
+    if (response.data) {
       setIpUsuario(response.data.ip);
     }
     return response.data;
   }
-  
+
   const calcularTotalCusto = () => {
     let total = 0;
-    for(let dados of dadosBalancoAvulso) {
+    for (let dados of dadosBalancoAvulso) {
       total += parseFloat(dados.PRECOCUSTO);
     }
     return total;
@@ -54,7 +112,7 @@ export const ActionListaBalancoAvulso = ({ dadosBalancoAvulso}) => {
 
   const calcularTotalVenda = () => {
     let total = 0;
-    for(let dados of dadosBalancoAvulso) {
+    for (let dados of dadosBalancoAvulso) {
       total += parseFloat(dados.PRECOVENDA);
     }
     return total;
@@ -62,7 +120,7 @@ export const ActionListaBalancoAvulso = ({ dadosBalancoAvulso}) => {
 
   const calcularTotalQtd = () => {
     let total = 0;
-    for(let dados of dadosBalancoAvulso) {
+    for (let dados of dadosBalancoAvulso) {
       total += parseFloat(dados.TOTALCONTAGEMGERAL);
     }
     return total;
@@ -134,7 +192,7 @@ export const ActionListaBalancoAvulso = ({ dadosBalancoAvulso}) => {
             style={{ justifyContent: "space-between" }}
           >
             <div>
-              <ButtonTable 
+              <ButtonTable
                 titleButton={"Diminuir Quantidade"}
                 Icon={FaMinus}
                 cor={"dark"}
@@ -153,7 +211,7 @@ export const ActionListaBalancoAvulso = ({ dadosBalancoAvulso}) => {
                 iconSize={18}
                 onClickButton={() => {
                   onSubmit(row.IDPRODUTO, 0);
-          
+
                 }}
               />
             </div>
@@ -163,7 +221,7 @@ export const ActionListaBalancoAvulso = ({ dadosBalancoAvulso}) => {
       },
     },
   ]
-  
+
   const onSubmit = async (idProduto, quantidadeAlterada) => {
     const produto = dadosBalancoAvulso.find(item => item.IDPRODUTO === idProduto);
 
@@ -179,35 +237,35 @@ export const ActionListaBalancoAvulso = ({ dadosBalancoAvulso}) => {
       "DSCOLETOR": usuarioLogado.nome,
       "IDPRODUTO": produto.IDPRODUTO,
       "TOTALCONTAGEMGERAL": novaQuantidade,
-      
+
     }
 
     try {
       const response = await put('/detalhe-balanco-avulso/:id', putData)
-  
+
       const textDados = JSON.stringify(putData)
       let textoFuncao = 'ADMINISTRATIVO/ALTERANDO QUANTIDADE DE PRODUTO NO BALANÇO AVULSO';
-  
-  
+
+
       const postData = {
         IDFUNCIONARIO: usuarioLogado.id,
         PATHFUNCAO: textoFuncao,
         DADOS: textDados,
         IP: ipUsuario
       }
-  
+
       const responsePost = await post('/log-web', postData)
-  
+
       Swal.fire({
         title: 'Atualização',
         text: 'Quantidade do produto atualizada com sucesso',
         icon: 'success'
       })
-      
-      
-      
+
+
+
       return responsePost.data;
-      
+
     } catch (error) {
       Swal.fire({
         title: 'Atualização',
@@ -216,43 +274,62 @@ export const ActionListaBalancoAvulso = ({ dadosBalancoAvulso}) => {
       })
 
     }
-    
+
   }
 
 
   return (
 
     <Fragment>
+      <div className="panel">
+        <div className="panel-hdr">
+          <h2> Lista de Produtos Balanço</h2>
+        </div>
 
-      <div className="card">
-        <DataTable
-          title="Vendas por Loja"
-          value={dados}
-          sortField="VRTOTALPAGO"
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-        >
-          {colunasVendas.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
+        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <HeaderTable
+            globalFilterValue={globalFilterValue}
+            onGlobalFilterChange={onGlobalFilterChange}
+            handlePrint={handlePrint}
+            exportToExcel={exportToExcel}
+            exportToPDF={exportToPDF}
+          />
 
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
+        </div>
 
-            />
-          ))}
-        </DataTable>
+        <div className="card" ref={dataTableRef}>
+          <DataTable
+            title="Vendas por Loja"
+            value={dados}
+            sortField="VRTOTALPAGO"
+            sortOrder={-1}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+          >
+            {colunasVendas.map(coluna => (
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                header={coluna.header}
+
+                body={coluna.body}
+                footer={coluna.footer}
+                sortable={coluna.sortable}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
+
+              />
+            ))}
+          </DataTable>
+        </div>
       </div>
     </Fragment>
   )

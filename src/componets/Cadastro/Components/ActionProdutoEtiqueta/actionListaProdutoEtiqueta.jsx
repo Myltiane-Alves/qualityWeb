@@ -139,99 +139,104 @@ export const ActionListaProdutoEtiqueta = ({ dadosListaPrecosSap }) => {
   return (
 
     <Fragment>
+      <div className="panel" style={{ marginTop: "10rem" }}>
+        <div className="panel-hdr">
+          <h2>Lista de Produtos</h2>
+        </div>
 
-      <div className="card">
-        <DataTable
-          title="Vendas por Loja"
-          value={dados}
-          // header={header}
-          selectionMode={'single'}
-          sortField="VRTOTALPAGO"
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50, 100]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
-        >
+        <div className="card">
+          <DataTable
+            title="Vendas por Loja"
+            value={dados}
+            // header={header}
+            selectionMode={'single'}
+            sortField="VRTOTALPAGO"
+            sortOrder={-1}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[5, 10, 20, 50, 100]}
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
+          >
 
-          <Column
-            field="contador"
-            header="Nº"
-            headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-            footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-            bodyStyle={{ fontSize: '0.8rem' }}
-          />
-          <Column
-            selectionMode="single"
-            field="DSLOCALEXPOSICAO"
-            header="Opções"
-            headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem', width: '10rem' }}
-            footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-            bodyStyle={{ fontSize: '0.8rem' }}
-          />
-          <Column
+            <Column
+              field="contador"
+              header="Nº"
+              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              bodyStyle={{ fontSize: '0.8rem' }}
+            />
+            <Column
+              selectionMode="single"
+              field="DSLOCALEXPOSICAO"
+              header="Opções"
+              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem', width: '10rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              bodyStyle={{ fontSize: '0.8rem' }}
+            />
+            <Column
 
-            field="DSLOCALEXPOSICAO"
-            header="Quantidade"
-            body={bodyQuantidade}
-            headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-            footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-            bodyStyle={{ fontSize: '0.8rem' }}
-          />
-          <Column
+              field="DSLOCALEXPOSICAO"
+              header="Quantidade"
+              body={bodyQuantidade}
+              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              bodyStyle={{ fontSize: '0.8rem' }}
+            />
+            <Column
 
-            field="NUCODBARRAS"
-            header="Cod. Barras"
-            headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-            footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-            bodyStyle={{ fontSize: '0.8rem' }}
-          />
-          <Column
-            field="DSNOME"
-            header="Produto"
-            headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-            footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-            bodyStyle={{ fontSize: '0.8rem' }}
-          />
-          <Column
-            field="TAMANHO"
-            header="Tamanho"
-            headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-            footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-            bodyStyle={{ fontSize: '0.8rem' }}
-          />
-          <Column
-            field="PRECOVENDA"
-            header="PR. Venda"
-            headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-            footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-            bodyStyle={{ fontSize: '0.8rem' }}
-          />
-          <Column
-            field="DSLISTAPRECO"
-            header="Grupo"
-            headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-            footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-            bodyStyle={{ fontSize: '0.8rem' }}
-          />
-          <Column
-            field="DSESTILO"
-            header="Estilo"
-            headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-            footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-            bodyStyle={{ fontSize: '0.8rem' }}
-          />
-          <Column
-            field="MARCA"
-            header="Marca"
-            headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-            footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-            bodyStyle={{ fontSize: '0.8rem' }}
-          />
+              field="NUCODBARRAS"
+              header="Cod. Barras"
+              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              bodyStyle={{ fontSize: '0.8rem' }}
+            />
+            <Column
+              field="DSNOME"
+              header="Produto"
+              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              bodyStyle={{ fontSize: '0.8rem' }}
+            />
+            <Column
+              field="TAMANHO"
+              header="Tamanho"
+              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              bodyStyle={{ fontSize: '0.8rem' }}
+            />
+            <Column
+              field="PRECOVENDA"
+              header="PR. Venda"
+              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              bodyStyle={{ fontSize: '0.8rem' }}
+            />
+            <Column
+              field="DSLISTAPRECO"
+              header="Grupo"
+              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              bodyStyle={{ fontSize: '0.8rem' }}
+            />
+            <Column
+              field="DSESTILO"
+              header="Estilo"
+              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              bodyStyle={{ fontSize: '0.8rem' }}
+            />
+            <Column
+              field="MARCA"
+              header="Marca"
+              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+              bodyStyle={{ fontSize: '0.8rem' }}
+            />
 
-        </DataTable>
+          </DataTable>
+        </div>
       </div>
 
 

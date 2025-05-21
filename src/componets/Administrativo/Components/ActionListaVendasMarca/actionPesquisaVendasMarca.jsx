@@ -32,7 +32,7 @@ export const ActionPesquisaVendasMarca = () => {
   const fetchListaVendasMarca = async () => {
     try {
       
-      const urlApi = `vendas-marca-periodo?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/vendas-marca-periodo?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -71,7 +71,7 @@ export const ActionPesquisaVendasMarca = () => {
   };
    
   const { data: dadosVendasMarca = [], error: errorVendasMarca, isLoading: isLoadingVendasMarca, refetch: refetchListaVendasMarca } = useQuery(
-    ['listaVendasMarca',  marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    ['vendas-marca-periodo',  marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchListaVendasMarca(marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     {
       enabled: false, 
@@ -112,7 +112,7 @@ export const ActionPesquisaVendasMarca = () => {
         optionsMarcas={optionsMarcas.map((empresa) => ({
 
           value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.DSGRUPOEMPRESARIAL,
+          label: empresa.GRUPOEMPRESARIAL,
 
         }))}
         labelSelectMarcas={"Marcas"}
@@ -134,4 +134,3 @@ export const ActionPesquisaVendasMarca = () => {
     </Fragment>
   )
 }
-

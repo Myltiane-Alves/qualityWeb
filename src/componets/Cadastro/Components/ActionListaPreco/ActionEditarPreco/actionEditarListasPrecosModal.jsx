@@ -11,172 +11,17 @@ import { HeaderModal } from "../../../../Modais/HeaderModal/HeaderModal";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+import { useEditarListaPrecos } from "../../../hooks/useEditarListaPrecos";
+import { ActionEditarListasPrecos } from "./actionEditarListasPreco";
 
 
 export const ActionEditarListasPrecosModal = ({ show, handleClose, dadosListaLoja}) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
-  const [descricao, setDescricao] = useState('')
-  const [statusSelecionado, setStatusSelecionado] = useState([])
-  const [subGrupoSelecionado, setSubGrupoSelecionado] = useState("")
-  const [listaGrupoEstrutura, setListaGrupoEstrutura] = useState([])
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [ipUsuario, setIpUsuario] = useState('');
-  const [dadosEmpresas, setDadosEmpresas] = useState([])
-  const [rowClick, setRowClick] = useState(true);
-  const [empresaSelecionada, setEmpresaSelecionada] = useState(null);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    getListaGrupoEstrutura()
-    getListaEmpresas()
-  }, [])
-
-  const getListaEmpresas = async () => {
-    try {
-      const response = await get(`/empresas`)
-      if (response.data) {
-        setDadosEmpresas(response.data)
-      }
-    } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
-    }
-  }
-
-  const getListaGrupoEstrutura = async () => {
-    try {
-      const response = await get(`/grupoEstrutura`)
-      if (response.data) {
-        setListaGrupoEstrutura(response.data)
-      }
-    } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
-    }
-  }
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    getIPUsuario();
-  }, [usuarioLogado]);
-
-  const getIPUsuario = async () => {
-    const response = await fetch('http://ipwho.is/')
-    if (response.data) {
-      setIpUsuario(response.data);
-    }
-    return response.data;
-  }
-
-  const onSubmit = async () => {
-    const postData = {
-
-      STATIVO: statusSelecionado,
-    }
-
-    const response = await put('/atualizarSubGrupoEstrutura', postData)
-      .then(response => {
-
-        // Limpar os campos do formulário
-
-
-        console.log(response, 'despesa cadastrada com sucesso front end!')
-      })
-
-
-    Swal.fire({
-      position: 'top-end',
-      icon: 'success',
-      title: 'Cadastrado com sucesso!',
-      showConfirmButton: false,
-      timer: 1500
-    })
-
-      .catch(error => {
-
-        Swal.fire({
-          position: 'top-end',
-          icon: 'error',
-          title: 'Ocorreu um erro ao enviar o formulário. Por favor, tente novamente.',
-          showConfirmButton: false,
-          timer: 1500
-        });
-        console.log(error)
-      })
-  }
-
-  const handleChangeStatus = (e) => {
-    setStatusSelecionado(e.value)
-  }
-
-  const dados = dadosEmpresas.map((item, index) => {
-    let contador = index + 1;
-    return {
-
-      IDEMPRESA: item.IDEMPRESA,
-      NOFANTASIA: item.NOFANTASIA,
-      STATIVO: item.STATIVO,
-      contador
-
-    }
-  })
-
-  const colunasEmpresas = [
-    {
-      field: 'contador',
-      header: 'Nº',
-      body: row => row.contador,
-      sortable: true,
-    },
-    {
-      field: 'IDEMPRESA',
-      header: 'ID Loja',
-      body: row => row.IDEMPRESA,
-      sortable: true,
-    },
-    {
-      field: 'NOFANTASIA',
-      header: 'Nome Loja',
-      body: row => {
-        return (
-          <p>{row.NOFANTASIA}</p>
-        )
-
-      },
-      sortable: true,
-    },
-    {
-      field: 'STATIVO',
-      header: 'Situação',
-      body: row => {
-        return (
-          <p style={{ color: row.STATIVO == 'True' ? 'blue' : 'red' }} >{row.STATIVO == 'True' ? 'ATIVA' : 'INATIVA'}</p>
-        )
-      },
-      sortable: true,
-    },
-    {
-      header: 'Selecione',
-      selectionMode: 'multiple',
-      selection: empresaSelecionada,
-      width: '10px',
-      sortable: true,
-    },
-
-  ]
+  const {
+    statusSelecionado,
+    setStatusSelecionado,
+    handleChangeStatus,
+  } = useEditarListaPrecos()
 
   const optionsStatus = [
     { value: 'True', label: 'ATIVO' },
@@ -197,7 +42,7 @@ export const ActionEditarListasPrecosModal = ({ show, handleClose, dadosListaLoj
 
         <HeaderModal
           title={"Edição de Lista de Preços"}
-          subTitle={`Lista de Lojas: ${dadosListaLoja[0]?.listaPreco.NOMELISTA}`}
+          // subTitle={`Lista de Lojas: ${dadosListaLoja[0]?.listaPreco.NOMELISTA}`}
           handleClose={handleClose}
         />
 
@@ -241,7 +86,7 @@ export const ActionEditarListasPrecosModal = ({ show, handleClose, dadosListaLoj
                     type={"text"}
 
                     id={"idListaPreco"}
-                    value={dadosListaLoja[0]?.listaPreco.IDRESUMOLISTAPRECO}
+                    // value={dadosListaLoja[0]?.listaPreco.IDRESUMOLISTAPRECO}
                     onChangeModal={""}
 
                     {...register("idListaPreco", { required: "Campo obrigatório Informe a Descrição do Grupo Estrutura Mercadológica", })}
@@ -254,7 +99,7 @@ export const ActionEditarListasPrecosModal = ({ show, handleClose, dadosListaLoj
                     type={"text"}
 
                     id={"nomeListaPreco"}
-                    value={dadosListaLoja[0]?.listaPreco.NOMELISTA}
+                    // value={dadosListaLoja[0]?.listaPreco.NOMELISTA}
                     onChangeModal={""}
 
                     {...register("nomeListaPreco", { required: "Campo obrigatório Informe a Descrição do Grupo Estrutura Mercadológica", })}
@@ -282,41 +127,7 @@ export const ActionEditarListasPrecosModal = ({ show, handleClose, dadosListaLoj
               </div>
             </div>
 
-            <div className="card">
-         
-              <DataTable
-                title="Vendas por Loja"
-                value={dados}
-                // header={header}
-                sortField="VRTOTALPAGO"
-                selectionMode={rowClick ? null : 'checkbox'}
-                selection={empresaSelecionada}
-                onSelectionChange={e => setEmpresaSelecionada(e.value)}
-                sortOrder={-1}
-                paginator={true}
-                rows={10}
-                rowsPerPageOptions={[5, 10, 20, 50, 100]}
-                showGridlines
-                stripedRows
-                emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
-              >
-                {colunasEmpresas.map(coluna => (
-                  <Column
-                    key={coluna.field}
-                    field={coluna.field}
-                    header={coluna.header}
-                    selectionMode={coluna.selectionMode}
-                    body={coluna.body}
-                    footer={coluna.footer}
-                    sortable={coluna.sortable}
-                    headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                    footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                    bodyStyle={{ fontSize: '0.8rem' }}
-
-                  />
-                ))}
-              </DataTable>
-            </div>
+            <ActionEditarListasPrecos  />
             <FooterModal
               ButtonTypeFechar={ButtonTypeModal}
               onClickButtonFechar={handleClose}

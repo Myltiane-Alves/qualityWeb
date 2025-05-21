@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react"
+import { Fragment, useState } from "react"
 import { InputFieldModal } from "../../../../Buttons/InputFieldModal";;
 import { ButtonType } from "../../../../Buttons/ButtonType";
 import { get } from "../../../../../api/funcRequest";
@@ -6,10 +6,10 @@ import { useQuery } from "react-query";
 import Select from 'react-select';
 import { usePagamento } from "../../../../../hooks/useAlteracaoPagamento";
 import { formatMoeda } from "../../../../../utils/formatMoeda";
-import { useNavigate } from "react-router-dom";
 
 
-export const FormularioAlteracaoPagamento = ({dadosDetalheRecebimentos, handleClose}) => {
+
+export const FormularioAlteracaoPagamento = ({dadosDetalheRecebimentos, handleClose,usuarioLogado, optionsModulos}) => {
   const {
     valorDistribuir,
     setValorDistribuir,
@@ -94,25 +94,9 @@ export const FormularioAlteracaoPagamento = ({dadosDetalheRecebimentos, handleCl
     incluirPos2,
     setIncluirPos2,
     cancelarVendaPagamento
-  } = usePagamento(dadosDetalheRecebimentos);
-
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
+  } = usePagamento({dadosDetalheRecebimentos,usuarioLogado, optionsModulos});
   const [alerta, setAlerta] = useState(false);
-  const navigate = useNavigate();
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
 
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
 
   const { data: optionsPagamentosTef = [], error: errorPagamentosTef, isLoading: isLoadingPagamentosTef, refetch } = useQuery(
     'pagamento-tef',

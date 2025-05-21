@@ -20,7 +20,7 @@ export const FormularioCadastrarEstilos = ({ }) => {
         cadastrarEstilo
     } = useEstilos()
 
-    console.log(subGrupoSelecionado, 'subGrupoSelecionado')
+  
     return (
         <Fragment>
             <form action="">

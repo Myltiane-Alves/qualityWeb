@@ -100,7 +100,18 @@ export const ActionCadastrarRelatorioBIModal = ({ show, handleClose }) => {
     
       
     } catch (error) {
-
+      let textoFuncao = 'INFORMATICA/ERRO AO CRIAR RELATORIO BI';
+  
+      const createData = {
+        IDFUNCIONARIO: usuarioLogado.id,
+        PATHFUNCAO: textoFuncao,
+        DADOS: 'Erro ao criar Relatório',
+        IP: ipUsuario,
+      };
+  
+      const responsePost = await post('/log-web', createData);
+  
+      handleClose()
       Swal.fire({
         position: 'top-end',
         icon: 'error',
@@ -111,6 +122,7 @@ export const ActionCadastrarRelatorioBIModal = ({ show, handleClose }) => {
         showConfirmButton: false,
         timer: 1500
       });
+      return responsePost.data;
     }
 
 

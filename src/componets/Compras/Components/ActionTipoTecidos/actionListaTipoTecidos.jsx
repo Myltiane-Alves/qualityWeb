@@ -1,23 +1,69 @@
-import { Fragment, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { CiEdit } from "react-icons/ci";
 import { get } from "../../../../api/funcRequest";
-import { ActionEditarTipoTecidosModal } from "./actionEditarTipoTecidosModal";
+import { ActionEditarTipoTecidosModal } from "./ActionEditarTecido/actionEditarTipoTecidosModal";
+import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import HeaderTable from "../../../Tables/headerTable";
 
 export const ActionListaTipoTecidos = ({ dadosTecidos }) => {
   const [modalEditar, setModalEditar] = useState(false);
   const [dadosDetalheTipoTecido, setDadosDetalheTipoTecido] = useState([]);
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const dataTableRef = useRef();
+    
+    
+  const onGlobalFilterChange = (e) => {
+    setGlobalFilterValue(e.target.value);
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => dataTableRef.current,
+    documentTitle: 'Tipos Tecidos',
+  });
+    
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Nº', 'Descrição', 'Situação']],
+      body: dados.map(item => [
+        item.contador,
+        item.DSTIPOTECIDO,
+        item.STATIVO == 'True' ? 'ATIVO' : 'INATIVO',
+      ]),
+      horizontalPageBreak: true,
+      horizontalPageBreakBehaviour: 'immediately'
+    });
+    doc.save('tipos_tecidos.pdf');
+  };
+    
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(dados);
+    const workbook = XLSX.utils.book_new();
+    const header = ['Nº', 'Descrição', 'Situação'];
+    worksheet['!cols'] = [
+      { wpx: 70, caption: 'Nº' },
+      { wpx: 100, caption: 'Descrição' },
+      { wpx: 100, caption: 'Situação' },
+    ];
+    XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Tipos Tecidos');
+    XLSX.writeFile(workbook, 'tipos_tecidos.xlsx');
+  };
   
   const dados = dadosTecidos.map((item, index) => {
     let contador = index + 1;
- 
+    // console.log(item.STATIVO, 'item')
     return {
-      IDTPTECIDO: item.IDTPTECIDO,
+      contador,
       DSTIPOTECIDO: item.DSTIPOTECIDO,
-      STATIVO: item.STATIVO,
-      contador
+      STATIVO: item.STATIVO == 'True' ? 'ATIVO' : 'INATIVO',
+      IDTPTECIDO: item.IDTPTECIDO,
     }
   })
 
@@ -25,13 +71,13 @@ export const ActionListaTipoTecidos = ({ dadosTecidos }) => {
     {
       field: 'contador',
       header: 'Nº',
-      body: row => row.contador,
+      body: row => <th>{row.contador}</th>,
       sortable: true,
     },
     {
       field: 'DSTIPOTECIDO',
       header: 'Descrição',
-      body: row => row.DSTIPOTECIDO,
+      body: row => <th>{row.DSTIPOTECIDO}</th>,
       sortable: true,
     },
     {
@@ -39,7 +85,7 @@ export const ActionListaTipoTecidos = ({ dadosTecidos }) => {
       header: 'Situação',
       body: row => {
         return (
-          <p style={{color: row.STATIVO == 'True' ? 'blue' : 'red'}} >{row.STATIVO == 'True' ? 'ATIVO' : 'INATIVO'}</p>
+          <th style={{color: row.STATIVO == 'ATIVO' ? 'blue' : 'red'}} >{row.STATIVO}</th>
         )
       },
       sortable: true,
@@ -75,7 +121,7 @@ export const ActionListaTipoTecidos = ({ dadosTecidos }) => {
 
   const handleEditar = async (IDTPTECIDO) => {
     try {
-      const response = await get(`/tipoTecidos?idTecido=${IDTPTECIDO}`);
+      const response = await get(`/tipo-tecido?idTipoTecido=${IDTPTECIDO}`);
       setDadosDetalheTipoTecido(response.data);
       setModalEditar(true)
     } catch (error) {
@@ -83,42 +129,55 @@ export const ActionListaTipoTecidos = ({ dadosTecidos }) => {
     }
   }
 
-  const handleModal = () => {
-    setModalEditar(true)
-  }
 
   return (
     <Fragment>
-      <div className="card">
-        <DataTable
-          title="Vendas por Loja"
-          value={dados}
-          // header={header}
-          sortField="VRTOTALPAGO"
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50, 100]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
-        >
-          {colunasGrupos.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
+       <div className="panel">
+        <div className="panel-hdr">
+          <h2>Lista Tipo de Tecidos</h2>
+        </div>
+        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <HeaderTable
+            globalFilterValue={globalFilterValue}
+            onGlobalFilterChange={onGlobalFilterChange}
+            handlePrint={handlePrint}
+            exportToExcel={exportToExcel}
+            exportToPDF={exportToPDF}
+          />
 
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
+        </div>
+        <div className="card"ref={dataTableRef}>
 
-            />
-          ))}
-        </DataTable>
+          <DataTable
+            title="Tipos de Tecidos"
+            value={dados}
+            size="small"
+            globalFilter={globalFilterValue}
+            sortOrder={-1}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[10, 50, 100, 500, dados.length]}
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
+          >
+            {colunasGrupos.map(coluna => (
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                header={coluna.header}
+
+                body={coluna.body}
+                footer={coluna.footer}
+                sortable={coluna.sortable}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '0.8rem' }}
+
+              />
+            ))}
+          </DataTable>
+        </div>
       </div>
 
       <ActionEditarTipoTecidosModal 

@@ -20,7 +20,6 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenioDescont
   const [modalPagamento, setModalPagamento] = useState(false);
   const [dadosPagamentoModal, setDadosPagamentoModal] = useState([]);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -110,7 +109,7 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenioDescont
     {
       field: 'IDCAIXAWEB',
       header: 'Caixa',
-      body: row => <th style={{color: 'blue'}}>{ row.IDCAIXAWEB}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, width: '100px', fontWeight: 600}}>{ row.IDCAIXAWEB}</p>,
       sortable: true
     },
     {
@@ -128,19 +127,19 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenioDescont
     {
       field: 'DTHORAFECHAMENTO',
       header: 'Abertura',
-      body: row => <th style={{color: 'blue'}}>{row.DTHORAFECHAMENTO}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, width: '150px', fontWeight: 600}}>{row.DTHORAFECHAMENTO}</p>,
       sortable: true
     },
     {
       field: 'NOFUNCIONARIO',
       header: 'Operador',
-      body: row => <th style={{color: 'blue'}}>{row.NOFUNCIONARIO}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, width: '200px', fontWeight: 600}}>{row.NOFUNCIONARIO}</p>,
       sortable: true
     },
     {
       field: 'NOCONVENIADO',
       header: 'Conveniado',
-      body: row => <th style={{color: 'blue'}}>{row.NOCONVENIADO}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, width: '300px', fontWeight: 600}}>{row.NOCONVENIADO}</p>,
       sortable: true
     },
     {
@@ -170,7 +169,7 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenioDescont
     {
       field: 'TXTMOTIVODESCONTO',
       header: 'OBS',
-      body: row => <th style={{color: 'blue'}}>{row.TXTMOTIVODESCONTO}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, width: '200px', fontWeight: 600}}>{row.TXTMOTIVODESCONTO}</p>,
       sortable: true
     },
     {
@@ -184,7 +183,9 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenioDescont
               titleButton={"Detalhar Recebimento"}
               onClickButton={() => handleClickDetalhar(row)}
               Icon={GrFormView}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               iconColor={"#fff"}
               cor={"success"}
             />
@@ -228,11 +229,11 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenioDescont
   const footerGroup = (
     <ColumnGroup>
       <Row>
-        <Column footer="Total Vendas Convenio Desconto" colSpan={8} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
-        <Column footer={formatMoeda(calcularTotalVrBruto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
-        <Column footer={formatMoeda(calcularTotalVrDesconto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
-        <Column footer={formatMoeda(calcularTotalVrLiq())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
-        <Column footer={""} colSpan={2} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+        <Column footer="Total Vendas Convenio Desconto" colSpan={8} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem', textAlign: 'center' }} />
+        <Column footer={formatMoeda(calcularTotalVrBruto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}/>
+        <Column footer={formatMoeda(calcularTotalVrDesconto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}/>
+        <Column footer={formatMoeda(calcularTotalVrLiq())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}/>
+        <Column footer={""} colSpan={2} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}/>
 
       </Row>
     </ColumnGroup>
@@ -241,7 +242,7 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenioDescont
   return (
 
     <Fragment>
-      <div className="panel">
+      <div className="panel" >
         <div className="panel-hdr">
           <h2>Vendas Convenio Desconto Funcionário</h2>
         </div>
@@ -260,12 +261,15 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenioDescont
             title="Vendas Convenio Desconto Funcionário"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -279,9 +283,9 @@ export const ActionListaVendasDescontoFuncionario = ({dadosVendasConvenioDescont
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
                 footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

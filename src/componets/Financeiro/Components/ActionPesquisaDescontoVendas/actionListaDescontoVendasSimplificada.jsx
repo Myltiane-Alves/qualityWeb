@@ -11,8 +11,14 @@ import * as XLSX from 'xlsx';
 
 export const ActionListaDescontoVendasSimplificada = ({ dadosDescontoVendasSimplificado }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size] = useState('small');
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
   const dataTableRef = useRef();
+
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  }  
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -222,7 +228,10 @@ export const ActionListaDescontoVendasSimplificada = ({ dadosDescontoVendasSimpl
   })
   
   const calcularTotal = (field) => {
-    return dadosDescontoVendasSimplificado.reduce((total, item) => total + parseFloat(item[field]), 0);
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dadosListaDetalhada.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + parseFloat(item[field]), 0);
   };
 
   const calcularTotalDinheiroPercentual = () => {
@@ -491,7 +500,7 @@ export const ActionListaDescontoVendasSimplificada = ({ dadosDescontoVendasSimpl
   return (
 
     <Fragment>
-      <div className="resultado">
+      <div className="panel">
         <div className="panel-hdr">
           <h2>
             Lista de Pesquisa Simplificada
@@ -511,10 +520,12 @@ export const ActionListaDescontoVendasSimplificada = ({ dadosDescontoVendasSimpl
             title="Lista Simplificada"
             value={dadosListaDetalhada}
             globalFilter={globalFilterValue}
-            size={size}
+            size={"small"}
             sortOrder={-1}
             paginator={true}
-            rows={10}
+            first={first}
+            rows={rows}
+            onPage={onPageChange}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaDetalhada.length]}
             showGridlines
             stripedRows

@@ -100,7 +100,7 @@ export const ActionListaDetalheVendas = ({ dadosDetalheRecebimentos }) => {
     XLSX.writeFile(workbook, 'relacao_pagamentos.xlsx');
   }
 
-  const dadosVendas = dadosDetalheRecebimentos.map((item) => {
+  const dadosVendas = dadosDetalheRecebimentos?.map((item) => {
 
     return {
       IDVENDA: item.venda?.IDVENDA,
@@ -121,7 +121,7 @@ export const ActionListaDetalheVendas = ({ dadosDetalheRecebimentos }) => {
     }
   });
 
-  const dadosPagamentos = dadosDetalheRecebimentos.flatMap((item) =>
+  const dadosPagamentos = dadosDetalheRecebimentos?.flatMap((item) =>
 
     item.vendaPagamento.map((pagamento) => ({
 

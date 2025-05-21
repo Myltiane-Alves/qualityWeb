@@ -3,14 +3,14 @@ import { get } from '../api/funcRequest';
 
 
 
-export const useFetchData = (key, url) => {
+export const useFetchData = (key, url, enabled) => {
   return useQuery(
     key,
     async () => {
       const response = await get(url);
       return response.data;
     },
-    {  staleTime: 5 * 60 * 1000 }
+    {  staleTime: 5 * 60 * 1000, enabled: enabled }
   );
 };
 

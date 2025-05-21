@@ -6,10 +6,10 @@ import { formatMoeda } from "../../../../utils/formatMoeda";
 import { ButtonSearch } from "../../../Buttons/ButtonSearch";
 
 
-export const ActionPDFPedidoResumido = ({ dadosPedidoResumido }) => {
+export const ActionPDFPedidoResumido = ({ dadosPedidos }) => {
 
 
-  const dadosListaPedidosResumidos = dadosPedidoResumido.map((item, index) => {
+  const dadosListaPedidosResumidos = dadosPedidos.map((item, index) => {
     let contador = index + 1;
     // console.log(contador.length, 'contador')
     return {

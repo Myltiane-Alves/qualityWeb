@@ -3,26 +3,25 @@ import { formatMoeda } from "../../../../utils/formatMoeda";
 import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionListaFaturas = ({ dadosExtratoLojaPeriodo, dados }) => {
-  const [dadosFaturas, setDadosFaturas] = useState([]);
 
-  useEffect(() => {
+
+
     let saldoAnterior = toFloat(dados[0]?.saldoAnteriorVendas);
 
-    const faturasCalculadas = dadosExtratoLojaPeriodo.flatMap((item) =>
-      item.totalFaturas.map((fatura) => {
-        const saldoAnteriorFaturas = saldoAnterior + toFloat(fatura.VRRECEBIDO);
+    const dadosFaturas = dadosExtratoLojaPeriodo.map((item) => {
+      
+        const saldoAnteriorFaturas = saldoAnterior + toFloat(item.totalFaturas[0]?.VRRECEBIDO);
         saldoAnterior = saldoAnteriorFaturas;
 
         return {
-          DTPROCESSAMENTOFORMATADA: fatura.DTPROCESSAMENTOFORMATADA,
-          VRRECEBIDO: toFloat(fatura.VRRECEBIDO),
+          DTPROCESSAMENTOFORMATADA: item.totalFaturas[0]?.DTPROCESSAMENTOFORMATADA,
+          VRRECEBIDO: toFloat(item.totalFaturas[0]?.VRRECEBIDO),
           saldoAnteriorFaturas: saldoAnteriorFaturas,
         };
-      })
-    );
+    
+  });
 
-    setDadosFaturas(faturasCalculadas);
-  }, [dadosExtratoLojaPeriodo, dados]);
+
 
   return (
     <Fragment>

@@ -5,13 +5,17 @@ import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
+import { useQuery } from "react-query";
+import { get } from "../api/funcRequest";
 const ActionPesquisaFaturamentoOT = lazy(() => import("../componets/Expedicao/Components/ActionFaturamentoOT/actionPesquisaFaturamentoOT").then(module => ({ default: module.ActionPesquisaFaturamentoOT })));
 const ActionPesquisaOT = lazy(() => import("../componets/Expedicao/Components/ActionExpedicaoOrdemTransferencia/ActionPesquisaOT").then(module => ({ default: module.ActionPesquisaOT })));
 
-export const DashBoardExpedicao = ({ }) => {
+export const DashBoardExpedicao = () => {
   const [actionVisivel, setActionVisivel] = useState(true);
   const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [componentToShow, setComponentToShow] = useState("");
+  const storedModule = localStorage.getItem('moduloselecionado');
+  const selectedModule = JSON.parse(storedModule);
   const navigate = useNavigate();
 
   function handleShowComponent(componentName) {
@@ -37,6 +41,15 @@ export const DashBoardExpedicao = ({ }) => {
   useEffect(() => {
   }, [usuarioLogado]);
 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
 
   let component = null;
 
@@ -62,7 +75,7 @@ export const DashBoardExpedicao = ({ }) => {
                 handleShowComponent={handleShowComponent}
               />
               <div className="page-content-wrapper">
-                <HeaderMain />
+                <HeaderMain optionsModulos={optionsModulos} />
 
                 <main id="js-page-content" role="main" className="page-content">
                   <div className="row">

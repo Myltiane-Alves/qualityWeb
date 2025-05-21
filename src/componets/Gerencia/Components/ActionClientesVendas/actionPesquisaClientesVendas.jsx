@@ -10,44 +10,36 @@ import { get } from "../../../../api/funcRequest";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
-export const ActionPesquisaClientesVendas = () => {
+export const ActionPesquisaClientesVendas = ({usuarioLogado, ID, optionsEmpresas }) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [cpfCliente, setCpfCliente] = useState('');
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
   
-  const navigate = useNavigate();
-
   useEffect(() => {
     const dataInicial = getDataAtual();
     const dataFinal = getDataAtual();
     setDataPesquisaInicio(dataInicial);
     setDataPesquisaFim(dataFinal);  
-    const usuarioArmazenado = localStorage.getItem('usuario');
+   
+  }, []);
 
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
-  useEffect(() => {
-  
-  }, [usuarioLogado]);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
 
   const fetchListaVendasClientes = async () => {
     try {
       
-      const urlApi = `/venda-ativa?&cpfCliente=${cpfCliente}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/venda-ativa?cpfCliente=${cpfCliente}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -136,7 +128,11 @@ export const ActionPesquisaClientesVendas = () => {
 
       />
       {tabelaVisivel && (
-        <ActionListaClientesVendas dadosClientes={dadosClientes}/>
+        <ActionListaClientesVendas 
+          dadosClientes={dadosClientes}
+          usuarioLogado={usuarioLogado}
+          optionsModulos={optionsModulos}  
+        />
       )}
 
     </Fragment>

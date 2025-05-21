@@ -12,15 +12,16 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import Swal from "sweetalert2";
+import axios from "axios";
 
 export const ActionListaCaixaZerado = ({ dadosCaixaZerados }) => {
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [ipUsuario, setIpUsuario] = useState('');
   const [dataAtualFormatada, setDataAtualFormatada] = useState('');
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size] = useState('small')
   const dataTableRef = useRef();
   const navigate = useNavigate();
+  
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
   };
@@ -91,55 +92,55 @@ export const ActionListaCaixaZerado = ({ dadosCaixaZerados }) => {
     {
       field: 'contador',
       header: 'Nº',
-      body: row => row.contador,
+      body: row => <th>{row.contador}</th>,
       sortable: true,
     },
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => row.NOFANTASIA,
+      body: row => <p style={{fontWeight: 600, width: '200px', margin: '0px'}}>{row.NOFANTASIA}</p>,
       sortable: true,
     },
     {
       field: 'IDMOVIMENTO',
       header: 'Nº Movimento',
-      body: row => row.IDMOVIMENTO,
+      body: row => <p p style={{fontWeight: 600, width: '150px', margin: '0px'}}>{row.IDMOVIMENTO}</p>,
       sortable: true,
     },
     {
       field: 'DSCAIXAFECHAMENTO',
       header: 'Caixa',
-      body: row => row.DSCAIXAFECHAMENTO,
+      body: row => <th>{row.DSCAIXAFECHAMENTO}</th>,
       sortable: true,
     },
     {
       field: 'DTHORAABERTURACAIXA',
       header: 'Data Abertura',
-      body: row => row.DTHORAABERTURACAIXA,
+      body: row => <p style={{fontWeight: 600, width: '150px', margin: '0px'}}>{row.DTHORAABERTURACAIXA}</p>,
       sortable: true,
     },
     {
       field: 'DTHORAFECHAMENTOCAIXA',
       header: 'Data Fechamento',
-      body: row => row.DTHORAFECHAMENTOCAIXA,
+      body: row => <th>{row.DTHORAFECHAMENTOCAIXA}</th>,
       sortable: true,
     },
     {
       field: 'OPERADORFECHAMENTO',
       header: 'Operador',
-      body: row => row.OPERADORFECHAMENTO,
+      body: row => <p p style={{fontWeight: 600, width: '200px', margin: '0px'}}>{row.OPERADORFECHAMENTO}</p>,
       sortable: true,
     },
     {
       field: 'STFECHADO',
       header: 'Status',
-      body: row => <p style={{ color: row.STFECHADO === 'True' ? 'red' : 'blue' }}>{row.STFECHADO === 'True' ? 'Fechado' : 'Aberto'}</p>,
+      body: row => <th style={{ color: row.STFECHADO === 'True' ? 'red' : 'blue' }}>{row.STFECHADO === 'True' ? 'Fechado' : 'Aberto'}</th>,
       sortable: true,
     },
     {
       field: 'STCONFERIDO',
       header: 'Conferido',
-      body: row => <p style={{ color: row.STCONFERIDO > 0 ? 'blue' : 'black' }}>{row.STCONFERIDO > 0 ? 'Conferido' : 'Sem Conferir'}</p>,
+      body: row => <th style={{ color: row.STCONFERIDO > 0 ? 'blue' : 'black' }}>{row.STCONFERIDO > 0 ? 'Conferido' : 'Sem Conferir'}</th>,
       sortable: true,
     },
     {
@@ -153,6 +154,8 @@ export const ActionListaCaixaZerado = ({ dadosCaixaZerados }) => {
               cor={"danger"}
               Icon={MdClose}
               iconSize={20}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickCancelar(row)}
             />
           </div>
@@ -187,9 +190,9 @@ export const ActionListaCaixaZerado = ({ dadosCaixaZerados }) => {
   }, [usuarioLogado]);
 
   const getIPUsuario = async () => {
-    const response = await fetch('http://ipwho.is/')
+    const response = await axios.get('http://ipwho.is/')
     if (response.data) {
-      setIpUsuario(response.data);
+      setIpUsuario(response.data.ip);
     }
     return response.data;
   }
@@ -254,11 +257,11 @@ export const ActionListaCaixaZerado = ({ dadosCaixaZerados }) => {
 
     <Fragment>
 
-      <div className="panel">
+      <div className="panel" style={{ marginTop: "4rem"}}>
         <div className="panel-hdr">
-          <h1>
+          <h2>
             Lista Caixas Zerados
-          </h1>
+          </h2>
         </div>
 
         <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
@@ -276,11 +279,14 @@ export const ActionListaCaixaZerado = ({ dadosCaixaZerados }) => {
             title="Lista de Caixas Zerados"
             value={dadosListaCaixaZerados}
             globalFilter={globalFilterValue}
-            size={size}
+            size={"small"}
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50]}
+            rowsPerPageOptions={[10, 20, 50, 100, dadosListaCaixaZerados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

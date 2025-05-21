@@ -4,19 +4,18 @@ import { ButtonTable } from "../../../ButtonsTabela/ButtonTable"
 import { CiEdit } from "react-icons/ci"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { ActionEditarMotivoDevolucaoModal } from "./actionEditarMotivoDevolucaoModal";
+import { ActionEditarMotivoDevolucaoModal } from "./EditarMotivoDevolucao/actionEditarMotivoDevolucaoModal";
 import HeaderTable from "../../../Tables/headerTable";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import Swal from "sweetalert2";
 
-export const ActionListaMotivoDevolucao = ({ dadosMotivoDevolucao }) => {
+export const ActionListaMotivoDevolucao = ({ dadosMotivoDevolucao, optionsModulos }) => {
   const [dadosDetalheMotivoDevolucao, setDadosDetalheMotivoDevolucao] = useState([])
   const [modalVisivel, setModalVisivel] = useState(false)
-
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -137,7 +136,9 @@ export const ActionListaMotivoDevolucao = ({ dadosMotivoDevolucao }) => {
               titleButton={"Alterar Motivo de Devolução Desta Linha"}
               onClickButton={() => handleClickEditar(row)}
               Icon={CiEdit}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="30px"
               iconColor={"#fff"}
               cor={"primary"}
 
@@ -161,11 +162,26 @@ export const ActionListaMotivoDevolucao = ({ dadosMotivoDevolucao }) => {
     }
   };
 
-
+  
   const handleClickEditar = (row) => {
-    if (row && row.IDMOTIVODEVOLUCAO) {
-      handleEditar(row.IDMOTIVODEVOLUCAO);
+    if (optionsModulos[0]?.ALTERAR == 'True') {
+
+      if (row && row.IDMOTIVODEVOLUCAO) {
+        handleEditar(row.IDMOTIVODEVOLUCAO);
+      }
+    } else {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        text: `Acesso restrito. Por favor, \n entre em contato com o responsável pela seção.`,
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 5000
+      })
     }
+
   }
 
   return (
@@ -191,13 +207,15 @@ export const ActionListaMotivoDevolucao = ({ dadosMotivoDevolucao }) => {
 
             title="Vendas por Loja"
             value={dadosListaMotivoDevolucao}
-            size={size}
+            size="small"
             globalFilter={globalFilterValue}
             sortOrder={-1}
             paginator
             rows={10}
             rowsPerPageOptions={[10, 20, 30, 50, 100, dadosListaMotivoDevolucao.length]}
-
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -225,6 +243,7 @@ export const ActionListaMotivoDevolucao = ({ dadosMotivoDevolucao }) => {
         show={modalVisivel}
         handleClose={() => setModalVisivel(false)}
         dadosDetalheMotivoDevolucao={dadosDetalheMotivoDevolucao}
+        optionsModulos={optionsModulos}
       />
 
 

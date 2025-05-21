@@ -1,7 +1,6 @@
 import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { dataFormatada } from "../../../../utils/dataFormatada"
 import { formatMoeda } from "../../../../utils/formatMoeda"
 import { toFloat } from "../../../../utils/toFloat"
 import { useReactToPrint } from "react-to-print";
@@ -10,9 +9,9 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 
+
 export const ActionListaVendasLoja = ({ dadosVendasLoja }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -193,7 +192,9 @@ export const ActionListaVendasLoja = ({ dadosVendasLoja }) => {
 
     }
   }) : [];
-  const dadosListaVendasLoja = Array.isArray(dadosVendasLoja) ? dadosVendasLoja.map((item) => {
+
+ 
+  const dadosListaVendasLoja = dadosVendasLoja.map((item) => {
     const valorDespesaTotal = calcularTotalValorDespesaTotal(item);
     const valorTotalVendido = calcularValorTotalVendido(item);
     const valorDisponivelBruto = calcularValorDisponivelBruto(item);
@@ -224,7 +225,7 @@ export const ActionListaVendasLoja = ({ dadosVendasLoja }) => {
       valorDisponivelBruto: valorDisponivelBruto,
       valorQuebraCaixa: valorQuebraCaixa,
     }
-  }) : [];
+  })
 
   const totalValorDespesaTotal = () => {
     let total = 0;
@@ -261,7 +262,7 @@ export const ActionListaVendasLoja = ({ dadosVendasLoja }) => {
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => <p style={{color: 'blue', width: '150px'}}>{row.NOFANTASIA}</p>,
+      body: row => <p style={{color: 'blue', width: '200px', margin: '0px', fontWeight: 600}}>{row.NOFANTASIA}</p>,
       footer: 'Total',
       sortable: true,
     },
@@ -375,12 +376,15 @@ export const ActionListaVendasLoja = ({ dadosVendasLoja }) => {
         <DataTable
           title="Vendas por Loja"
           value={dadosListaVendasLoja}
-          size={size}
+          size="small"
           globalFilter={globalFilterValue}
           sortOrder={-1}
           paginator
           rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaVendasLoja.length]}
+          rowsPerPageOptions={[10, 20, 50, 100, dadosListaVendasLoja.length]}
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+          filterDisplay="menu"
           showGridlines
           stripedRows
           emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

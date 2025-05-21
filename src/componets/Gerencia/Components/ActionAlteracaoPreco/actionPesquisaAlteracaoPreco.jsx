@@ -14,8 +14,7 @@ import { useQuery } from "react-query";
 import  { MenuTreeSelect } from "../../../Inputs/menuDropDown";
 import { TreeSelect } from 'primereact/treeselect';
 
-export const ActionPesquisaAlteracaoPreco = () => {
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
+export const ActionPesquisaAlteracaoPreco = ({usuarioLogado, ID }) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
@@ -24,7 +23,6 @@ export const ActionPesquisaAlteracaoPreco = () => {
   const [subGrupoSelecionado, setSubGrupoSelecionado] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
-  const navigate = useNavigate();
   const animatedComponents = makeAnimated();
 
   useEffect(() => { 
@@ -34,20 +32,6 @@ export const ActionPesquisaAlteracaoPreco = () => {
     setDataPesquisaFim(dataFim)
   }, [])
 
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
 
   const fetchListaAlteracaoPreco = async () => {
     try {

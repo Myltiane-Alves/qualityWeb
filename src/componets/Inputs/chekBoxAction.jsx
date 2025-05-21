@@ -1,6 +1,14 @@
 import { Fragment, useState } from "react"
 
-export const InputCheckBoxAction = ({ label, readOnly, id, nome, placeholder, checked, onChange }) => {
+export const InputCheckBoxAction = ({ 
+  label, 
+  readOnly, 
+  id, 
+  nome, 
+  placeholder, 
+  checked, 
+  onChange 
+}) => {
  
 
 

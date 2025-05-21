@@ -10,6 +10,7 @@ export const InputFieldModal = ({
   readOnly, 
   placeholder, 
   onChangeModal, 
+  styleInputFieldModal
 
 }) => {
   const {
@@ -34,7 +35,7 @@ export const InputFieldModal = ({
           readOnly={readOnly}
           placeHolder={placeholder}
           onChange={onChangeModal}
-
+          style={styleInputFieldModal}
         />
       </div>
     </Fragment>

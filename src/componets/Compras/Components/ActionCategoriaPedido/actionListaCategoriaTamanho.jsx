@@ -1,26 +1,102 @@
-import { Fragment, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { get, put } from "../../../../api/funcRequest";
 import { BsTrash3 } from "react-icons/bs";
 import Swal from "sweetalert2";
-
+import HeaderTable from "../../../Tables/headerTable";
+import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export const ActionListaCategoriaTamanho = ({ dadosCategoriaTamanhos }) => {
   const [modalEditar, setModalEditar] = useState(false);
   const [excluirVinculoTamanhoPedido, setExcluirVinculoPedido] = useState([]);
-  
+  const [usuarioLogado, setUsuarioLogado] = useState(null);
+  const [ipUsuario, setIpUsuario] = useState('');
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const dataTableRef = useRef();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const usuarioArmazenado = localStorage.getItem('usuario');
+
+    if (usuarioArmazenado) {
+      try {
+        const parsedUsuario = JSON.parse(usuarioArmazenado);
+        setUsuarioLogado(parsedUsuario);;
+      } catch (error) {
+        console.error('Erro ao parsear o usuário do localStorage:', error);
+      }
+    } else {
+      navigate('/');
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    getIPUsuario();
+  }, [usuarioLogado]);
+
+  const getIPUsuario = async () => {
+    const response = await axios.get('http://ipwho.is/')
+    if (response.data) {
+      setIpUsuario(response.data.ip);
+    }
+    return response.data;
+  }
+
+  const onGlobalFilterChange = (e) => {
+    setGlobalFilterValue(e.target.value);
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => dataTableRef.current,
+    documentTitle: 'Categoria Tamanhos',
+  });
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Nº', 'Categoria', 'Tipo Categoria', 'Tamanho']],
+      body: dados.map(item => [
+        item.contador,
+        item.DSCATEGORIAPEDIDO,
+        item.TIPOPEDIDO,
+        item.DSTAMANHO
+      ]),
+      horizontalPageBreak: true,
+      horizontalPageBreakBehaviour: 'immediately'
+    });
+    doc.save('categoria_tamanhos.pdf');
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(dados);
+    const workbook = XLSX.utils.book_new();
+    const header = ['Nº', 'Categoria', 'Tipo Categoria', 'Tamanho'];
+    worksheet['!cols'] = [
+      { wpx: 70, caption: 'Nº' },
+      { wpx: 100, caption: 'Categoria' },
+      { wpx: 100, caption: 'Tipo Categoria' },
+      { wpx: 70, caption: 'Tamanho' },
+    ];
+    XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Categoria Tamanhos');
+    XLSX.writeFile(workbook, 'categoria_tamanhos.xlsx');
+  };
+
   const dados = dadosCategoriaTamanhos.map((item, index) => {
     let contador = index + 1;
     return {
-      IDCATPEDIDOTAMANHO: item.IDCATPEDIDOTAMANHO,
-      DSTAMANHO: item.DSTAMANHO,
+      contador,
       DSCATEGORIAPEDIDO: item.DSCATEGORIAPEDIDO,
       TIPOPEDIDO: item.TIPOPEDIDO,
-      STATIVO: item.STATIVO,
-
-      contador
+      DSTAMANHO: item.DSTAMANHO,
+      IDCATPEDIDOTAMANHO: item.IDCATPEDIDOTAMANHO,
     }
   })
 
@@ -28,19 +104,19 @@ export const ActionListaCategoriaTamanho = ({ dadosCategoriaTamanhos }) => {
     {
       field: 'contador',
       header: 'Nº',
-      body: row => row.contador,
+      body: row => <th>{row.contador}</th>,
       sortable: true,
     },
     {
       field: 'DSCATEGORIAPEDIDO',
       header: 'Categoria',
-      body: row => row.DSCATEGORIAPEDIDO,
+      body: row => <th>{row.DSCATEGORIAPEDIDO}</th>,
       sortable: true,
     },
     {
       field: 'TIPOPEDIDO',
       header: 'Tipo Categoria',
-      body: row => row.TIPOPEDIDO,
+      body: row => <th>{row.TIPOPEDIDO}</th>,
       sortable: true,
     },
     {
@@ -48,7 +124,7 @@ export const ActionListaCategoriaTamanho = ({ dadosCategoriaTamanhos }) => {
       header: 'Tamanho',
       body: row => {
         return (
-          <p>{row.DSTAMANHO}</p>
+          <th>{row.DSTAMANHO}</th>
         )
       },
       sortable: true,
@@ -61,7 +137,7 @@ export const ActionListaCategoriaTamanho = ({ dadosCategoriaTamanhos }) => {
           <div>
             <ButtonTable
               titleButton={"Excluir Vínculo Categoria/Tamanho"}
-              onClickButton={() => clickEditar(row)}
+              onClickButton={() => handleExcluir(row)}
               cor={"danger"}
               Icon={BsTrash3}
               iconSize={20}
@@ -80,74 +156,106 @@ export const ActionListaCategoriaTamanho = ({ dadosCategoriaTamanhos }) => {
     }
   };
 
-  const handleEditar = async (IDCATPEDIDOTAMANHO) => {
-    try {
-      Swal.fire({
-        title: "Certeza que Deseja Excluir o Vínculo da Categoria?",
-        text: "Você não poderá reverter esta ação!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#886ab5",
-        cancelButtonColor: "#fd3995",
-        confirmButtonText: "OK"
-      }).then((result) => {
-        // const response =  put(`/deletarVinculoTamanhoCategoria?IDCATPEDIDOTAMANHO=${IDCATPEDIDOTAMANHO}`);
-        const response =  put(`/?IDCATPEDIDOTAMANHO=${IDCATPEDIDOTAMANHO}`);
-        setExcluirVinculoPedido(response.data);
-        if (result.isConfirmed) {
+  const handleExcluir = async (IDCATPEDIDOTAMANHO) => {
+    Swal.fire({
+      title: `Certeza que Deseja Excluir o Vínculo da Categoria?`,
+      text: 'Você não poderá reverter a ação!',
+      icon: 'warning',
+      showCancelButton: true,
+      showConfirmButton: true,
+      cancelButtonText: 'Cancelar',
+      confirmButtonText: 'OK',
+      customClass: {
+        confirmButton: 'btn btn-primary',
+        cancelButton: 'btn btn-danger',
+        loader: 'custom-loader'
+      },
+      buttonsStyling: false
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const putData = {
+            IDCATPEDIDOTAMANHO: IDCATPEDIDOTAMANHO,
+          }
+          const response = await put(`/deletar-vinculo-tamanho-categoria?idCategoriaPedidoTamanho=${IDCATPEDIDOTAMANHO}`, putData)
+          const textDados = JSON.stringify(putData)
+          let textoFuncao = 'COMPRAS/EXCLUSÃO VINCULO CATEGORIA-TAMANHO'
+
+          const postData = {
+            IDFUNCIONARIO: usuarioLogado.id,
+            PATHFUNCAO: textoFuncao,
+            DADOS: textDados,
+            IP: ipUsuario
+          }
+
+          const responsePost = await post('/log-web', postData)
+
+          return responsePost.data;
+        } catch (error) {
           Swal.fire({
-            title: "Excluído!",
-            text: "Vínculo Excluído com Sucesso.",
-            icon: "success"
+            title: 'Erro!',
+            text: `Erro ao excluir o Vínculo da Categoria: ${error}`,
+            icon: 'success'
           });
         }
-
-        put(``)
-      });
-    } catch (error) {
-      console.error(error);
-    }
+      }
+    })
   }
 
-  const handleModal = () => {
-    setModalEditar(true)
-  }
+
 
   return (
     <Fragment>
-      <div className="card">
-        <DataTable
-          title="Vendas por Loja"
-          value={dados}
-          // header={header}
-          sortField="VRTOTALPAGO"
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50, 100]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
-        >
-          {colunasCategoriaPedido.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
+      <div className="panel" style={{ marginTop: "4rem" }}>
+        <div className="panel-hdr">
+          <h2>Relatório Categorias de Tamanhos</h2>
+        </div>
 
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
+        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <HeaderTable
+            globalFilterValue={globalFilterValue}
+            onGlobalFilterChange={onGlobalFilterChange}
+            handlePrint={handlePrint}
+            exportToExcel={exportToExcel}
+            exportToPDF={exportToPDF}
+          />
 
-            />
-          ))}
-        </DataTable>
+        </div>
+        <div className="card mb-4" ref={dataTableRef}>
+
+          <DataTable
+            title="Vendas por Loja"
+            value={dados}
+            size="small"
+            globalFilter={globalFilterValue}
+            sortOrder={-1}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[10, 20, 50, 100, 500, dados.length]}
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
+          >
+            {colunasCategoriaPedido.map(coluna => (
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                header={coluna.header}
+
+                body={coluna.body}
+                footer={coluna.footer}
+                sortable={coluna.sortable}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                bodyStyle={{ fontSize: '1rem', textAlign: 'center' }}
+
+              />
+            ))}
+          </DataTable>
+        </div>
       </div>
 
- 
+
     </Fragment>
   )
 }

@@ -1,63 +1,31 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { useAuth } from "../Providers/AuthContext";
-import { MenuButton } from "../componets/Buttons/menuButton";
-import { FooterMain } from "../componets/Footer";
 import { IoMdArrowBack } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { CardModulos } from "../componets/CardsModulos";
 import { useQuery } from "react-query";
 import { get } from "../api/funcRequest";
 
-export const ModuloTeste = () => {
+
+export const ModuloTeste = ({ usuarioLogado}) => {
   const { handleLogout, usuario } = useAuth();
   const [selectedModule, setSelectedModule] = useState(null);
   const [moduloSelecionado, setModuloSelecionado] = useState(null);
 
   const navigate = useNavigate();
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      const parsedUsuario = JSON.parse(usuarioArmazenado);
-      setUsuarioLogado(parsedUsuario);
-    }
-  }, []);
-
-  useEffect(() => {}, [usuarioLogado]);
-
-  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
-    'modulos',
-    async () => {
-      const response = await get(`/modulos?idPerfil=4`);
-      return response.data;
-    },
-    { enabled: true, staleTime: 5 * 60 * 1000 }
-  );
 
 
+    const { data: optionsModulos = [], error: errorFuncionarios, isLoading: isLoadingFuncionarios, refetch: refetchFuncionarios } = useQuery(
+      'menus-usuario',
+      async () => {
+        const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}`);
+        
+        return response.data;
+      },
+      { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+    );
   
-
-  const { data: optionsMenus = [], error: errorMenus, isLoading: isLoadingMenus, refetch: refetchMenus } = useQuery(
-    'menus',
-    async () => {
-      const response = await get(`/menus?idModulo=${moduloSelecionado?.IDMODULO}`);
-      return response.data;
-    },
-    {
-      enabled: Boolean(moduloSelecionado), 
-      staleTime: 5 * 60 * 1000
-    }
-  );  
-  console.log(moduloSelecionado, 'moduloSelecionado');
-  useEffect(() => {
-    if (optionsMenus.length) {
-      localStorage.setItem('optionsMenus', JSON.stringify(optionsMenus));
-    }
-  }, [optionsMenus]);
   
-
   useEffect(() => {
     const storedModule = JSON.parse(localStorage.getItem('moduloselecionado'));
     if (storedModule) {
@@ -65,30 +33,50 @@ export const ModuloTeste = () => {
     }
   }, [usuarioLogado, navigate]);
 
+  // const selecioneModulo = (event, moduloURL) => {
+  //   event.preventDefault();
+    
+  //   const modulos = optionsModulos[0]?.modulos || [];
+  //   const moduloEncontrado = modulos.find((modulo) => {
+  //     console.log(modulo.DSMODULO, 'modulo');
+  //     return modulo.DSMODULO === moduloURL; 
+  //   });
+
+    
+  //   if (moduloEncontrado) {
+  //     localStorage.setItem('moduloselecionado', JSON.stringify(moduloEncontrado));
+  //     console.log(moduloEncontrado, 'moduloEncontrado')
+  //     setSelectedModule(moduloEncontrado);
+  //     setModuloSelecionado(moduloEncontrado);
+  //     navigate(moduloEncontrado.DSMODULO);
+  //     window.history.replaceState({}, document.title, window.location.pathname);
+      
+  //   }
+  // };
+  
+
   const selecioneModulo = (event, moduloURL) => {
     event.preventDefault();
     
-    const moduloEncontrado = optionsModulos.find((modulo) => {
-      return modulo.DSMODULO === moduloURL; 
-    });
+    const modulos = optionsModulos[0]?.modulos || [];
+    const moduloEncontrado = modulos.find(modulo => modulo.DSMODULO === moduloURL);
 
-    
     if (moduloEncontrado) {
       localStorage.setItem('moduloselecionado', JSON.stringify(moduloEncontrado));
       setSelectedModule(moduloEncontrado);
       setModuloSelecionado(moduloEncontrado);
-      navigate(moduloEncontrado.DSMODULO);
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
+      navigate(`/${moduloEncontrado.DSMODULO}`);
     }
   };
-  
 
+  // console.log(optionsModulos, 'optionsModulos')
+  const modulosDisponiveis = optionsModulos[0]?.modulos || [];
   useEffect(() => {
     if (moduloSelecionado) {
       refetchMenus();
     }
   }, [moduloSelecionado]);
+  // console.log(modulosDisponiveis, 'modulosDisponiveis')
 
   
   const imageMap = {
@@ -106,6 +94,12 @@ export const ModuloTeste = () => {
     12: '../../public/img/icons/conferenciaCega.png',
     13: '../../public/img/icons/cadastro.png',
     14: '../../public/img/icons/etiqueta.png',
+    15: '../../public/img/icons/resumoVendas.png',
+    16: '../../public/img/icons/voucher.png',
+    17: '../../public/img/icons/malote.png',
+    18: '../../public/img/icons/permissoes.png',
+    19: '../../public/img/icons/promocao.png',
+
   };
 
 
@@ -169,18 +163,18 @@ export const ModuloTeste = () => {
                 </div>
               </div>
               <div className="row">
-              {optionsModulos.map((modulo) => (
-            <Fragment key={modulo.id}>
-             
-              <CardModulos
-                src={imageMap[modulo.IDMODULO] || 'path/to/default-image.png'}
-                alt={modulo.alt}
-                nome={modulo.DSMODULO}
-                isSelected={isModuleSelected && modulo.url === selectedModule.url}
-                handleClick={(event) => selecioneModulo(event, modulo.DSMODULO)}
-              />
-            </Fragment>
-          ))}
+              {modulosDisponiveis.map((modulo) => (
+                <Fragment key={modulo.id}>
+                
+                  <CardModulos
+                    src={imageMap[modulo.ID] || 'path/to/default-image.png'}
+                    alt={modulo.alt}
+                    nome={modulo.DSMODULO}
+                    isSelected={isModuleSelected && modulo.url === selectedModule.url}
+                    handleClick={(event) => selecioneModulo(event, modulo.DSMODULO)}
+                  />
+                </Fragment>
+              ))}
               </div>
           
             </div>

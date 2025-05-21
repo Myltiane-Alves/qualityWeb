@@ -5,6 +5,7 @@ import Modal from 'react-bootstrap/Modal';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { formatMoeda } from "../../../../utils/formatMoeda";
+import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionRelacaoProdutosModal = ({ dadosPagamentoModal, show, handleClose }) => {
   
@@ -94,19 +95,19 @@ export const ActionRelacaoProdutosModal = ({ dadosPagamentoModal, show, handleCl
     {
       field: 'NPARCELAS',
       header: 'Parcelas',
-      body: row => parseFloat(row.NPARCELAS),
+      body: row => toFloat(row.NPARCELAS),
       sortable: true,
     },
     {
       field: 'NUOPERACAO',
       header: 'NSU_CTF',
-      body: row => parseFloat(row.NUOPERACAO),
+      body: row => toFloat(row.NUOPERACAO),
       sortable: true,
     },
     {
       field: 'NSUAUTORIZADORA',
       header: 'Autorização',
-      body: row => parseFloat(row.NSUAUTORIZADORA),
+      body: row => toFloat(row.NSUAUTORIZADORA),
       sortable: true,
     },
     {
@@ -140,63 +141,81 @@ export const ActionRelacaoProdutosModal = ({ dadosPagamentoModal, show, handleCl
 
           <Modal.Body>
 
+          <div className="card">
+            <div className="panel">
+              <div className="panel-hdr">
+                <h3>
+                  Detalhe da Venda
+                </h3>
+              </div>
 
-            <DataTable
-              title="Vendas por Loja"
-              value={dadosPagamentos}
-              sortField="VRTOTALPAGO"
-              sortOrder={-1}
-              paginator={true}
-              rows={10}
-              rowsPerPageOptions={[5, 10, 20, 50]}
-              showGridlines
-              stripedRows
-              emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-            >
-              {colunasPagamento.map(coluna => (
-                <Column
-                  key={coluna.field}
-                  field={coluna.field}
-                  header={coluna.header}
-                  body={coluna.body}
-                  footer={coluna.footer}
-                  sortable={coluna.sortable}
-                  headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                  footerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                  bodyStyle={{ fontSize: '0.8rem' }}
+              <DataTable
+                title="Vendas por Loja"
+                value={dadosPagamentos}
+                size="small"
+                sortOrder={-1}
+                paginator={true}
+                rows={10}
+                rowsPerPageOptions={[10, 20, 50]}
+                showGridlines
+                stripedRows
+                emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+              >
+                {colunasPagamento.map(coluna => (
+                  <Column
+                    key={coluna.field}
+                    field={coluna.field}
+                    header={coluna.header}
+                    body={coluna.body}
+                    footer={coluna.footer}
+                    sortable={coluna.sortable}
+                    headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                    footerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                    bodyStyle={{ fontSize: '0.8rem' }}
 
-                />
-              ))}
-            </DataTable>
+                  />
+                ))}
+              </DataTable>
+            </div>
+          </div>
 
+          <div className="card" style={{ marginTop: '4rem' }}>
+              <div className="panel">
+                <div className="panel-hdr">
+                  <h3>
+                    Detalhe do Pagamento
+                  </h3>
+                </div>
+                  <DataTable
+                    title="Vendas por Loja"
+                    value={dadosPagamentos}
+                    size="small"
+                    sortOrder={-1}
+                    paginator={true}
+                    rows={10}
+                    rowsPerPageOptions={[10, 20, 50]}
+                    showGridlines
+                    stripedRows
+                    emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+                  >
+                    {colunasPagPos.map(coluna => (
+                      <Column
+                        key={coluna.field}
+                        field={coluna.field}
+                        header={coluna.header}
+                        body={coluna.body}
+                        footer={coluna.footer}
+                        sortable={coluna.sortable}
+                        headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                        footerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                        bodyStyle={{ fontSize: '0.8rem' }}
 
-            <DataTable
-              title="Vendas por Loja"
-              value={dadosPagamentos}
-              sortField="VRTOTALPAGO"
-              sortOrder={-1}
-              paginator={true}
-              rows={10}
-              rowsPerPageOptions={[5, 10, 20, 50]}
-              showGridlines
-              stripedRows
-              emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-            >
-              {colunasPagPos.map(coluna => (
-                <Column
-                  key={coluna.field}
-                  field={coluna.field}
-                  header={coluna.header}
-                  body={coluna.body}
-                  footer={coluna.footer}
-                  sortable={coluna.sortable}
-                  headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                  footerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                  bodyStyle={{ fontSize: '0.8rem' }}
+                      />
+                    ))}
+                  </DataTable>
+              </div>
+          </div>
 
-                />
-              ))}
-            </DataTable>
           </Modal.Body>
 
           <FooterModal

@@ -1,10 +1,9 @@
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { GrView } from "react-icons/gr";
 import { FaProductHunt } from "react-icons/fa";
 import { MdOutlineAttachMoney } from "react-icons/md";
-import { dataFormatada } from "../../../../utils/dataFormatada";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { get } from "../../../../api/funcRequest";
@@ -15,7 +14,7 @@ import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 import { ActionDetalheVendaModal } from "../ActionVendasContigencia/actionDetalheVendaModal";
 import { ActionDetalheVendaProdutosModal } from "../ActionsModaisVendas/actionDetalheVendaProdutosModal";
-import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/actionRelacaoRecebimentosModal";
+import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/ActionRecebimentos/actionRelacaoRecebimentosModal";
 
 export const ActionListaVendasCanceladasEmitidaPDV = ({ dadosVendasCanceladasEmitidasPDV }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
@@ -313,6 +312,8 @@ export const ActionListaVendasCanceladasEmitidaPDV = ({ dadosVendasCanceladasEmi
               onClickButton={() => handleClickVenda(row)}
               Icon={GrView}
               cor={"info"}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -321,6 +322,8 @@ export const ActionListaVendasCanceladasEmitidaPDV = ({ dadosVendasCanceladasEmi
               onClickButton={() => handleClickProduto(row)}
               Icon={FaProductHunt}
               cor={"warning"}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -329,6 +332,8 @@ export const ActionListaVendasCanceladasEmitidaPDV = ({ dadosVendasCanceladasEmi
               onClickButton={() => handleClickPagamento(row)}
               Icon={MdOutlineAttachMoney}
               cor={"success"}
+              width="30px"
+              height="30px"
             />
           </div>
         </div>
@@ -425,6 +430,9 @@ export const ActionListaVendasCanceladasEmitidaPDV = ({ dadosVendasCanceladasEmi
             value={dadosListaVendasCanceladas}
             globalFilter={globalFilterValue}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaVendasCanceladas.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             sortField="VRTOTALPAGO"
             sortOrder={-1}
             paginator={true}

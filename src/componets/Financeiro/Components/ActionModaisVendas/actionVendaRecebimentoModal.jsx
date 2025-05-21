@@ -8,7 +8,7 @@ import { ButtonTypeModal } from "../../../Buttons/ButtonTypeModal";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 
 export const ActionVendaRecebimentoModal = ({ show, handleClose, dadosDetalheRecebimentosEletronico }) => {
-  const [size] = useState('small')
+  
   const dadosListaRecebimentosEletronico = dadosDetalheRecebimentosEletronico.map((item, index) => {
     let contador = index + 1;
     const percentualValorRecebido = (parseFloat(item.VALORRECEBIDO) * 100) + parseFloat(item.VALORRECEBIDO);
@@ -134,10 +134,10 @@ export const ActionVendaRecebimentoModal = ({ show, handleClose, dadosDetalheRec
                       value={dadosListaRecebimentosEletronico}
                       sortField="VRTOTALPAGO"
                       sortOrder={-1}
-                      size={size}
+                      size="small"
                       paginator={true}
-                      rows={10}
-                      // rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaRecebimentosEletronico.length]}
+                      rows={50}
+                      rowsPerPageOptions={[10, 20, 50, 100, dadosListaRecebimentosEletronico.length]}
 
                       showGridlines
                       stripedRows

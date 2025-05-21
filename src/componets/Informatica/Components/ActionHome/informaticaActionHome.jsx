@@ -12,6 +12,7 @@ import axios from "axios";
 export const InformaticaActionHome = () => {
   const [clickContador, setClickContador] = useState(0);
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
+  const [actionVisivel, setActionVisivel] = useState(true);
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [ipUsuario, setIpUsuario] = useState('');
   const navigate = useNavigate();
@@ -44,17 +45,13 @@ export const InformaticaActionHome = () => {
   }
 
 
-
   const { data: dadosEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch } = useQuery(
     'listaEmpresasIformatica',
     async () => {
       const response = await get(`/listaEmpresasIformatica`);
-
       return response.data;
     },
-    {
-      staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000
-    }
+    { staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
   );
 
   const atualizarDiariaEmpresa = async () => {
@@ -75,7 +72,7 @@ export const InformaticaActionHome = () => {
     }
 
 
-    const responseLog = await post('/log-web', postData)
+    const responseLog = await post('/logWeb', postData)
     try {
       Swal.fire({
         position: 'top-end',
@@ -108,41 +105,43 @@ export const InformaticaActionHome = () => {
       setTabelaVisivel(true)
       refetch();
     }
-
   }
 
   return (
 
     <Fragment>
 
+      {actionVisivel && ( 
+        <>
+          <ActionMain
+            linkComponentAnterior={["Home"]}
+            linkComponent={["Tela Principal"]}
+            title="Tela Principal Dashboard Informática"
+            subTitle
 
-      <ActionMain
-        linkComponentAnterior={["Home"]}
-        linkComponent={["Tela Principal"]}
-        title="Tela Principal Dashboard Informática"
-        subTitle
+            ButtonSearchComponent={ButtonType}
+            linkNomeSearch={"Listar Caixas"}
+            onButtonClickSearch={handleClick}
+            corSearch={"primary"}
+            IconSearch={AiOutlineSearch}
 
-        ButtonSearchComponent={ButtonType}
-        linkNomeSearch={"Listar Caixas"}
-        onButtonClickSearch={handleClick}
-        corSearch={"primary"}
-        IconSearch={AiOutlineSearch}
+            ButtonTypeCadastro={ButtonType}
+            linkNome={"Atualizar Todos os Caixas"}
+            onButtonClickCadastro={atualizarDiariaEmpresa}
+            corCadastro={"success"}
+            IconCadastro={AiOutlineSearch}
 
-        ButtonTypeCadastro={ButtonType}
-        linkNome={"Atualizar Todos os Caixas"}
-        onButtonClickCadastro={atualizarDiariaEmpresa}
-        corCadastro={"success"}
-        IconCadastro={AiOutlineSearch}
+            ButtonTypeCancelar={ButtonType}
+            linkCancelar={"Exportar Caixas XLS"}
+            onButtonClickCancelar
+            corCancelar={"danger"}
+            IconCancelar={GoDownload}
 
-        ButtonTypeCancelar={ButtonType}
-        linkCancelar={"Exportar Caixas XLS"}
-        onButtonClickCancelar
-        corCancelar={"danger"}
-        IconCancelar={GoDownload}
+          />
 
-      />
-
-      <ActionListaEmpresas dadosEmpresas={dadosEmpresas} />
+        </>
+      )}
+      <ActionListaEmpresas dadosEmpresas={dadosEmpresas} setActionVisivel={setActionVisivel} />
     </Fragment>
   )
 }

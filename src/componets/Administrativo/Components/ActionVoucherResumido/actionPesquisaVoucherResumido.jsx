@@ -14,11 +14,18 @@ export const ActionPesquisaVoucherResumido = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [numeroVoucher, setNumeroVoucher] = useState(0);
+  const [numeroVoucher, setNumeroVoucher] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(1000);
+  const [pageSize, setPageSize] = useState(100);
   const [isLoading, setIsLoading] = useState(false);
+  const [isQueryVoucher, setIsQueryVoucher] = useState(false);
 
+  useEffect(() => {
+    const dataInicial = getDataAtual();
+    const dataFinal = getDataAtual();
+    setDataPesquisaInicio(dataInicial);
+    setDataPesquisaFim(dataFinal);
+  }, [])
 
   const fetchListaResumoVoucher = async ( ) => {
     try {
@@ -62,15 +69,16 @@ export const ActionPesquisaVoucherResumido = () => {
   };
    
   const { data: dadosVoucher = [], error: errorVouchers, isLoading: isLoadingVouchers, refetch: refetchListaResumoVoucher } = useQuery(
-    ['detalheVoucherDados', numeroVoucher, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    ['detalhe-voucher-dados-adm', numeroVoucher, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchListaResumoVoucher(numeroVoucher, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     {
-      enabled: Boolean(numeroVoucher), 
+      enabled: isQueryVoucher, 
     }
   );
 
   const handleClick = () => {
     setCurrentPage(prevPage => prevPage + 1)
+    setIsQueryVoucher(true)
     refetchListaResumoVoucher()
     setIsLoading(true)
     setTabelaVisivel(true)

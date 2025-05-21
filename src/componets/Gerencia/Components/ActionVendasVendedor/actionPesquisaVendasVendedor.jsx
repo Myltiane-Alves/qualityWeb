@@ -9,41 +9,37 @@ import { get } from "../../../../api/funcRequest";
 import { ActionListaVendasVendedor } from "./actionListaVendasVendedor";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 
-export const ActionPesquisaVendasVendedor = () => {
+export const ActionPesquisaVendasVendedor = ({usuarioLogado, ID, optionsEmpresas}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
-  
-  const navigate = useNavigate();
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
   
   useEffect(() => {
     const dataInicial = getDataAtual();
     const dataFinal = getDataAtual();
     setDataPesquisaInicio(dataInicial);
     setDataPesquisaFim(dataFinal);  
+  }, []);
 
-    const usuarioArmazenado = localStorage.getItem('usuario');
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
 
   const fetchVendasVendedor = async () => {
     try {
-      
-      const urlApi = `/vendasVendedorPeriodoLojaGerencia?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const idEmpresa = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      const urlApi = `/venda-vendedor?idEmpresa=${idEmpresa}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -82,13 +78,13 @@ export const ActionPesquisaVendasVendedor = () => {
   };
 
   const { data: dadosVendasVendedor = [], error: erroVendasResumidas, isLoading: isLoadingVendasResumidas, refetch: refetchVendasVendedor } = useQuery(
-    'vendasVendedorPeriodoLojaGerencia',
+    'venda-vendedor',
     () => fetchVendasVendedor(usuarioLogado.IDEMPRESA, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
   );
 
   const handleTabelaVisivel = () => {
-    setCurrentPage(+1);
+    setCurrentPage(prevPage => prevPage + 1);
     refetchVendasVendedor();
     setTabelaVisivel(true);
   };
@@ -103,18 +99,31 @@ export const ActionPesquisaVendasVendedor = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Vendas por Vendedor e Período"]}
         title="Vendas por Vendedor e Período"
-        subTitle="Nome da Loja"
+        subTitle={usuarioLogado?.NOFANTASIA}
 
-        InputFieldDTInicioComponent={InputField}
-        labelInputFieldDTInicio={"Data Início"}
-        valueInputFieldDTInicio={dataPesquisaInicio}
-        onChangeInputFieldDTInicio={e => setDataPesquisaInicio(e.target.value)}
+        InputSelectPendenciaComponent={InputSelectAction}
+        labelSelectPendencia="Selecione a Empresa"
+        optionsPendencia={[
+          { value: '', label: 'Todas' },
+          ...optionsEmpresas?.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+          }))
+        ]}
+        onChangeSelectPendencia={(e) => setEmpresaSelecionada(e.value)}
+        valueSelectPendencia={empresaSelecionada}
+        isVisible={{display: optionsModulos[0]?.ADMINISTRADOR == false ? "none" : "block"}}
 
-        InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
+        InputFieldDTInicioAComponent={InputField}
+        valueInputFieldDTInicioA={dataPesquisaInicio}
+        labelInputDTInicioA={"Data Início"}
+        onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
         
+        InputFieldDTFimAComponent={InputField}
+        labelInputDTFimA={"Data Fim"}
+        valueInputFieldDTFimA={dataPesquisaFim}
+        onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
+      
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}
         onButtonClickSearch={handleTabelaVisivel}

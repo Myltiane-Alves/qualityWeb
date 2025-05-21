@@ -1,7 +1,6 @@
 import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { dataFormatada } from "../../../../utils/dataFormatada";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
@@ -14,7 +13,7 @@ import { ColumnGroup } from "primereact/columngroup";
 export const ActionListaVendasConvenio = ({ dadosVendasConvenio }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
-  const [size, setSize] = useState('small');
+
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
   };
@@ -199,13 +198,13 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenio }) => {
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => <p style={{fontWeight: '600',  width: '200px' }}> {row.NOFANTASIA}</p>,
+      body: row => <p style={{fontWeight: '600',  width: '200px', margin: '0px' }}> {row.NOFANTASIA}</p>,
       sortable: true,
     },
     {
       field: 'DTLANCAMENTO',
       header: 'Data',
-      body: row => <p style={{fontWeight: '600',  width: '150px' }}> {row.DTLANCAMENTO}</p>,
+      body: row => <p style={{fontWeight: '600',  width: '150px', margin: '0px' }}> {row.DTLANCAMENTO}</p>,
       sortable: true,
     },
     {
@@ -217,7 +216,7 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenio }) => {
     {
       field: 'NOFUNCIONARIO',
       header: 'Funcionário',
-      body: row => <p style={{fontWeight: '600',  width: '200px' }}> {row.NOFUNCIONARIO}</p>,
+      body: row => <p style={{fontWeight: '600',  width: '200px', margin: '0px' }}> {row.NOFUNCIONARIO}</p>,
       footer: 'Total Valores',
       sortable: true,
     },
@@ -342,7 +341,7 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenio }) => {
           />
 
         </div>
-        <div className="panel-container show">
+        <div className="panel">
           <div className="panel-content">
             <div className="card" ref={dataTableRef}>
 
@@ -350,12 +349,15 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenio }) => {
                 title="Vendas por Loja"
                 value={dadosListaConvenio}
                 globalFilter={globalFilterValue}
-                size={size}
+                size="small"
                 footerColumnGroup={footerGroup}
                 sortOrder={-1}
                 paginator={true}
                 rows={10}
-                rowsPerPageOptions={[5, 10, 20, 50]}
+                rowsPerPageOptions={[10, 20, 50, 100, dadosListaConvenio.length]}
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                filterDisplay="menu"
                 showGridlines
                 stripedRows
                 emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

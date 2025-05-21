@@ -7,9 +7,13 @@ import { Menu } from "primereact/menu";
 import { allModulos } from "../../../allUsers.json";
 import { useNavigate } from "react-router-dom";
 import { Button } from 'primereact/button';
+import { useQuery } from "react-query";
+import { get } from "../../api/funcRequest";
+import { InputSwitch } from 'primereact/inputswitch';
 
 
-export const HeaderMain = () => {
+
+export const HeaderMain = ({ optionsModulos }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [contador, setContador] = useState(0);
   const { handleLogout } = useAuth();
@@ -17,7 +21,9 @@ export const HeaderMain = () => {
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const menuLeft = useRef(null);
   const [selectedModule, setSelectedModule] = useState(null)
+  const [moduloUsuario, setModuloUsuario] = useState(null);
   const navigate = useNavigate();
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     const usuarioArmazenado = localStorage.getItem('usuario');
@@ -27,6 +33,9 @@ export const HeaderMain = () => {
     }
   }, []);
 
+  useEffect(() => {
+
+  }, [usuarioLogado]);
   const toggleCardUsuario = () => {
     setContador(contador + 1);
     setIsOpen(contador % 2 === 0 ? (isOpen === "" ? "" : "show") : (isOpen === "show" ? "" : "show"));
@@ -61,35 +70,44 @@ export const HeaderMain = () => {
       }
     }
   };
-  
+
+  useEffect(() => {
+    const moduloArmazenado = localStorage.getItem('moduloUsuario');
+    if (moduloArmazenado) {
+      const parsedModulo = JSON.parse(moduloArmazenado);
+      setModuloUsuario(parsedModulo);
+    }
+  }, [moduloUsuario]);
+
   useEffect(() => {
     const storedModule = JSON.parse(localStorage.getItem('moduloselecionado'));
     if (storedModule) {
       setSelectedModule(storedModule);
     }
   }, [usuarioLogado, navigate]);
+     
+  const selecioneModulos = (moduloURL) => {
+    const modulos = optionsModulos[0]?.modulos || [];
+    const moduloEncontrado = modulos.find(modulo => modulo.DSMODULO == moduloURL);
 
- 
+    if (moduloEncontrado) {
+      setSelectedModule(moduloEncontrado);
+      localStorage.setItem('moduloselecionado', JSON.stringify(moduloEncontrado));
+      navigate(`/${moduloEncontrado.DSMODULO}`);
+    }
+  };
 
+  const modulosDisponiveis = optionsModulos[0]?.modulos || [];
+  const menuItems = modulosDisponiveis?.map((modulo) => ({
+    label: modulo.NOME, 
+    icon: modulo.src,
+    command: () => selecioneModulos(modulo.DSMODULO), 
+  }));
 
-    const selecioneModulo = (url) => {
-      const moduloSelecionado = allModulos.find((modulo) => modulo.url === url);
-
-      if (moduloSelecionado) {
-        localStorage.setItem('moduloselecionado', JSON.stringify(moduloSelecionado));
-        setSelectedModule(moduloSelecionado);
-        navigate(moduloSelecionado.url); // Navegar para o link clicado
-      }
-    };
-
-  
-    const menuItems = allModulos.map((modulo) => ({
-      label: modulo.nome,
-      icon: modulo.src,
-      command: () => selecioneModulo(modulo.url), 
-    }));
-
-
+  const toggleColorScheme = (value) => {
+    setChecked(value);
+    document.documentElement.classList.toggle('custom-inverted-colors', value);
+  };
 
   return (
     <Fragment>
@@ -107,8 +125,12 @@ export const HeaderMain = () => {
           </button>
 
         </div>
-        <div  style={{width: '100%', display: 'flex', justifyContent: 'end'}}>
-            
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
+          {/* <InputSwitch 
+            checked={checked} 
+            onChange={(e) => toggleColorScheme(e.value)} 
+            style={{ marginRight: '1rem' }} 
+          /> */}
           <Menu model={menuItems} popup ref={menuLeft} />
           <Button 
             label="Módulos" 
@@ -120,7 +142,7 @@ export const HeaderMain = () => {
               fontWeight: 'bold', 
               borderRadius: '1rem',
               margin: '1rem',
-              transition: ' 0.3s ease-in-out',
+              transition: '0.3s ease-in-out',
               height: '3rem',
             }}
             className="p-3 surface-0 shadow-2"

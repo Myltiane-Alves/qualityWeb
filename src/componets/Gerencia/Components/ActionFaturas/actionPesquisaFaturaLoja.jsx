@@ -9,17 +9,16 @@ import { ActionListaFaturaLoja } from "./actionListaFaturaLoja";
 import { AiOutlineSearch } from "react-icons/ai";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 import { useQuery } from "react-query";
+import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 
-export const ActionPesquisaFaturaLoja = () => {
+export const ActionPesquisaFaturaLoja = ({usuarioLogado, ID, optionsEmpresas}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
-  const navigate = useNavigate();
-
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  const [isQueryData, setIsQueryData] = useState(false);
 
   useEffect(() => {
     const dataInicio = getDataAtual();
@@ -29,26 +28,20 @@ export const ActionPesquisaFaturaLoja = () => {
 
   }, [])
 
-  useEffect(() => {
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-
-  }, [navigate]);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
 
   const fetchListaFaturas = async () => {
     try {
-      const urlApi = `/detalhe-faturas?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const idEmpresa = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      const urlApi = `/detalhe-faturas?idEmpresa=${idEmpresa}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -87,23 +80,19 @@ export const ActionPesquisaFaturaLoja = () => {
   };
    
   const { data: dadosFaturas = [], error: errorVouchers, isLoading: isLoadingVouchers, refetch: refetchListaFaturas } = useQuery(
-    ['detalhe-faturas', usuarioLogado?.IDEMPRESA,  dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
-    () => fetchListaFaturas(usuarioLogado?.IDEMPRESA,  dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    {
-      enabled: Boolean(usuarioLogado?.IDEMPRESA), staleTime: 1000 * 60 * 5 
-    }
+    ['detalhe-faturas', empresaSelecionada,  dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    () => fetchListaFaturas(empresaSelecionada,  dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+    {enabled: isQueryData, staleTime: 1000 * 60 * 5  }
   );
 
 
 
   const handleClick = () => {
-    if (usuarioLogado  && usuarioLogado.IDEMPRESA ) {
-      setCurrentPage(prevPage => prevPage + 1);
-      refetchListaFaturas(usuarioLogado && usuarioLogado.IDEMPRESA );
-      setTabelaVisivel(true);
-    } else {
-      console.log('Usuário não possui informações válidas.');
-    }
+    setIsQueryData(true);
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchListaFaturas();
+    setTabelaVisivel(true);
+    
   }
 
   return (
@@ -116,15 +105,28 @@ export const ActionPesquisaFaturaLoja = () => {
         title="Lista de Faturas da Loja"
         subTitle="Nome da Loja"
 
-        InputFieldDTInicioComponent={InputField}
-        valueInputFieldDTInicio={dataPesquisaInicio}
-        labelInputFieldDTInicio={"Data Início"}
-        onChangeInputFieldDTInicio={(e) => setDataPesquisaInicio(e.target.value)}
+        InputSelectPendenciaComponent={InputSelectAction}
+        labelSelectPendencia="Selecione a Empresa"
+        optionsPendencia={[
+          { value: '', label: 'Todas' },
+          ...optionsEmpresas?.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+          }))
+        ]}
+        onChangeSelectPendencia={(e) => setEmpresaSelecionada(e.value)}
+        valueSelectPendencia={empresaSelecionada}
+        isVisible={{display: optionsModulos[0]?.ADMINISTRADOR == false ? "none" : "block"}}
+
+        InputFieldDTInicioAComponent={InputField}
+        valueInputFieldDTInicioA={dataPesquisaInicio}
+        labelInputDTInicioA={"Data Início"}
+        onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
         
-        InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
+        InputFieldDTFimAComponent={InputField}
+        labelInputDTFimA={"Data Fim"}
+        valueInputFieldDTFimA={dataPesquisaFim}
+        onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
 
         onButtonClickSearch={handleClick}
         ButtonSearchComponent={ButtonType}
@@ -135,7 +137,11 @@ export const ActionPesquisaFaturaLoja = () => {
       />
 
       {tabelaVisivel && (
-        <ActionListaFaturaLoja dadosFaturas={dadosFaturas} />
+        <ActionListaFaturaLoja 
+          dadosFaturas={dadosFaturas} 
+          usuarioLogado={usuarioLogado}
+          optionsModulos={optionsModulos}  
+        />
       )}
 
     </Fragment>

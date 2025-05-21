@@ -146,36 +146,9 @@ export const ActionPesquisaFaturamentoOT = () => {
   }
 
 
- const SelecionarRegistros = () => {
-  Swal.fire({
-    title: 'Selecionar OT',
-    icon: 'info',
-    html: `A rotina irá selecionar os <b>10 (dez) primeiros</b>, ' +
-    'registros de acordo com a opção escolhida!`,
-    showCloseButton: true,
-    showCancelButton: true,
-    focusConfirm: false,
-    confirmButtonText: 'Faturamento',
-    cancelButtonText: 'SEFAZ',
-    confirmButtonColor: '#ffc241',
-    cancelButtonColor: '#3085d6',
-  }).then((result) => {
-    if (result.value == true) {
-      Swal.fire(
-        'Faturamento',
-        'Registros selecionados para faturamento!',
-        'success'
-      )
-    } else if (result.dismiss === Swal.DismissReason.cancel) {
-      Swal.fire(
-        'SEFAZ',
-        'Registros selecionados para SEFAZ!',
-        'info'
-      )
-    }
-  
-  })
- }
+
+
+
   return (
 
     <Fragment>
@@ -187,22 +160,22 @@ export const ActionPesquisaFaturamentoOT = () => {
         subTitle="Nome da Loja"
 
         InputFieldDTInicioComponent={InputField}
-        labelInputFieldDTInicio={"Data Início"}
+        labelInputFieldDTInicio={"Data Inicial das Notas Faturadas"}
         valueInputFieldDTInicio={dataPesquisaInicio}
         onChangeInputFieldDTInicio={e => setDataPesquisaInicio(e.target.value)}
 
         InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
+        labelInputFieldDTFim={"Data Final das Notas Faturadas"}
         valueInputFieldDTFim={dataPesquisaFim}
         onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
 
         InputFieldDTInicioAComponent={InputField}
-        labelInputDTInicioA={"Data Inicial das Notas Faturadas"}
+        labelInputDTInicioA={"Data Início"}
         onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicioA(e.target.value)}
         valueInputFieldDTInicioA={dataPesquisaInicioA}
 
         InputFieldDTFimAComponent={InputField}
-        labelInputDTFimA={"Data Final das Notas Faturadas"}
+        labelInputDTFimA={"Data Fim"}
         onChangeInputFieldDTFimA={(e) => setDataPesquisaFimA(e.target.value)}
         valueInputFieldDTFimA={dataPesquisaFimA}
 
@@ -255,7 +228,7 @@ export const ActionPesquisaFaturamentoOT = () => {
 
         
       />
-       <div className="row mb-4">
+       {/* <div className="row mb-4 " style={{marginTop: '10rem'}}>
 
         <ButtonType
           Icon={MdFormatListBulleted}
@@ -297,7 +270,7 @@ export const ActionPesquisaFaturamentoOT = () => {
           tipo="button"
           onClickButtonType={""}
         />
-        </div>
+        </div> */}
       {tabelaVisivel && (
         <div className="card">
           

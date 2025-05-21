@@ -22,10 +22,10 @@ export const ActionPesquisaMapaCaixa = () => {
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
   const [dataPesquisaFim, setDataPesquisaFim] = useState('')
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(500)
-  const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(true)
-  const [totalPages, setTotalPages] = useState(0);
+
 
   useEffect(() => {
     const dataInicial = getDataAtual();
@@ -132,16 +132,15 @@ export const ActionPesquisaMapaCaixa = () => {
       fecharAnimacaoCarregamento();
     }
   }
+
   const { data: dadosTotalRecebidoEletronico = [], error: erroRecebidoEletronico, isLoading: isLoadingRecebidoEletronico, refetch: refetchTotalRecebidoEletronico } = useQuery(
     'venda-recebido-eletronico',
     () => fetchTotalRecebidoEletronico(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, ),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 
-
   const fetchListaAdiantamentoSalarial = async () => {
 
-    
     try {
       const urlApi = `/adiantamento-salarial?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
@@ -180,6 +179,7 @@ export const ActionPesquisaMapaCaixa = () => {
       fecharAnimacaoCarregamento();
     }
   }
+
   const { data: dadosAdiantamentoSalarial = [], error: erroAdiantamento, isLoading: isLoadingAdiantamento, refetch: refetchAdiantamentoSalarial } = useQuery(
     'adiantamento-salarial',
     () => fetchListaAdiantamentoSalarial(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, ),
@@ -226,12 +226,14 @@ export const ActionPesquisaMapaCaixa = () => {
       fecharAnimacaoCarregamento();
     }
   }
+
   const { data: dadosResumoVoucher= [], error: erroVoucher, isLoading: isLoadingVoucher, refetch: refetchListaResumoVoucher } = useQuery(
-    'adiantamento-salarial',
+    'resumo-voucher',
     () => fetchListaResumoVoucher(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 
+  console.log(dadosResumoVoucher, 'dadosResumoVoucher')
 
   const fetchListaDetalheFatura = async () => {
 
@@ -273,8 +275,9 @@ export const ActionPesquisaMapaCaixa = () => {
       fecharAnimacaoCarregamento();
     }
   }
+
   const { data: dadosDetalheFatura = [], error: erroFatura, isLoading: isLoadingFatura, refetch: refetchListaDetalheFatura } = useQuery(
-    'adiantamento-salarial',
+    'detalhe-faturas',
     () => fetchListaDetalheFatura(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
@@ -320,25 +323,28 @@ export const ActionPesquisaMapaCaixa = () => {
       fecharAnimacaoCarregamento();
     }
   }
+
   const { data: dadosTotalRecebidoPeriodo = [], error: erroRecebido, isLoading: isLoadingRecebido, refetch: refetchListaTotalRecebidoMapa } = useQuery(
     'venda-total-recebido-periodo',
     () => fetchListaTotalRecebidoMapa(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
  
-  const handleSelectEmpresa = (e) => {
-    setEmpresaSelecionada(e.value)
+  const handleChangeEmpresa = (e) => {
+    const selectedEmpresa = optionsEmpresas.find(empresa => empresa.IDEMPRESA === e.value);
+    setEmpresaSelecionadaNome(selectedEmpresa.NOFANTASIA);
+    setEmpresaSelecionada(e.value);
   }
 
   const handleClick = () => {    
     setTabelaVisivel(true)
     refetchMapaCaixas()
-    // refetchTotalRecebidoEletronico()
-    // fetchTotalRecebidoEletronico()
-    // refetchAdiantamentoSalarial()
-    // refetchListaResumoVoucher()
-    // refetchListaDetalheFatura()
-    // refetchListaTotalRecebidoMapa()
+    refetchTotalRecebidoEletronico()
+    fetchTotalRecebidoEletronico()
+    refetchAdiantamentoSalarial()
+    refetchListaResumoVoucher()
+    refetchListaDetalheFatura()
+    refetchListaTotalRecebidoMapa()
   }
 
 
@@ -350,7 +356,7 @@ export const ActionPesquisaMapaCaixa = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Mapa de Caixas"]}
         title="Mapa de Caixa por Lojas e Período"
-        subTitle="Nome da Loja"
+        subTitle={empresaSelecionadaNome}
        
         InputFieldDTInicioComponent={InputField}
         valueInputFieldDTInicio={dataPesquisaInicio}
@@ -363,7 +369,7 @@ export const ActionPesquisaMapaCaixa = () => {
         onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
 
         InputSelectEmpresaComponent={InputSelectAction}
-        onChangeSelectEmpresa={handleSelectEmpresa}
+        onChangeSelectEmpresa={handleChangeEmpresa}
         valueSelectEmpresa={empresaSelecionada}
         optionsEmpresas={[
           { value: '0', label: 'Todas' },
@@ -386,23 +392,20 @@ export const ActionPesquisaMapaCaixa = () => {
 
         <div className="card mt-4">
 
-          <ActionListaMapaCaixa dadosMapaCaixa={dadosMapaCaixa}  />
+          <ActionListaMapaCaixa 
+            dadosMapaCaixa={dadosMapaCaixa} 
+            dadosAdiantamentoSalarial={dadosAdiantamentoSalarial} 
+            dadosResumoVoucher={dadosResumoVoucher}
+            dadosDetalheFatura={dadosDetalheFatura}
+
+          />
        
-          {/* <ActionListaAdiantamentoSalarial dadosAdiantamentoSalarial={dadosAdiantamentoSalarial} />
-          <ActionListaResumoVoucher dadosResumoVoucher={dadosResumoVoucher} />
-          <ActionListaDetalheFatura dadosDetalheFatura={dadosDetalheFatura} />  */}
-      
-          {/* <ActionListaTotalRecebidoPeriodo 
-            dadosTotalRecebidoPeriodo={dadosTotalRecebidoPeriodo} 
-            
-          /> */}
-      
-          {/* <ActionListaVendasRecebidoEletronico 
+          <ActionListaVendasRecebidoEletronico 
             dadosTotalRecebidoEletronico={dadosTotalRecebidoEletronico} 
             dadosTotalRecebidoPeriodo={dadosTotalRecebidoPeriodo}
             dataPesquisaInicio={dataPesquisaInicio}
             dataPesquisaFim={dataPesquisaFim}
-          /> */}
+          />
         </div>
       )}
     </Fragment>

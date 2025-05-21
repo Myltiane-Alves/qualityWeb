@@ -11,7 +11,6 @@ import * as XLSX from 'xlsx';
 
 export const ActionListaDescontoMotivoVenda = ({ dadosDescontoMotivoVendas }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -71,9 +70,9 @@ export const ActionListaDescontoMotivoVenda = ({ dadosDescontoMotivoVendas }) =>
       DTHORAFECHAMENTO: item.DTHORAFECHAMENTO,
       NOFANTASIA: item.NOFANTASIA,
       OPERADORFECHAMENTO: item.OPERADORFECHAMENTO ? `${item.MATOPERADORFECHAMENTO} - ${item.OPERADORFECHAMENTO}` : '',
-      VALORTOTALPRODUTOBRUTO: formatMoeda(item.VALORTOTALPRODUTOBRUTO),
-      VRDESCONTO: formatMoeda(item.VRDESCONTO),
-      TOTALLIQUIDO: formatMoeda(item.TOTALLIQUIDO),
+      VALORTOTALPRODUTOBRUTO: toFloat(item.VALORTOTALPRODUTOBRUTO),
+      VRDESCONTO: toFloat(item.VRDESCONTO),
+      TOTALLIQUIDO: toFloat(item.TOTALLIQUIDO),
       TXTMOTIVODESCONTO: item.TXTMOTIVODESCONTO,
       TIPODESCONTO: item.TIPODESCONTO,
     }
@@ -104,7 +103,7 @@ export const ActionListaDescontoMotivoVenda = ({ dadosDescontoMotivoVendas }) =>
   }
 
   const dadosListaDetalhada = dadosDescontoMotivoVendas.map((item, index) => {
-    let contador = index + 1;
+
 
     return {
       IDVENDA: item.IDVENDA,
@@ -112,9 +111,9 @@ export const ActionListaDescontoMotivoVenda = ({ dadosDescontoMotivoVendas }) =>
       NOFANTASIA: item.NOFANTASIA,
       MATOPERADORFECHAMENTO: item.MATOPERADORFECHAMENTO,
       OPERADORFECHAMENTO: item.OPERADORFECHAMENTO,
-      VALORTOTALPRODUTOBRUTO: item.VALORTOTALPRODUTOBRUTO,
-      VRDESCONTO: item.VRDESCONTO,
-      TOTALLIQUIDO: item.TOTALLIQUIDO,
+      VALORTOTALPRODUTOBRUTO: toFloat(item.VALORTOTALPRODUTOBRUTO),
+      VRDESCONTO: toFloat(item.VRDESCONTO),
+      TOTALLIQUIDO: toFloat(item.TOTALLIQUIDO),
       TXTMOTIVODESCONTO: item.TXTMOTIVODESCONTO,
       TIPODESCONTO: item.TIPODESCONTO,
     }
@@ -124,31 +123,31 @@ export const ActionListaDescontoMotivoVenda = ({ dadosDescontoMotivoVendas }) =>
     {
       field: 'IDVENDA',
       header: 'Venda',
-      body: row => row.IDVENDA,
+      body: row => <p style={{ margin: 0, fontWeight: 600}}>{row.IDVENDA}</p>,
       sortable: true,
     },
     {
       field: 'DTHORAFECHAMENTO',
       header: 'Data',
-      body: row => {return <p style={{width: 150, margin: 0}}>{row.DTHORAFECHAMENTO}</p>},
+      body: row => {return <p style={{width: 150, margin: 0, fontWeight: 600}}>{row.DTHORAFECHAMENTO}</p>},
       sortable: true,
     },
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => {return <p style={{width: 200, margin: 0}}>{row.NOFANTASIA}</p>},
+      body: row => {return <p style={{width: 200, margin: 0, fontWeight: 600}}>{row.NOFANTASIA}</p>},
       sortable: true,
     },
     {
       field: 'MATOPERADORFECHAMENTO',
       header: 'Operador',
-      body: row => <p style={{width: 200, margin: 0}}>{`${row.MATOPERADORFECHAMENTO} - ${row.OPERADORFECHAMENTO}`}</p>,
+      body: row => <p style={{width: 200, margin: 0, fontWeight: 600}}>{`${row.MATOPERADORFECHAMENTO} - ${row.OPERADORFECHAMENTO}`}</p>,
       sortable: true,
     },
     {
       field: 'VALORTOTALPRODUTOBRUTO',
       header: 'Vl. Bruto',
-      body: row => {return <p style={{width: 150, margin: 0}}>{formatMoeda(row.VALORTOTALPRODUTOBRUTO)}</p>},
+      body: row => {return <p style={{width: 150, margin: 0,fontWeight: 600}}>{formatMoeda(row.VALORTOTALPRODUTOBRUTO)}</p>},
       footer: (row) => {
         return (
           <div>
@@ -163,7 +162,7 @@ export const ActionListaDescontoMotivoVenda = ({ dadosDescontoMotivoVendas }) =>
     {
       field: 'VRDESCONTO',
       header: 'Vl. Desconto',
-      body: row => {return <p style={{width: 150, margin: 0}}>{formatMoeda(row.VRDESCONTO)}</p>},
+      body: row => {return <p style={{width: 150, margin: 0,fontWeight: 600}}>{formatMoeda(row.VRDESCONTO)}</p>},
       footer: (row) => {
         return (
           <div>
@@ -178,7 +177,7 @@ export const ActionListaDescontoMotivoVenda = ({ dadosDescontoMotivoVendas }) =>
     {
       field: 'TOTALLIQUIDO',
       header: 'Vl. Pago',
-      body: row => {return <p style={{width: 200, margin: 0}}>{formatMoeda(row.TOTALLIQUIDO)}</p>},
+      body: row => {return <p style={{width: 200, margin: 0, fontWeight: 600}}>{formatMoeda(row.TOTALLIQUIDO)}</p>},
       footer: (row) => {
         return (
           <div>
@@ -192,13 +191,13 @@ export const ActionListaDescontoMotivoVenda = ({ dadosDescontoMotivoVendas }) =>
     {
       field: 'TXTMOTIVODESCONTO',
       header: 'Motivo',
-      body: row => {return <p style={{width: 200, margin: 0}}>{row.TXTMOTIVODESCONTO}</p>},
+      body: row => {return <p style={{width: 200, margin: 0, fontWeight: 600}}>{row.TXTMOTIVODESCONTO}</p>},
       sortable: true,
     },
     {
       field: 'TIPODESCONTO',
       header: 'Tipo Motivo',
-      body: row => {return <p style={{width: 200, margin: 0}}>{row.TIPODESCONTO}</p>},
+      body: row => {return <p style={{width: 200, margin: 0, fontWeight: 600}}>{row.TIPODESCONTO}</p>},
       sortable: true,
     }
   ]
@@ -206,10 +205,10 @@ export const ActionListaDescontoMotivoVenda = ({ dadosDescontoMotivoVendas }) =>
   return (
 
     <Fragment>
-      <div className="resultado">
+      <div className="panel">
         <div className="panel-hdr">
           <h2>
-            Lista de Pesquisa Simplificada
+            Lista de Motivo Desconto Vendas
           </h2>
         </div>
         <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
@@ -226,11 +225,14 @@ export const ActionListaDescontoMotivoVenda = ({ dadosDescontoMotivoVendas }) =>
             title="Motivo Desconta Vendas"
             value={dadosListaDetalhada}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50]}
+            rowsPerPageOptions={[10, 20, 50, 100, dadosListaDetalhada.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

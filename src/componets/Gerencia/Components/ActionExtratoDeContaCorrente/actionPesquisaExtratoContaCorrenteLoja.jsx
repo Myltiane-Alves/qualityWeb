@@ -5,21 +5,19 @@ import { ButtonType } from "../../../Buttons/ButtonType"
 import { getDataAtual } from "../../../../utils/dataAtual"
 import { AiOutlineSearch } from "react-icons/ai"
 import { get } from "../../../../api/funcRequest"
-import { InputSelectAction } from "../../../Inputs/InputSelectAction"
 import { ActionListaExtratoContaCorrenteLoja } from "./actionListaExtratoContaCorrenteLoja"
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "react-query"
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
+import { InputSelectAction } from "../../../Inputs/InputSelectAction"
 
-export const ActionPesquisaExtratoContaCorenteLoja = () => {
+export const ActionPesquisaExtratoContaCorenteLoja = ({usuarioLogado, ID, optionsEmpresas}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
-  const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [optionsEmpresas, setOptionsEmpresas] = useState([]);
-  const [marcaSelecionada, setMarcaSelecionada] = useState(null);
+  const [dataPesquisaFim, setDataPesquisaFim] = useState('');;
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
-  const [dadosExtratoLojaPeriodo, setDadosExtratoLojaPeriodo] = useState([])
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
   useEffect(() => {
     const dataInicial = getDataAtual();
@@ -29,45 +27,69 @@ export const ActionPesquisaExtratoContaCorenteLoja = () => {
     
   }, [])
 
-  useEffect(() => {
+ const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-
-  }, [navigate]);
-
-
-
-  const getListaSaldoExtratoLoja = async () => {
-    try {
-      // const response = await get(`/listaExtratoDaLojaPeriodo?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`) 
-      const response = await get(`/listaExtratoDaLojaPeriodo?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`) 
-        
-      if (response.data) {
-        setDadosExtratoLojaPeriodo(response.data)
-      }
       return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar marcas: ', error)
-    }
-  }
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
 
+
+  const fetchListaExtrato = async () => {
+    try {
+      
+      const urlApi = `/listaExtratoDaLojaPeriodo?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+       
+        return response.data;
+      }
+  
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
+    }
+  };
+   
+  const { data: dadosExtratoLojaPeriodo = [], error: errorExtrato, isLoading: isLoadingExtrato, refetch: refetchListaExtrato } = useQuery(
+    ['listaExtratoDaLojaPeriodo', empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    () => fetchListaExtrato(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+    {
+      enabled: Boolean(empresaSelecionada), 
+    }
+  );
 
   const handleClick = () => {
-    
+    refetchListaExtrato()
     setTabelaVisivel(true)
-    getListaSaldoExtratoLoja()
-    
   }
 
   return (
@@ -77,15 +99,30 @@ export const ActionPesquisaExtratoContaCorenteLoja = () => {
         linkComponent={["Extrato de Contas Correntes das Lojas"]}
         title="Extrato de Contas Correntes das Lojas"
         subTitle="Nome da Loja"
-        InputFieldDTInicioComponent={InputField}
-        labelInputFieldDTInicio={"Data Início"}
-        valueInputFieldDTInicio={dataPesquisaInicio}
-        onChangeInputFieldDTInicio={(e) => setDataPesquisaInicio(e.target.value)}
+        
+        InputSelectPendenciaComponent={InputSelectAction}
+        labelSelectPendencia="Selecione a Empresa"
+        optionsPendencia={[
+          { value: '', label: 'Todas' },
+          ...optionsEmpresas?.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+      
+          }))
+        ]}
+        onChangeSelectPendencia={(e) =>  setEmpresaSelecionada(e.value) }
+        valueSelectPendencia={empresaSelecionada}
+        isVisible={{display: optionsModulos[0]?.ADMINISTRADOR == false ? "none" : "block"}}
 
-        InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
+        InputFieldDTInicioAComponent={InputField}
+        valueInputFieldDTInicioA={dataPesquisaInicio}
+        labelInputDTInicioA={"Data Início"}
+        onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
+        
+        InputFieldDTFimAComponent={InputField}
+        labelInputDTFimA={"Data Fim"}
+        valueInputFieldDTFimA={dataPesquisaFim}
+        onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
 
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}

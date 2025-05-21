@@ -10,9 +10,8 @@ import { InputFieldModal } from "../../../Buttons/InputFieldModal";
 import Swal from "sweetalert2";
 import axios from "axios";
 
-export const ActionAjusteMovimentoCaixaModal = ({show, handleClose, dadosDetalheFechamento }) => {
+export const ActionAjusteMovimentoCaixaModal = ({show, handleClose, dadosDetalheFechamento, usuarioLogado, optionsModulos }) => {
   const { register, handleSubmit, errors } = useForm();
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [empresa, setEmpresa] = useState('')
   const [operadorCaixa, setOperadorCaixa] = useState('')
   const [motivoAjuste, setMotivoAjuste] = useState('')
@@ -23,27 +22,11 @@ export const ActionAjusteMovimentoCaixaModal = ({show, handleClose, dadosDetalhe
   const [faturaAjuste, setFaturaAjuste] = useState('')
   const [ipUsuario, setIpUsuario] = useState('')
 
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-    
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-   
-  }, [navigate]);
 
   useEffect(() => {
     getIPUsuario();
-  }, [usuarioLogado]);
+  }, []);
  
   const getIPUsuario = async () => {
     const response = await axios.get('http://ipwho.is/')
@@ -56,6 +39,19 @@ export const ActionAjusteMovimentoCaixaModal = ({show, handleClose, dadosDetalhe
   const vrTotalAjusteFatura = dadosDetalheFechamento[0]?.TOTALAJUSTEDINHEIRO > 0 ? dadosDetalheFechamento[0]?.TOTALAJUSTEDINHEIRO : dadosDetalheFechamento[0]?.TOTALFECHAMENTODINHEIRO;
 
   const onSubmit = async (data) => {
+    if(optionsModulos[0]?.ALTERAR == 'False') {
+      Swal.fire({
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para alterar este registro.',
+        icon: 'error',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        }
+      });
+      return;
+    }
+
     const txtObservacaoAjuste = motivoAjuste + '-' + 'Justificativa do Ajuste: ' + motivoAjuste + 'Data do Ajuste: ' + dataLancamento + 'Ajustado por: ' + usuarioLogado?.NOFUNCIONARIO
     const vrQuebraNova = dinheiroAjuste - dadosDetalheFechamento[0]?.TOTALFECHAMENTODINHEIROFISICO
     const putData = {
@@ -75,7 +71,19 @@ export const ActionAjusteMovimentoCaixaModal = ({show, handleClose, dadosDetalhe
 
     try {
       const response = await put('/ajuste-recebimento', putData)
-
+      
+      const textDados = JSON.stringify(putData)
+      let textoFuncao = 'GERENCIA/AJUSTE MOVIMENTO CAIXA';
+      
+      const postData = {
+        IDFUNCIONARIO: usuarioLogado.id,
+        PATHFUNCAO: textoFuncao,
+        DADOS: textDados,
+        IP: ipUsuario
+      }
+      
+      await post('/log-web', postData)
+      
       Swal.fire({
         title: 'Atualização',
         text: 'Atualização Realizada com Sucesso',
@@ -85,23 +93,23 @@ export const ActionAjusteMovimentoCaixaModal = ({show, handleClose, dadosDetalhe
           container: 'custom-swal',
         }
       });
-
+      
+      return response.data;
+    } catch (error) {
+      
       const textDados = JSON.stringify(putData)
-      let textoFuncao = 'GERENCIA/AJUSTE MOVIMENTO CAIXA';
-  
-  
+      let textoFuncao = 'GERENCIA/ERRO AO AJUSTAR MOVIMENTO CAIXA';
+      
+      
       const postData = {
         IDFUNCIONARIO: usuarioLogado.id,
         PATHFUNCAO: textoFuncao,
         DADOS: textDados,
         IP: ipUsuario
       }
-  
-      const responsePost = await post('/log-web', postData)
-  
       
-      return responsePost.data;
-    } catch (error) {
+      const responsPost = await post('/log-web', postData)
+
       Swal.fire({
         title: 'Cadastro',
         text: 'Erro ao Tentar Confimar Alteração',
@@ -113,6 +121,7 @@ export const ActionAjusteMovimentoCaixaModal = ({show, handleClose, dadosDetalhe
       });
 
       console.log(error);
+      return responsPost.data
     }
   }
  

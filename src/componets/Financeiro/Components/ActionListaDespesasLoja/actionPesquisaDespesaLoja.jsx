@@ -11,11 +11,12 @@ import { useQuery } from 'react-query';
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
 import { useFetchData } from "../../../../hooks/useFetchData"
 
-export const ActionPesquisaDespesaLoja = () => {
+export const ActionPesquisaDespesaLoja = ({usuarioLogado, ID}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('')
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('')
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -31,7 +32,15 @@ export const ActionPesquisaDespesaLoja = () => {
 
   const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas } = useFetchData('listaEmpresasIformatica', '/listaEmpresasIformatica');
   const { data: optionsCategorias = [], error: errorCategorias, isLoading: isLoadingCategorias } = useFetchData('categoriaReceitaDespesaFinanceira', '/categoriaReceitaDespesaFinanceira');
-  
+ 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const fetchListaDespesasLoja = async () => {
     try {
@@ -77,11 +86,13 @@ export const ActionPesquisaDespesaLoja = () => {
   const { data: dadosDespesasLoja = [], error: errorDespesasLoja, isLoading: isLoadingDespesasLoja, refetch: refetchListaDespesasLoja } = useQuery(
     ['despesa-loja',  categoriaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchListaDespesasLoja( categoriaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim,  currentPage, pageSize),
-    { enabled: false, staleTime: 5 * 60 * 1000 }
+    { enabled: Boolean(dataPesquisaInicio && dataPesquisaFim), staleTime: 5 * 60 * 1000 }
   );
 
-  const handleChangeSelectEmpresa = (e) => {
-    setEmpresaSelecionada(e.value)
+  const handleChangeEmpresa = (e) => {
+    const empresa = optionsEmpresas.find((item) => item.IDEMPRESA === e.value);
+    setEmpresaSelecionada(e.value);
+    setEmpresaSelecionadaNome(empresa.NOFANTASIA);
   }
 
   const handleChangeSelectCategoria = (e) => {
@@ -89,7 +100,6 @@ export const ActionPesquisaDespesaLoja = () => {
   }
 
   const handleClick = () => {
-
     setTabelaVisivel(true)
     setIsLoadingPesquisa(true);
     setCurrentPage(prevPage => prevPage + 1);
@@ -105,6 +115,7 @@ export const ActionPesquisaDespesaLoja = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista de Despesas"]}
         title="Despesas por Lojas e Período"
+        subTitle={empresaSelecionadaNome}
       
 
         InputFieldDTInicioComponent={InputField}
@@ -126,7 +137,7 @@ export const ActionPesquisaDespesaLoja = () => {
           }))
         ]}
         valueSelectEmpresa={empresaSelecionada}
-        onChangeSelectEmpresa={handleChangeSelectEmpresa}
+        onChangeSelectEmpresa={handleChangeEmpresa}
 
         InputSelectMarcasComponent={InputSelectAction}
         labelSelectMarcas={"Categoria"}
@@ -150,8 +161,12 @@ export const ActionPesquisaDespesaLoja = () => {
 
       {tabelaVisivel && (
 
-        <div className="card" style={{marginTop: "8rem"}}>
-          <ActionListaDespesaLoja dadosDespesasLoja={dadosDespesasLoja} />
+        <div className="card" >
+          <ActionListaDespesaLoja 
+            dadosDespesasLoja={dadosDespesasLoja} 
+            usuarioLogado={usuarioLogado} 
+            optionsModulos={optionsModulos}
+          />
         </div>
       )}
     </Fragment>

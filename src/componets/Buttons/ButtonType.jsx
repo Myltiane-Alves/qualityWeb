@@ -10,7 +10,9 @@ export const ButtonType = ({
   Icon,
   iconColor,
   iconSize,
-  disabledBTN
+  disabledBTN,
+  visibilityBTN,
+  style
 }) => {
   let btnClasses = "btn waves-effect waves-themed";
 
@@ -30,18 +32,26 @@ export const ButtonType = ({
 
   const typeButton = tipo === "button" ? "button" : "submit";
 
+  const defaultStyle = {
+    marginRight: "10px",
+    marginLeft: "10px",
+    marginTop: "20px",
+    ...style 
+  };
 
   return (
     <Fragment>
-      <div className="">
+      <div >
 
         <button
           id={id}
           className={`${btnClasses} ${className}`}
           type={typeButton}
           onClick={() => onClickButtonType()}
-          style={{ marginRight: "10px", marginLeft: "10px", marginTop: "20px" }}
+          style={defaultStyle}
           disabled={disabledBTN}
+          visible={visibilityBTN}
+          // visibility={visibilityBTN}
         >
           {Icon && <Icon size={iconSize}  color={iconColor} />}
 

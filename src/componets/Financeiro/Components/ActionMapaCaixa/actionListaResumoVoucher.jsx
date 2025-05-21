@@ -1,22 +1,24 @@
 import { Fragment } from "react"
 import { formatMoeda } from "../../../../utils/formatMoeda"
+import { toFloat } from "../../../../utils/toFloat";
 
 
 export const ActionListaResumoVoucher = ({ dadosResumoVoucher }) => {
-  const dados = Array.isArray(dadosResumoVoucher) ? dadosResumoVoucher.map((item, index) => {
-
+  const dados =  dadosResumoVoucher.map((item, index) => {
+    console.log(item.VRVOUCHER, 'item.VRVOUCHER')
     return {
-      VRVOUCHER: item.VRVOUCHER,
+      VRVOUCHER: toFloat(item.VRVOUCHER),
     }
-  }) : [];
+  });
 
   const calcularTotalVoucher = () => {
     let total = 0;
     for(let resultado of dados) {
-      total += parseFloat(resultado.VRVOUCHER); 
+      total += toFloat(resultado.VRVOUCHER); 
     }
     return total;
   }
+  
   return (
 
     <Fragment>

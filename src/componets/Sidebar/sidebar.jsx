@@ -3,15 +3,15 @@ import { useSidebar } from './SidebarContext';
 import { FaAngleDown } from "react-icons/fa";
 import { useAuth } from '../../Providers/AuthContext';
 import { AiOutlineMenuFold, AiOutlineMenuUnfold } from 'react-icons/ai';
+import Swal from 'sweetalert2';
 
 export const MenuSidebarAdmin = ({componentToShow, handleShowComponent }) => {
   const storedModule = localStorage.getItem('moduloselecionado');
   const selectedModule = JSON.parse(storedModule);
   const [activeLink, setActiveLink] = useState('');
   const { sidebarOpen, toggleSidebar } = useSidebar();
-
-
   const [usuarioLogado, setUsuarioLogado] = useState(null);
+
 
   useEffect(() => {
     const usuarioArmazenado = localStorage.getItem('usuario');
@@ -23,56 +23,110 @@ export const MenuSidebarAdmin = ({componentToShow, handleShowComponent }) => {
   }, [])
 
   useEffect(() => {
-  }, [usuarioLogado])
+  }, [usuarioLogado, selectedModule])
 
+// const hasPermission = () => {
+//     const { IDPERFIL, id } = usuarioLogado || {};
+//     return (
+//       IDPERFIL === 1 ||
+//       id === 5001 ||
+//       id === 5026 ||
+//       id === 200
+//     );
+//   };
+
+//   // Função para lidar com o clique nos itens da sidebar
+//   const handleClick = (componentName) => {
+//     if (componentName === "/financeiro/ActionPesquisaSaldoLoja" || componentName === "/financeiro/ActionPesquisaExtratoLoja" && !hasPermission()) {
+//       Swal.fire({
+//         icon: 'error',
+//         title: 'Acesso não autorizado',
+//         text: 'Você não tem permissão para acessar essa funcionalidade.',
+//       })
+//       return;
+//     }
+//     setActiveLink(componentName);
+//     handleShowComponent(componentName);
+//   };
 
   const handleClick = (componentName) => {
     setActiveLink(componentName);
     handleShowComponent(componentName);
-
+    
   };
 
+
   const renderSideBarItems = () => {
-    const administrativoUser = selectedModule;
-    if (administrativoUser) {
-      const sideBarContents = administrativoUser.sideBar;
-      
-      
-      if (sideBarContents && sideBarContents.length > 0) {
-        
+  // const renderSideBarItems = () => {
+    // const administrativoUser = selectedModule.sideBar
+    const administrativoUser = selectedModule.menuPai.menuFilho;
+
+    if (administrativoUser && administrativoUser.length > 0) {
+      return (
+      <ul id="js-nav-menu" className="nav-menu">
+        {administrativoUser.map((menuItem, index) => {
+        const { ID, DSNOME, URL } = menuItem;
+        // const { id, linkText, url } = menuItem;
+
+        if (!URL) {
+          return null;
+        }
         return (
-          <ul id="js-nav-menu" className="nav-menu">
-            {sideBarContents.map((sidebarItem, index) => {
-         
-              if (!sidebarItem.url) {
-                return null
-              }
-              return (
-                <>
-              
-                  <li key={index} className={activeLink === sidebarItem.url ? "active" : ""} >
-                    {/* <a href={'#'} onClick={() => handleClick(sidebarItem.url)}> */}
-                    <a href="#" onClick={() => handleClick(sidebarItem.url)}>
-                      {/* <img className='fal fa-info-circle' src={sidebarItem.icons} alt='' /> */}
-
-                      <span className="nav-link-text">
-                        {sidebarItem.linkText}
-                      </span>
-
-                    </a>
-                  </li>
-                </>
-
-              )
-            })}
-          </ul>
+          <li key={ID || index} className={activeLink === URL ? "active" : ""}>
+          <a href="#" onClick={() => handleClick(URL)}>
+            <span className="nav-link-text">
+            {/* {linkText} */}
+            
+            {DSNOME}
+            </span>
+          </a>
+          </li>
         );
-      } else {
-        return <p>Sem conteúdo na sidebar para o usuário Administrativo.</p>;
-      }
+        })}
+      </ul>
+      );
     } else {
-      return <p>Usuário Administrativo não encontrado.</p>;
+      return <p>{`Sem conteúdo na sidebar para o usuário ${usuarioLogado?.NOFUNCIONARIO}.`}</p>;
     }
+    // if (administrativoUser) {
+    //   const sideBarContents = administrativoUser.sideBar;
+    //   console.log(administrativoUser.sideBar, 'sidebarContents')
+      
+    //   if (sideBarContents && sideBarContents.length > 0) {
+        
+    //     return (
+    //       <ul id="js-nav-menu" className="nav-menu">
+    //         {sideBarContents.map((sidebarItem, index) => {
+         
+    //           if (!sidebarItem.url) {
+    //             return null
+    //           }
+    //           return (
+    //             <>
+              
+    //               <li key={index} className={activeLink === sidebarItem.url ? "active" : ""} >
+    //                 {/* <a href={'#'} onClick={() => handleClick(sidebarItem.url)}> */}
+    //                 <a href="#" onClick={() => handleClick(sidebarItem.url)}>
+    //                   {/* <img className='fal fa-info-circle' src={sidebarItem.icons} alt='' /> */}
+
+    //                   <span className="nav-link-text">
+    //                     {sidebarItem.linkText}
+    //                   </span>
+
+    //                 </a>
+    //               </li>
+    //             </>
+
+    //           )
+    //         })}
+    //       </ul>
+    //     );
+    //   } else {
+    //     return <p>Sem conteúdo na sidebar para o usuário Administrativo.</p>;
+    //   }
+    // } else {
+    //   return <p>Usuário Administrativo não encontrado.</p>;
+    // }
   };
 
   // const renderSideBarItems = () => {
@@ -206,7 +260,5 @@ export const MenuSidebarAdmin = ({componentToShow, handleShowComponent }) => {
         </nav>
       </aside>
     </Fragment>
-
-
   );
 };

@@ -7,8 +7,8 @@ import { FaCashRegister } from "react-icons/fa";
 import { GrCertificate } from "react-icons/gr";
 import { get } from "../../../../api/funcRequest";
 import { dataFormatada } from "../../../../utils/dataFormatada";
-import { InformaticaActionUpdateEmpresaModal } from "./informaticaActionUpdateEmpresaModal";
-import { InformaticaActionCertificadoModal } from "./informaticaActionCadastroCertificadoModal";
+import { InformaticaActionUpdateEmpresaModal } from "./ActionEditarEmpresaModal/informaticaActionUpdateEmpresaModal";
+import { InformaticaActionCertificadoModal } from "./ActionCadastroCertificadoModal/informaticaActionCadastroCertificadoModal";
 import { InformaticaActionListCaixa } from "./informaticaActionListaCaixa";
 import HeaderTable from "../../../Tables/headerTable";
 import { jsPDF } from 'jspdf';
@@ -17,7 +17,7 @@ import * as XLSX from 'xlsx';
 import { useReactToPrint } from "react-to-print";
 
 
-export const ActionListaEmpresas = ({ dadosEmpresas }) => {
+export const ActionListaEmpresas = ({ dadosEmpresas, setActionVisivel }) => {
   const [modalCertificado, setModalCertificado] = useState(false);
   const [modalEditarEmpresa, setModalEditarEmpresa] = useState(false);
   const [dadosDetalheEmpresas, setDadosDetalheEmpresas] = useState([]);
@@ -95,42 +95,42 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
     {
       field: 'contador',
       header: 'Nº',
-      body: row => <p style={{ color: 'blue' }} >{row.contador}</p>,
+      body: row => <th style={{ color: 'blue' }} >{row.contador}</th>,
       sortable: true,
       width: "7%"
     },
     {
       field: 'IDEMPRESA',
       header: 'Empresa',
-      body: row => <p style={{ color: 'blue' }} >{row.NOFANTASIA}</p>,
+      body: row => <th style={{ color: 'blue' }} >{row.NOFANTASIA}</th>,
       sortable: true,
       minWidth: "250px"
     },
     {
       field: 'NUCNPJ',
       header: 'CNPJ',
-      body: row => <p style={{ color: 'blue' }} >{parseFloat(row.NUCNPJ)}</p>,
+      body: row => <th style={{ color: 'blue' }} >{parseFloat(row.NUCNPJ)}</th>,
       sortable: true,
       width: "150px"
     },
     {
       field: 'NUINSCESTADUAL',
       header: 'IE',
-      body: row => <p style={{ color: 'blue' }} >{parseFloat(row.NUINSCESTADUAL)}</p>,
+      body: row => <th style={{ color: 'blue' }} >{parseFloat(row.NUINSCESTADUAL)}</th>,
       sortable: true,
       width: "150px"
     },
     {
       field: 'IDCONFIGURACAO',
       header: 'Certificado',
-      body: row => <p style={{ color: 'blue' }} >{row.DSNOMEPFX}</p>,
+      body: row => <th style={{ color: 'blue' }} >{row.DSNOMEPFX}</th>,
       sortable: true,
       minWidth: "330px"
     },
     {
       field: 'DTVALIDADECERTIFICADO',
       header: 'Data Validade',
-      body: row => <p style={{ color: 'blue' }} >{dataFormatada(row.DTVALIDADECERTIFICADO)}</p>,
+      body: row => <th style={{ color: 'blue' }} >{dataFormatada(row.DTVALIDADECERTIFICADO)}</th>,
       sortable: true,
     },
     {
@@ -233,6 +233,7 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
         setDadosListaCaixa(response.data)
         setActionListaCaixaVisivel(true);
         setTabelaVisivel(false);
+        setActionVisivel(false)
 
       }
       return response.data;
@@ -252,52 +253,55 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
 
     <Fragment>
       {tabelaVisivel &&  !actionListaCaixaVisivel && (
-      <div className="panel">
-        <div className="panel-hdr">
-          <h2>Lista de Empresas</h2>
-        </div>
-        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-          <HeaderTable
-            globalFilterValue={globalFilterValue}
-            onGlobalFilterChange={onGlobalFilterChange}
-            handlePrint={handlePrint}
-            exportToExcel={exportToExcel}
-            exportToPDF={exportToPDF}
-          />
-        </div>
-        <div className="card" ref={dataTableRef}>
-          <DataTable
-            title="Lista de Empresas"
-            value={dados}
-            globalFilter={globalFilterValue}
-            size={size}
-            sortOrder={-1}
-            paginator={true}
-            rows={10}
-            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
-            showGridlines
-            stripedRows
-            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-          >
-            {colunasEmpresas.map(coluna => (
-              <Column
-                key={coluna.field}
-                field={coluna.field}
-                header={coluna.header}
-                body={coluna.body}
-                footer={coluna.footer}
-                sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9' }}
-                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem', border: '1px solid #e9e9e9' }}
+        <div className="panel">
+          <div className="panel-hdr">
+            <h2>Lista de Empresas</h2>
+          </div>
+          <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+            <HeaderTable
+              globalFilterValue={globalFilterValue}
+              onGlobalFilterChange={onGlobalFilterChange}
+              handlePrint={handlePrint}
+              exportToExcel={exportToExcel}
+              exportToPDF={exportToPDF}
+            />
+          </div>
+          <div className="card" ref={dataTableRef}>
+            <DataTable
+              title="Lista de Empresas"
+              value={dados}
+              globalFilter={globalFilterValue}
+              size={size}
+              sortOrder={-1}
+              paginator={true}
+              rows={10}
+              rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+              currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+              filterDisplay="menu"
+              showGridlines
+              stripedRows
+              emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+            >
+              {colunasEmpresas.map(coluna => (
+                <Column
+                  key={coluna.field}
+                  field={coluna.field}
+                  header={coluna.header}
+                  body={coluna.body}
+                  footer={coluna.footer}
+                  sortable={coluna.sortable}
+                  headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9' }}
+                  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                  bodyStyle={{ fontSize: '1rem', border: '1px solid #e9e9e9' }}
 
-              />
-            ))}
-          </DataTable>
+                />
+              ))}
+            </DataTable>
+          </div>
         </div>
-      </div>
 
-      )}
+        )}
 
 
       <InformaticaActionUpdateEmpresaModal
@@ -316,6 +320,9 @@ export const ActionListaEmpresas = ({ dadosEmpresas }) => {
       {actionListaCaixaVisivel && (
         <InformaticaActionListCaixa
           dadosListaCaixa={dadosListaCaixa}
+          setActionVisivel={setActionVisivel}
+          setTabelaVisivel={setTabelaVisivel}
+          setActionListaCaixaVisivel={setActionListaCaixaVisivel}
         />
 
       )}

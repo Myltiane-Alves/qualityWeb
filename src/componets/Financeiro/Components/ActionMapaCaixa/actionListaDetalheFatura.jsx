@@ -1,22 +1,24 @@
 import { Fragment } from "react"
 import { formatMoeda } from "../../../../utils/formatMoeda"
+import { toFloat } from "../../../../utils/toFloat";
 
 
 export const ActionListaDetalheFatura = ({ dadosDetalheFatura }) => {
-  const dados = Array.isArray(dadosDetalheFatura) ? dadosDetalheFatura.map((item, index) => {
-
+  const dados = dadosDetalheFatura.map((item, index) => {
+    
     return {
       
-      VRRECEBIDO: item.VRRECEBIDO,
+      VRRECEBIDO: toFloat(item.VRRECEBIDO),
     
     }
-  }) : [];
+  });
 
   const calcularTotalFaturas = () => {
     let total = 0;
     for(let resultado of dados) {
-      total += parseFloat(resultado.VRRECEBIDO); 
+      total += toFloat(resultado.VRRECEBIDO); 
     }
+    console.log(total, 'total')
     return total;
   }
   return (

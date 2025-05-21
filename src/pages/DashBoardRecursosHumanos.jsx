@@ -5,13 +5,17 @@ import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
+import { get } from "../api/funcRequest";
+import { useQuery } from "react-query";
 
 const ActionPesquisaFuncionarios = lazy(() => import("../componets/Informatica/Components/ActionFuncionarios/actionPesquisaFuncionarios").then(module => ({ default: module.ActionPesquisaFuncionarios })));
 
 export const DashBoardRecursosHumanos = ({}) => {
   const [actionVisivel, setActionVisivel] = useState(true);
   const [usuarioLogado, setUsuarioLogado] = useState(null);
-
+   const storedModule = localStorage.getItem('moduloselecionado');
+    const selectedModule = JSON.parse(storedModule);
+ 
   const [componentToShow, setComponentToShow] = useState("");
   const navigate = useNavigate();
 
@@ -38,6 +42,15 @@ export const DashBoardRecursosHumanos = ({}) => {
 
   }, [usuarioLogado]);
 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
 
   let component = null;
 
@@ -64,7 +77,7 @@ export const DashBoardRecursosHumanos = ({}) => {
             handleShowComponent={handleShowComponent}
           />
           <div className="page-content-wrapper">
-            <HeaderMain />
+            <HeaderMain optionsModulos={optionsModulos}/>
 
             <main id="js-page-content" role="main" className="page-content">
               <div className="row">

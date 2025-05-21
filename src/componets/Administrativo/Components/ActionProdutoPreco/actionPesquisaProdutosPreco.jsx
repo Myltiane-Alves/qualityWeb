@@ -93,14 +93,15 @@ export const ActionPesquisaProdutosPreco = () => {
   };
 
   const { data: dadosProdutosSap = [], error: erroQuebra, isLoading: isLoadingQuebra, refetch: refetchProdutoSap } = useQuery(
-    '/produto-preco-novo',
+    '/produto-preco',
     () => fetchProdutoSap(empresaSelecionada, codBarra, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
+  
   const fetchProdutosQuality = async () => {
     try {
       
-      const urlApi = `produtoQuality?descricaoProduto=${codBarra}&idEmpresa=${empresaSelecionada}`;
+      const urlApi = `produtoQuality?codBarrasOuNome=${codBarra}&idEmpresa=${empresaSelecionada}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -161,7 +162,7 @@ export const ActionPesquisaProdutosPreco = () => {
 
   const handleClickSap = () => {
     setIsLoading(true);
-    setCurrentPage(prevPage => prevPage + 1);
+    setCurrentPage( + 1);
     refetchProdutoSap();
     setTabelaSapVisivel(true);
     setTabelaQualityVisivel(false);
@@ -170,7 +171,7 @@ export const ActionPesquisaProdutosPreco = () => {
 
   const handleClickQuality = () => {
     setIsLoading(true);
-    setCurrentPage(prevPage => prevPage + 1);
+    setCurrentPage( + 1);
     refetchProdutosQuality(empresaSelecionada)
     setTabelaQualityVisivel(true);
     setTabelaSapVisivel(false);
@@ -204,7 +205,7 @@ export const ActionPesquisaProdutosPreco = () => {
           { value: '', label: 'Selecione uma Marca' },          
           ...optionsMarcas.map((empresa) => ({
           value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.DSGRUPOEMPRESARIAL,
+          label: empresa.GRUPOEMPRESARIAL,
 
           }))
         ]}

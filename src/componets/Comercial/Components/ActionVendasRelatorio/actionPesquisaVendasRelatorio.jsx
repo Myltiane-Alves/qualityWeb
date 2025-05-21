@@ -13,10 +13,13 @@ import { ActionListaCustosLoja } from "./actionListaCustosLoja";
 import { ActionListaPosicionamentoEstoque } from "./actionListaPosicionamentoEstoque";
 import { ActionListaProdutoMaisVendido } from "./actionListaProdutoMaisVendido";
 import { ActionListaVendasPorVendedor } from "./actionListaVendasPorVendedor";
-import { ActionListaVendasPorEstrutura } from "./actionListaVendasPorEstrutura";
+import { ActionListaPorVendasEstrutura } from "./actionListaVendasPorEstrutura";
 import { ActionListaProdutoVendidoColaborador } from "./actionListaProdutoVendidoColaborador";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { useFetchData } from "../../../../hooks/useFetchData";
 
-export const ActionPesquisaVendasRelatorio  = () => {
+export const ActionPesquisaVendasRelatorio = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [tabelaVisivelProdutosMaisVendidos, setTabelaVisivelProdutosMaisVendidos] = useState(false);
   const [tabelaVisivelVendasVendedor, setTabelaVisivelVendasVendedor] = useState(false);
@@ -25,274 +28,341 @@ export const ActionPesquisaVendasRelatorio  = () => {
   const [tabelaVisivelColaborador, setTabelaVisivelColaborador] = useState(false);
   const [clickContador, setClickContador] = useState(0);
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
-  const [marcaSelecionada, setMarcaSelecionada] = useState([])
-  const [marcaProdutoSelecionada, setMarcaProdutoSelecionada] = useState([])
-  const [grupoSelecionado, setGrupoSelecionado] = useState([])
-  const [subGrupoSelecionado, setSubGrupoSelecionado] = useState([])
-  const [fornecedorSelecionado, setFornecedorSelecionado] = useState([])
+  const [marcaSelecionada, setMarcaSelecionada] = useState('')
+  const [marcaProdutoSelecionada, setMarcaProdutoSelecionada] = useState('')
+  const [grupoSelecionado, setGrupoSelecionado] = useState('')
+  const [subGrupoSelecionado, setSubGrupoSelecionado] = useState('')
+  const [fornecedorSelecionado, setFornecedorSelecionado] = useState('')
   const [funcionarioSelecionado, setFuncionarioSelecionado] = useState('')
   const [produtoPesquisado, setProdutoPesquisado] = useState('')
-  const [optionsEmpresas, setOptionsEmpresas] = useState([])
-  const [optionsMarcas, setOptionsMarcas] = useState([])
-  const [dadosGrupos, setDadosGrupos] = useState([])
-  const [dadosSubGrupos, setDadosSubGrupos] = useState([])
-  const [dadosFornecedor, setDadosFornecedor] = useState([])
-  const [dadosColaborador, setDadosColaborador] = useState([])
-  const [dadosMarcaProduto, setDadosMarcaProduto] = useState([])
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [ufSelecionado, setUFSelecionado] = useState([]);
   const [descricaoProduto, setDescricaoProduto] = useState('');
-  const [dadosCustosLojas, setDadosCustosLojas] = useState([]);
-  const [dadosProdutosMaisVendiddos, setDadosProdutosMaisVendiddos] = useState([]);
-  const [dadosVendasVendedor, setDadosVendasVendedor] = useState([]);
-  const [dadosVendasEstrutura, setDadosVendasEstrutura] = useState([]);
-  const [dadosEstoqueVendasPosicionamento, setDadosEstoqueVendasPosicionamento] = useState([]);
-  const [dadosColaboradorProdutosVendidos, setDadosColaboradorProdutosVendidos] = useState([]);
-
-  const [totalRecords, setTotalRecords] = useState(0);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
   useEffect(() => {
     const dataInicial = getDataAtual();
     const dataFinal = getDataAtual();
     setDataPesquisaInicio(dataInicial);
     setDataPesquisaFim(dataFinal);
-    if(getListaMarca) {
-      getListaEmpresas(marcaSelecionada);
+  }, []);
 
-    }
-    getListaMarca();
-    getListaGrupo();
-    getListaSubGrupos();
-    getListaFornecedor();
-    getListaColaboradores();
-    getListaMarcaProduto();
-  }, [marcaSelecionada]);
+  const { data: dadosMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', `/marcasLista`);
+  const { data: dadosEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas } = useFetchData('listaEmpresaComercial', `/listaEmpresaComercial?idMarca=${marcaSelecionada}`);
+  const { data: dadosGrupos = [], error: errorGrupo, isLoading: isLoadingGrupo } = useFetchData('grupo-produto', `/grupo-produto`);
+  const { data: dadosSubGrupos = [], error: errorSubGrupo, isLoading: isLoadingSubGrupo } = useFetchData('subgrupo-produto', `/subgrupo-produto?idGrupo=${grupoSelecionado}`);
+  const { data: dadosFornecedor = [], error: errorFornecedor, isLoading: isLoadingFornecedor } = useFetchData('lista-fornecedor-produto', `/lista-fornecedor-produto`);
+  const { data: dadosColaborador = [], error: errorColaborador, isLoading: isLoadingColaborador } = useFetchData('funcionario-relatorio', `/funcionario-relatorio?idEmpresa=${empresaSelecionada}`);
+  const { data: dadosMarcaProduto = [], error: errorMarcaProduto, isLoading: isLoadingMarcaProduto } = useFetchData('lista-marca-produto', `/lista-marca-produto?idSubGrupo=${subGrupoSelecionado}`);
 
-  const getListaMarca = async () => {
+
+  const fetchVendasCustoLojas = async () => {
     try {
-      const response = await get(`/marcasLista`,)
-      if (response.data) {
-        setOptionsMarcas(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar marcas: ', error)
-    }
-  }
 
-  const getListaEmpresas = async () => {
-    if(marcaSelecionada) {
+      const urlApi = `/custo-por-loja?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idGrupoEmpresarial=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&descricaoProduto=${descricaoProduto}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarcaProduto=${produtoPesquisado}`;
+      const response = await get(urlApi);
 
-      try {
-        const response = await get(`/listaEmpresaComercial?idMarca=${marcaSelecionada}`);
-        if (response.data && response.data.length > 0) {
-          setOptionsEmpresas(response.data);
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
         }
+
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
         return response.data;
-      } catch (error) {
-  
       }
-    }
-  }
-
-  const getListaGrupo = async () => {
-    try {
-      const response = await get(`/listaGrupoProduto`)
-      if (response.data) { 
-        setDadosGrupos(response.data)
-      }
-      return response.data;
 
     } catch (error) {
-      console.log('Erro ao buscar grupos: ', error)
-    }
-    
-  }
-
-  const getListaSubGrupos = async () => {
-    try {
-      const response = await get(`/listaSubGrupoProduto?idGrupo=${grupoSelecionado}`)
-      if (response.data) { 
-        setDadosSubGrupos(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar sub grupos: ', error)
-    }
-    
-  }
-
-  const getListaFornecedor = async (marcaSelecionada = '') => {
-    try {
-      const response = await get(`/listaFornecedorProduto?idMarca=`)
-      if (response.data) { 
-        setDadosFornecedor(response.data)
-      }
-      return response.data;
-
-    } catch (error) {
-      console.log('Erro ao buscar lista de fornecedores: ', error)
-    }
-  }
-
-  const getListaColaboradores = async (empresaSelecionada = '') => {
-    try {
-      const response = await get(`/funcionarioRelatorio?idEmpresa=${empresaSelecionada}`)
-      if (response.data) { 
-        setDadosColaborador(response.data)
-      }
-      return response.data;
-
-    } catch (error) {
-      console.log('Erro ao buscar lista de colaboradores: ', error)
-    }
-  }
-
-  const getListaMarcaProduto = async (subGrupoSelecionado = '') => {
-    try {
-      const response = await get(`/listaMarcaProduto?idSubGrupo=${subGrupoSelecionado}`)
-      if (response.data) { 
-        setDadosMarcaProduto(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar marcas de produtos: ', error)
-    }
-  }
-
-  const getListaVendasCustoLojas = async (page, pageSize, empresaSelecionada = '') => {
-    const startIndex = page * pageSize;
-    
-    try {
-      dataFormatada(dataPesquisaInicio)
-      dataFormatada(dataPesquisaFim)
-
-      const response = await get(`/custoPorLoja?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idGrupoEmpresarial=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&descricaoProduto=${descricaoProduto}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarcaProduto=${produtoPesquisado}`)
-      if (response.data) {
-        setDadosCustosLojas(response.data);
-        setTotalRecords(response.data.length);
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar vendas por custo de lojas: ', error)
-    }
-  }
-
-  const getListaProdutosMaisVendidos = async (
-    fornecedorSelecionado = '',
-    grupoSelecionado = '',
-    subGrupoSelecionado = '',
-    marcaSelecionada = ''
-  ) => {
-
-    try {
-      // dataInicio=${dataPesquisaInicio}&dataFim=${dataPesquisaFim}&idGrupoEmpresarial=${idGrupoEmpresarial}&idEmpresa=${idLojaPesquisaVenda}&descricaoProduto=${descricaoProduto}&uf=${ufPesquisa}&idFornecedor=${idFornecedor}&idGrupoGrade=${idGrupo}&idGrade=${idGrade}&idMarcaProduto=${idMarca}
-      const response = await get(`/produtosMaisVendidos?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idGrupoEmpresarial=${grupoSelecionado}&idLojaPesquisaVenda=${empresaSelecionada}&descricaoProduto=${produtoPesquisado}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarca=${marcaSelecionada}`)
-      if (response.data) {
-        setDadosProdutosMaisVendiddos(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-  
-  }
-
-  const getListaVendasVendedor = async (
-
-    fornecedorSelecionado = '',
-    grupoSelecionado = '',
-    subGrupoSelecionado = '',
-    marcaSelecionada = ''
-  ) => {
-    
-    try {
-      const response = await get(`/vendasVendedorEstrutura?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLojaPesquisaVenda=${empresaSelecionada}&descricaoProduto=${produtoPesquisado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarca=${marcaSelecionada}`)
-      if (response.data) {
-        setDadosVendasVendedor(response.data)
-       
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-    
-  }
-
-  const getListaVendasEstrutura = async (
-    fornecedorSelecionado = '',
-    grupoSelecionado = '',
-    subGrupoSelecionado = '',
-    marcaSelecionada = ''
-  ) => {
-
-    try {
-      const response = await get(`/vendasPorEstrutura?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLojaPesquisaVenda=${empresaSelecionada}&descricaoProduto=${produtoPesquisado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarca=${marcaSelecionada}`)
-      if (response.data) {
-        setDadosVendasEstrutura(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar vendas estruturas: ', error)
-    }
-    
-  }
-
-  const getListaVendasPosicionamentoEstoque = async () => {
-    try {
-      const response = await get(`/vendasPosicionamentoEstoque?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&descricaoProduto=${produtoPesquisado}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarcaProduto=${marcaProdutoSelecionada}`)
-      if (response.data) {
-        setDadosEstoqueVendasPosicionamento(response.data)
-        console.log('response.data: ', response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-  }
-
-  const getListaColaboradorProdutosVendidos = async () => {
-    try {
-      // colaborador-produtos-vendidos.xsjs?page=&dataInicio=${dataPesquisaInicio}&dataFim=${dataPesquisaFim}&idGrupoEmpresarial=${idMarca}&idEmpresa=${idEmpresa}&descricaoProduto=${descricaoProduto}&uf=${ufPesquisa}&idFornecedor=${idFornecedor}&idGrupoGrade=${idGrupo}&idGrade=${idGrade}&idMarcaProduto=${idMarcaProduto}&idFunc=${idFuncionario}
-      const response = await get(`/colaboradorProdutosVendidos?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&descricaoProduto=${produtoPesquisado}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarcaProduto=${marcaProdutoSelecionada}&idFuncionario=${funcionarioSelecionado}`)
-      if (response.data) {
-        setDadosColaboradorProdutosVendidos(response.data)
-        console.log('response.data: ', response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar dados colaboradores produtos vendidos: ', error)
-    }
-  }
-
-  const handleSelectMarca = (e) => {
-    const selectedId = Number(e.value);
-   
-    if (!isNaN(selectedId)) {
-      setMarcaSelecionada(selectedId);
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
   };
 
+  const { data: dadosCustosLojas = [], error: erroVendasCusto, isLoading: isLoadingVendasCusto, refetch: refetchVendasCustoLojas } = useQuery(
+    'custo-por-loja',
+    () => fetchVendasCustoLojas(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, produtoPesquisado, fornecedorSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, currentPage, pageSize),
+    { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  );
+
+  const fetchVendasVendedor = async () => {
+    try {
+
+      const urlApi = `/vendas-vendedor-estrutura?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idEmpresa=${empresaSelecionada}&descricaoProduto=${produtoPesquisado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarca=${marcaSelecionada}`;
+      const response = await get(urlApi);
+
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
+        return response.data;
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
+    }
+  };
+
+  const { data: dadosVendasVendedor = [], error: erroVendasVendedor, isLoading: isLoadingVendasVendedor, refetch: refetchVendasVendedor } = useQuery(
+    'vendas-vendedor-estrutura',
+    () => fetchVendasVendedor(usuarioLogado.IDEMPRESA, dataPesquisaInicio, dataPesquisaFim, codProduto, fornecedorSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, currentPage, pageSize),
+    { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  );
+
+  const fetchVendasEstrutura = async () => {
+    try {
+
+      const urlApi = `/vendas-por-estrutura?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idEmpresa=${empresaSelecionada}&descricaoProduto=${produtoPesquisado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idSubGrupo=${subGrupoSelecionado}&idMarcaProduto=${marcaSelecionada}`;
+      const response = await get(urlApi);
+
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
+        async function fetchNextPage(page) {
+          try {
+            page++;
+            const responseNextPage = await get(`${urlApi}&page=${page}`);
+            if (responseNextPage.data.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(page);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
+        return response.data;
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
+    }
+  };
+
+  const { data: dadosVendasEstrutura = [], error: erroVendasEstrutura, isLoading: isLoadingVendasEstrutura, refetch: refetchVendasEstrutura } = useQuery(
+    'vendas-por-estrutura',
+    () => fetchVendasEstrutura(usuarioLogado.IDEMPRESA, dataPesquisaInicio, dataPesquisaFim, produtoPesquisado, fornecedorSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, currentPage, pageSize),
+    { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  );
+
+  const fetchVendasEstoque = async () => {
+    try {
+
+      const urlApi = `/vendas-posicionamento-estoque?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&descricaoProduto=${produtoPesquisado}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarcaProduto=${marcaProdutoSelecionada}`;
+      const response = await get(urlApi);
+
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
+        async function fetchNextPage(page) {
+          try {
+            page++;
+            const responseNextPage = await get(`${urlApi}&page=${page}`);
+            if (responseNextPage.data.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(page);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
+        return response.data;
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
+    }
+  };
+
+  const { data: dadosEstoqueVendasPosicionamento = [], error: erroVendasEstoque, isLoading: isLoadingVendasEstoque, refetch: refetchVendasEstoque } = useQuery(
+    'vendas-posicionamento-estoque',
+    () => fetchVendasEstoque(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, produtoPesquisado, fornecedorSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, currentPage, pageSize),
+    { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  );
+
+  const fetchVendasColaborador = async () => {
+    try {
+
+      const urlApi = `/colaboradorProdutosVendidos?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&descricaoProduto=${produtoPesquisado}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarcaProduto=${marcaProdutoSelecionada}&idFuncionario=${funcionarioSelecionado}`;
+      const response = await get(urlApi);
+
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
+        async function fetchNextPage(page) {
+          try {
+            page++;
+            const responseNextPage = await get(`${urlApi}&page=${page}`);
+            if (responseNextPage.data.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(page);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
+        return response.data;
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
+    }
+  };
+
+  const { data: dadosColaboradorProdutosVendidos = [], error: erroVendasColaborador, isLoading: isLoadingVendasColaborador, refetch: refetchVendasColaborador } = useQuery(
+    'colaboradorProdutosVendidos',
+    () => fetchVendasColaborador(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, produtoPesquisado, fornecedorSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, currentPage, pageSize),
+    { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  );
+
+  const fetchProdutosMaisVendidos = async () => {
+    try {
+
+      const urlApi = `/produtos-mais-vendidos?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idEmpresa=${empresaSelecionada}&descricaoProduto=${produtoPesquisado}&uf=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idSubGrupo=${subGrupoSelecionado}&idMarca=${marcaSelecionada}`;
+      const response = await get(urlApi);
+
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
+        return response.data;
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
+    }
+  };
+
+  const { data: dadosProdutosMaisVendidos = [], error: erroProdutosMaisVendidos, isLoading: isLoadingProdutosMaisVendidos, refetch: refetchProdutosMaisVendidos } = useQuery(
+    'produtos-mais-vendidos',
+    () => fetchProdutosMaisVendidos(dataPesquisaInicio, dataPesquisaFim, grupoSelecionado, empresaSelecionada, produtoPesquisado, ufSelecionado, fornecedorSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, currentPage, pageSize),
+    { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  );
+
+  const handleSelectMarca = (e) => {
+    setMarcaSelecionada(e.value);
+
+  };
+
   const handleEmpresaChange = (selectedOptions) => {
-   
+
     const values = selectedOptions.map((option) => option.value);
     setEmpresaSelecionada(values);
     getListaVendasCustoLojas(values)
 
   }
-  
+
   const handleGrupoChange = (selectedOptions) => {
     const values = selectedOptions.map((option) => option.value);
     setGrupoSelecionado(values);
   }
- 
+
   const handleSubGrupoChange = (selectedOptions) => {
     const values = selectedOptions.map((option) => option.value);
     setSubGrupoSelecionado(values);
   }
-  
+
   const handleFornecedorChange = (selectedOptions) => {
     const values = selectedOptions.map((option) => option.value);
     setFornecedorSelecionado(values);
@@ -301,7 +371,6 @@ export const ActionPesquisaVendasRelatorio  = () => {
   const handleFuncionarioChange = (selectedOptions) => {
     const values = selectedOptions.map((option) => option.value);
     setFuncionarioSelecionado(values);
-    console.log('funcionarioSelecionado: ', funcionarioSelecionado)
   }
 
   const handleChangeMarcaProduto = (selectedOptions) => {
@@ -316,82 +385,74 @@ export const ActionPesquisaVendasRelatorio  = () => {
 
 
   const handleClick = () => {
-    
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchVendasCustoLojas()
     setTabelaVisivel(true)
     setTabelaVisivelProdutosMaisVendidos(false)
     setTabelaVisivelVendasVendedor(false)
     setTabelaVisivelVendasEstrutura(false)
     setTabelaVisivelEstoqueVendasPosicionamento(false)
     setTabelaVisivelColaborador(false)
-    getListaVendasCustoLojas()
-    
 
   }
 
   const hancleClickProdutosMaisVendidos = () => {
-    setClickContador(prevContador => prevContador + 1);
-    if(clickContador % 2 === 0) {
-      setTabelaVisivelProdutosMaisVendidos(true)
-      setTabelaVisivel(false)
-      setTabelaVisivelVendasVendedor(false)
-      setTabelaVisivelVendasEstrutura(false)
-      setTabelaVisivelEstoqueVendasPosicionamento(false)
-      setTabelaVisivelColaborador(false)
-      getListaProdutosMaisVendidos()
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchProdutosMaisVendidos()
+    setTabelaVisivelProdutosMaisVendidos(true)
+    setTabelaVisivel(false)
+    setTabelaVisivelVendasVendedor(false)
+    setTabelaVisivelVendasEstrutura(false)
+    setTabelaVisivelEstoqueVendasPosicionamento(false)
+    setTabelaVisivelColaborador(false)
+    
   }
 
   const handleClickVendasVendedor = () => {
-    setClickContador(prevContador => prevContador + 1);
-    if(clickContador % 2 === 0) {
-      setTabelaVisivelVendasVendedor(true)
-      setTabelaVisivel(false)
-      setTabelaVisivelProdutosMaisVendidos(false)
-      setTabelaVisivelVendasEstrutura(false)
-      setTabelaVisivelEstoqueVendasPosicionamento(false)
-      setTabelaVisivelColaborador(false)
-      getListaVendasVendedor()
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchVendasVendedor()
+    setTabelaVisivelVendasVendedor(true)
+    setTabelaVisivel(false)
+    setTabelaVisivelProdutosMaisVendidos(false)
+    setTabelaVisivelVendasEstrutura(false)
+    setTabelaVisivelEstoqueVendasPosicionamento(false)
+    setTabelaVisivelColaborador(false)
   }
 
   const handleClickVendasEstrutura = () => {
-    setClickContador(prevContador => prevContador + 1);
-    if(clickContador % 2 === 0) {
-      setTabelaVisivelVendasEstrutura(true)
-      setTabelaVisivelVendasVendedor(false)
-      setTabelaVisivel(false)
-      setTabelaVisivelProdutosMaisVendidos(false)
-      setTabelaVisivelEstoqueVendasPosicionamento(false)
-      setTabelaVisivelColaborador(false)
-      getListaVendasEstrutura()
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchVendasEstrutura()
+    setTabelaVisivelVendasEstrutura(true)
+    setTabelaVisivelVendasVendedor(false)
+    setTabelaVisivel(false)
+    setTabelaVisivelProdutosMaisVendidos(false)
+    setTabelaVisivelEstoqueVendasPosicionamento(false)
+    setTabelaVisivelColaborador(false)
+    
   }
 
 
   const handleClickVendasPosicionamentoEstoque = () => {
-    setClickContador(prevContador => prevContador + 1);
-    if(clickContador % 2 === 0) {
-      setTabelaVisivelEstoqueVendasPosicionamento(true)
-      setTabelaVisivelVendasVendedor(false)
-      setTabelaVisivel(false)
-      setTabelaVisivelProdutosMaisVendidos(false)
-      setTabelaVisivelVendasEstrutura(false)
-      setTabelaVisivelColaborador(false)
-      getListaVendasPosicionamentoEstoque()
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchVendasEstoque()
+    setTabelaVisivelEstoqueVendasPosicionamento(true)
+    setTabelaVisivelVendasVendedor(false)
+    setTabelaVisivel(false)
+    setTabelaVisivelProdutosMaisVendidos(false)
+    setTabelaVisivelVendasEstrutura(false)
+    setTabelaVisivelColaborador(false)
+    
   }
 
   const handleClickColaboradorProdutosVendidos = () => {
-    setClickContador(prevContador => prevContador + 1);
-    if(clickContador % 2 === 0) {
-      setTabelaVisivelColaborador(true)
-      setTabelaVisivel(false)
-      setTabelaVisivelVendasVendedor(false)
-      setTabelaVisivelVendasEstrutura(false)
-      setTabelaVisivelEstoqueVendasPosicionamento(false)
-      setTabelaVisivelProdutosMaisVendidos(false)
-      getListaColaboradorProdutosVendidos(funcionarioSelecionado)
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchVendasColaborador()
+    setTabelaVisivelColaborador(true)
+    setTabelaVisivel(false)
+    setTabelaVisivelVendasVendedor(false)
+    setTabelaVisivelVendasEstrutura(false)
+    setTabelaVisivelEstoqueVendasPosicionamento(false)
+    setTabelaVisivelProdutosMaisVendidos(false)
   }
 
   const optionsUF = [
@@ -418,15 +479,15 @@ export const ActionPesquisaVendasRelatorio  = () => {
         InputFieldDTFimComponent={InputField}
         labelInputFieldDTFim={"Data Fim"}
         valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)} 
-       
+        onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
+
 
         MultSelectFornecedorComponent={MultSelectAction}
         optionsMultSelectFornecedor={[
-          {value: '', label: 'Selecione um Fornecedor'},
+          { value: '', label: 'Selecione um Fornecedor' },
           ...dadosFornecedor.map((fornecedor) => ({
-          value: fornecedor.ID_FORNECEDOR,
-          label: `${fornecedor.ID_FORNECEDOR} ${fornecedor.FORNECEDOR}`,
+            value: fornecedor.ID_FORNECEDOR,
+            label: `${fornecedor.ID_FORNECEDOR} ${fornecedor.FORNECEDOR}`,
           }))
         ]}
         labelMultSelectFornecedor={"Por Fornecedor"}
@@ -443,7 +504,7 @@ export const ActionPesquisaVendasRelatorio  = () => {
         optionsSelectUF={optionsUF.map((item) => ({
           value: item.value,
           label: item.label,
-        }))}   
+        }))}
         labelSelectUF={"UF"}
         valueSelectUF={ufSelecionado}
         onChangeSelectUF={handleSelectUF}
@@ -452,21 +513,21 @@ export const ActionPesquisaVendasRelatorio  = () => {
         InputSelectMarcasComponent={InputSelectAction}
         labelSelectMarcas={"Por Marca"}
         optionsMarcas={[
-          { value: null, label: 'Selecione uma Marca' },          
-          ...optionsMarcas.map((empresa) => ({
-          value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.DSGRUPOEMPRESARIAL,
+          { value: '', label: 'Selecione uma Marca' },
+          ...dadosMarcas.map((empresa) => ({
+            value: empresa.IDGRUPOEMPRESARIAL,
+            label: empresa.GRUPOEMPRESARIAL,
 
           }))
         ]}
         valueSelectMarcas={marcaSelecionada}
         onChangeSelectMarcas={handleSelectMarca}
 
-  
+
         MultSelectEmpresaComponent={MultSelectAction}
         optionsMultSelectEmpresa={[
-          { value: null, label: 'Selecione uma loja' },
-            ...optionsEmpresas.map((empresa) => ({
+          { value: '', label: 'Selecione uma loja' },
+          ...dadosEmpresas.map((empresa) => ({
             value: empresa.IDEMPRESA,
             label: empresa.NOFANTASIA,
           }))
@@ -477,7 +538,7 @@ export const ActionPesquisaVendasRelatorio  = () => {
 
         MultSelectGrupoComponent={MultSelectAction}
         optionsMultSelectGrupo={[
-          {value: '', label: 'Selecione um Grupo'},
+          { value: '', label: 'Selecione um Grupo' },
           ...dadosGrupos.map((item) => ({
             value: item.ID_GRUPO,
             label: item.GRUPO,
@@ -490,7 +551,7 @@ export const ActionPesquisaVendasRelatorio  = () => {
 
         MultSelectSubGrupoComponent={MultSelectAction}
         optionsMultSelectSubGrupo={[
-          {value: '', label: 'Selecione um SubGrupo'},
+          { value: '', label: 'Selecione um SubGrupo' },
           ...dadosSubGrupos.map((item) => ({
             value: item.ID_GRUPO,
             label: item.ESTRUTURA,
@@ -515,7 +576,7 @@ export const ActionPesquisaVendasRelatorio  = () => {
         MultSelectFuncionarioComponent={MultSelectAction}
         labelMultSelectFuncionario={"Funcionário"}
         optionsMultSelectFuncionario={[
-          {value: '', label: 'Selecione um Funcionário'},
+          { value: '', label: 'Selecione um Funcionário' },
           ...dadosColaborador.map((item) => ({
             value: item.IDFUNCIONARIO,
             label: item.NOFUNCIONARIO,
@@ -562,12 +623,12 @@ export const ActionPesquisaVendasRelatorio  = () => {
         corProdutoVendido={"warning"}
       />
 
-      {tabelaVisivel && ( 
+      {tabelaVisivel && (
         <ActionListaCustosLoja dadosCustosLojas={dadosCustosLojas} />
       )}
 
       {tabelaVisivelProdutosMaisVendidos && (
-        <ActionListaProdutoMaisVendido dadosProdutosMaisVendiddos={dadosProdutosMaisVendiddos} />
+        <ActionListaProdutoMaisVendido dadosProdutosMaisVendidos={dadosProdutosMaisVendidos} />
       )}
 
       {tabelaVisivelVendasVendedor && (
@@ -575,7 +636,7 @@ export const ActionPesquisaVendasRelatorio  = () => {
       )}
 
       {tabelaVisivelVendasEstrutura && (
-        <ActionListaVendasPorEstrutura dadosVendasEstrutura={dadosVendasEstrutura} />
+        <ActionListaPorVendasEstrutura dadosVendasEstrutura={dadosVendasEstrutura} />
       )}
       {tabelaVisivelEstoqueVendasPosicionamento && (
         <ActionListaPosicionamentoEstoque dadosEstoqueVendasPosicionamento={dadosEstoqueVendasPosicionamento} />

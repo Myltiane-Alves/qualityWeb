@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { HeadTitleComponent } from "../HeadTitle";
 import { ButtonType } from "../Buttons/ButtonType";
 
+
 export const ActionMainNovoPedido = ({
   title,
   subTitle,
@@ -21,6 +22,9 @@ export const ActionMainNovoPedido = ({
   InputFieldDescontoComponent3,
   InputFieldTotalLiq,
   InputFieldComissao,
+  InputFieldComprador,
+                          
+                       
 
 
   labelInputDTInicio,
@@ -34,6 +38,8 @@ export const ActionMainNovoPedido = ({
   labelInputFieldDesconto3,
   labelInputFieldTotalLiq,
   labelInputFieldComissao,
+  labelInputFieldComprador,  
+                          
 
   valueInputFieldDTInicio,
   valueInputFieldDTFim,
@@ -46,6 +52,8 @@ export const ActionMainNovoPedido = ({
   valueInputFieldDesconto3,
   valueInputFieldTotalLiq,
   valueInputFieldComissao,
+  valueInputFieldComprador,
+                          
 
   onChangeInputFieldDTInicio,
   onChangeInputFieldDTFim,
@@ -58,6 +66,7 @@ export const ActionMainNovoPedido = ({
   onChangeInputFieldDesconto3,
   onChangeInputFieldTotalLiq,
   onChangeInputFieldComissao,
+  onChangeInputFieldComprador,
 
 
   InputSelectCompradorComponent,
@@ -114,25 +123,69 @@ export const ActionMainNovoPedido = ({
   onChangeSelectTransportadora,
   onChangeSelectFrete,
 
+
   ButtonSearchComponent,
   ButtonTypeCadastro,
   ButtonTypeCancelar,
+  ButtonTypePedido,
+  ButtonTypeTXT,
 
   linkNomeSearch,
   linkNome,
   linkCancelar,
+  linkPedido,
+  linkTXT,
 
   onButtonClickSearch,
   onButtonClickCadastro,
   onButtonClickCancelar,
+  onButtonClickPedido,
+  onButtonClickTXT,
 
   corSearch,
   corCadastro,
   corCancelar,
+  corPedido,
+  corTXT,
 
   IconSearch,
   IconCadastro,
-  IconCancelar
+  IconCancelar,
+  IconPedido,
+  IconTXT,
+
+  readOnlyDTInicio,
+  readOnlyDTFim,
+  readOnlyMarcas,
+  readOnlyFornecedor,
+  readOnlyFiscal,
+  readOnlyEnviar,
+  readOnlyCondicoesPagamentos,
+  readOnlyObsFornecedor,
+  readOnlyObsInterna,
+  readOnlyTipoPedido,
+  readOnlyVendedor,
+  readOnlyEmailVendedor,
+  readOnlyDesconto1,
+  readOnlyDesconto2,
+  readOnlyDesconto3,
+  readOnlyTotalLiq,
+  readOnlyComissao,
+  readOnlyTransportadora,
+  readOnlyFrete,
+  readOnlyComprador,
+
+  defaultValueSelectComprador,
+  defaultValueSelectMarca,
+  defaultValueSelectFornecedor,
+  defaultValueSelectFiscal,
+  defaultValueSelectEnviar,
+  defaultValueSelectCondicoesPagamentos,
+  defaultValueSelectTipoPedido,
+  defaultValueSelectTransportadora,
+  defaultValueSelectFrete,
+ 
+
 }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -166,7 +219,7 @@ export const ActionMainNovoPedido = ({
                           name="dtconsultainicio"
                           value={valueInputFieldDTInicio}
                           onChange={onChangeInputFieldDTInicio}
-
+                          readOnly={readOnlyDTInicio}
                         />
                       )}
                     </div>
@@ -176,7 +229,7 @@ export const ActionMainNovoPedido = ({
                           label={labelInputDTFim}
                           type="date"
                           id={id}
-                          name="dtconsultafim"
+                          readOnly={readOnlyDTFim}
                           value={valueInputFieldDTFim}
                           onChange={onChangeInputFieldDTFim}
                         />
@@ -186,24 +239,36 @@ export const ActionMainNovoPedido = ({
                       {InputSelectCompradorComponent && (
                         <InputSelectCompradorComponent
                           label={labelSelectComprador}
-                          nome="idloja"
+                          readOnly={readOnlyComprador}
                           id={id}
                           options={optionsCompradores}
-                          defaultValue={valueSelectComprador}
+                          defaultValue={defaultValueSelectComprador}
                           onChange={onChangeSelectComprador}
                         />
                       )}
+
+                      {InputFieldComprador && (
+                        <InputFieldComprador
+                          label={labelInputFieldComprador}
+                          type="text"
+                          id={id}
+                          value={valueInputFieldComprador}
+                          onChange={onChangeInputFieldComprador}
+                          readOnly={readOnlyComprador}
+                        />
+                      )}
                     </div>
+                
                     <div className="col-sm-6 col-xl-3 mt-2">
                       {InputSelectMarcasComponent && (
                         <InputSelectMarcasComponent
                           label={labelSelectMarcas}
-                          nome="idloja"
+                          readOnly={readOnlyMarcas}
                           id={id}
                           options={optionsMarcas}
                           onChange={onChangeSelectMarcas}
                           value={valueSelectMarca}
-                          defaultValue={valueSelectMarca}
+                          defaultValue={defaultValueSelectMarca}
                           type="select"
                         />
                       )}
@@ -217,11 +282,12 @@ export const ActionMainNovoPedido = ({
                       {InputSelectFornecedorComponent && (
                         <InputSelectFornecedorComponent
                           label={labelSelectFornecedor}
-                          nome="Fornecedor"
+                          readOnly={readOnlyFornecedor}
                           id={id}
                           options={optionsFornecedores}
                           onChange={onChangeSelectFornecedor}
                           value={valueSelectFornecedor}
+                          defaultValue={defaultValueSelectFornecedor}
 
                         />
 
@@ -237,6 +303,8 @@ export const ActionMainNovoPedido = ({
                           options={optionsFiscal}
                           onChange={onChangeSelectFiscal}
                           value={valueSelectFiscal}
+                          defaultValue={defaultValueSelectFiscal}
+                          readOnly={readOnlyFiscal}
                         />
 
                       )}
@@ -249,9 +317,11 @@ export const ActionMainNovoPedido = ({
                           label={labelSelectEnviar}
                           type="select"
                           id={id}
+                          readOnly={readOnlyEnviar}
                           options={optionsSelectEnviar}
                           value={valueSelectEnviar}
                           onChange={onChangeSelectEnviar}
+                          defaultValue={defaultValueSelectEnviar}
                         />
                       )}
                     </div>
@@ -268,6 +338,8 @@ export const ActionMainNovoPedido = ({
                           options={optionsCondicoesPagamentos}
                           value={valueSelectCondicoesPagamentos}
                           onChange={onChangeSelectCondicoesPagamentos}
+                          readOnly={readOnlyCondicoesPagamentos}
+                          defaultValue={defaultValueSelectCondicoesPagamentos}
                         />
                       )}
                     </div>
@@ -281,6 +353,8 @@ export const ActionMainNovoPedido = ({
                           id={id}
                           value={valueInputFieldObsFornecedor}
                           onChange={onChangeInputFieldObsFornecedor}
+                          readOnly={readOnlyObsFornecedor}
+
                         />
 
                       )}
@@ -295,6 +369,7 @@ export const ActionMainNovoPedido = ({
                           id={id}
                           value={valueInputFieldObsInterna}
                           onChange={onChangeInputFieldObsInterna}
+                          readOnly={readOnlyObsInterna}
                         />
                       )}
                     </div>
@@ -311,6 +386,8 @@ export const ActionMainNovoPedido = ({
                           options={optionsTipoPedido}
                           value={valueSelectTipoPedido}
                           onChange={onChangeSelectTipoPedido}
+                          readOnly={readOnlyTipoPedido}
+                          defaultValue={defaultValueSelectTipoPedido}
                         />
                       )}
                     </div>
@@ -323,6 +400,7 @@ export const ActionMainNovoPedido = ({
                           id={id}
                           value={valueInputFieldVendedor}
                           onChange={onChangeInputFieldVendedor}
+                          readOnly={readOnlyVendedor}
                         />
                       )}
                     </div>
@@ -335,6 +413,7 @@ export const ActionMainNovoPedido = ({
                           id={id}
                           value={valueInputFieldEmailVendedor}
                           onChange={onChangeInputFieldEmailVendedor}
+                          readOnly={readOnlyEmailVendedor}
                         />
                       )}
                     </div>
@@ -348,7 +427,7 @@ export const ActionMainNovoPedido = ({
                           label={labelInputFieldDesconto1}
                           type="text"
                           id={id}
-
+                          readOnly={readOnlyDesconto1}
                           value={valueInputFieldDesconto1}
                           onChange={onChangeInputFieldDesconto1}
                         />
@@ -361,7 +440,7 @@ export const ActionMainNovoPedido = ({
                           label={labelInputFieldDesconto2}
                           type="text"
                           id={id}
-
+                          readOnly={readOnlyDesconto2}
                           value={valueInputFieldDesconto2}
                           onChange={onChangeInputFieldDesconto2}
                         />
@@ -375,7 +454,7 @@ export const ActionMainNovoPedido = ({
                           label={labelInputFieldDesconto3}
                           type="text"
                           id={id}
-
+                          readOnly={readOnlyDesconto3}
                           value={valueInputFieldDesconto3}
                           onChange={onChangeInputFieldDesconto3}
                         />
@@ -389,7 +468,7 @@ export const ActionMainNovoPedido = ({
                           label={labelInputFieldTotalLiq}
                           type="text"
                           id={id}
-
+                          readOnly={readOnlyTotalLiq}
                           value={valueInputFieldTotalLiq}
                           onChange={onChangeInputFieldTotalLiq}
                         />
@@ -402,7 +481,7 @@ export const ActionMainNovoPedido = ({
                           label={labelInputFieldComissao}
                           type="text"
                           id={id}
-
+                          readOnly={readOnlyComissao}
                           value={valueInputFieldComissao}
                           onChange={onChangeInputFieldComissao}
                         />
@@ -417,9 +496,11 @@ export const ActionMainNovoPedido = ({
                           label={labelSelectTransportadora}
                           nome="idloja"
                           id={id}
+                          readOnly={readOnlyTransportadora}
                           options={optionsSelectTransportadora}
                           value={valueSelectTransportadora}
                           onChange={onChangeSelectTransportadora}
+                          defaultValue={defaultValueSelectTransportadora}
                         />
                       )}
 
@@ -433,9 +514,11 @@ export const ActionMainNovoPedido = ({
                           label={labelSelectFrete}
                           nome="idloja"
                           id={id}
+                          readOnly={readOnlyFrete}
                           options={optionsFrete}
                           value={valueSelectFrete}
                           onChange={onChangeSelectFrete}
+                          defaultValue={defaultValueSelectFrete}
                         />
                       )}
                     </div>
@@ -481,6 +564,32 @@ export const ActionMainNovoPedido = ({
                         iconSize={16}
                       />
                     )}
+                     {ButtonTypePedido && (
+                      <ButtonType
+                        textButton={linkPedido}
+                        onClickButtonType={onButtonClickPedido}
+                        // cor="danger"
+                        cor={corPedido}
+                        tipo="button"
+                        Icon={IconPedido}
+                        iconColor="#fff"
+                        iconSize={16}
+                      />
+                    )}
+                    {ButtonTypeTXT && (
+                      <ButtonType
+                        textButton={linkTXT}
+                        onClickButtonType={onButtonClickTXT}
+                        // cor="danger"
+                        cor={corTXT}
+                        tipo="button"
+                        Icon={IconTXT}
+                        iconColor="#000"
+                        iconSize={16}
+                        style={{color: 'white'}}
+                      />
+                    )}
+
                   </div>
                 </div>
               </div>

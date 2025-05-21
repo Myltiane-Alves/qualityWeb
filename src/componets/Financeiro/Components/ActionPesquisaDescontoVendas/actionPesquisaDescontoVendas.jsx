@@ -19,9 +19,9 @@ export const ActionPesquisaDescontoVendas = () => {
   const [tabelaSimplificada, setTabelaSimplificada] = useState(false);
   const [tabelaDetalhada, setTabelaDetalhada] = useState(false);
   const [tabelaMotivo, setTabelaMotivo] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [descontoSelecionado, setDescontoSelecionado] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
@@ -81,9 +81,9 @@ export const ActionPesquisaDescontoVendas = () => {
   };
 
   const { data: dadosDescontoVendas = [], error: errorDescontoVendas, isLoading: isLoadingDescontoVendas, refetch: refetchDescontoVendas } = useQuery(
-    ['descontoVendas', empresaSelecionada, marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    ['desconto-vendas', empresaSelecionada, marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchDescontoVendas(empresaSelecionada, marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    { enabled: false, staleTime: 5 * 60 * 1000 }
+    { enabled: Boolean(dataPesquisaInicio && dataPesquisaFim), staleTime: 5 * 60 * 1000 }
   );
   
   const fetchDescontoVendasSimplificada = async (empresaSelecionada, marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize) => {
@@ -91,9 +91,10 @@ export const ActionPesquisaDescontoVendas = () => {
 
       const urlApi = `/desconto-vendas-simplificado?idEmpresa=${empresaSelecionada}&idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
-  
+      
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
   
         async function fetchNextPage(currentPage) {
           try {
@@ -117,16 +118,19 @@ export const ActionPesquisaDescontoVendas = () => {
        
         return response.data;
       }
+  
     } catch (error) {
-      console.error('Erro ao buscar dados:', error);
+      console.error('Error fetching data:', error);
       throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
   };
 
   const { data: dadosDescontoVendasSimplificado = [], error: errorDescontoVendasSimplificada, isLoading: isLoadingDescontoVendasSimplificada, refetch: refetchDescontoVendasSimplificada } = useQuery(
     ['descontoVendasSimplificado', marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchDescontoVendasSimplificada(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    { enabled: false, staleTime: 5 * 60 * 1000 }
+    { enabled: Boolean(dataPesquisaInicio && dataPesquisaFim), staleTime: 5 * 60 * 1000 }
   );
 
   const fetchDescontoMotivoVendas = async () => {
@@ -134,9 +138,10 @@ export const ActionPesquisaDescontoVendas = () => {
 
       const urlApi = `/descontoMotivoVendas?idEmpresa=${empresaSelecionada}&idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
-  
+      
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
   
         async function fetchNextPage(currentPage) {
           try {
@@ -160,24 +165,26 @@ export const ActionPesquisaDescontoVendas = () => {
        
         return response.data;
       }
+  
     } catch (error) {
-      console.error('Erro ao buscar dados:', error);
+      console.error('Error fetching data:', error);
       throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
   };
 
   const { data: dadosDescontoMotivoVendas = [], error: errorDescontoMotivoVendas, isLoading: isLoadingDescontoMotivoVendas, refetch: refetchDescontoMotivoVendas } = useQuery(
     ['descontoMotivoVendas', marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchDescontoMotivoVendas(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    { enabled: false, staleTime: 5 * 60 * 1000 }
+    { enabled: Boolean(dataPesquisaInicio && dataPesquisaFim), staleTime: 5 * 60 * 1000 }
   );
 
 
   const handleSelectEmpresa = (e) => {
-    const selectId = e.value
-    if (selectId) {
-      setEmpresaSelecionada(selectId)
-    }
+    const empresa = optionsEmpresas.find((empresa) => empresa.IDEMPRESA === e.value);
+    setEmpresaSelecionada(e.value);
+    setEmpresaSelecionadaNome(empresa.NOFANTASIA);
   }
 
   const handleSelectMarca = (e) => {
@@ -195,28 +202,28 @@ export const ActionPesquisaDescontoVendas = () => {
   }
 
   const handleClick = () => {
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchDescontoVendas()
     setTabelaDetalhada(true)
     setTabelaSimplificada(false)
     setTabelaMotivo(false)
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
-    refetchDescontoVendas()
   }
 
   const handleClickPesqSimplificada = () => {
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchDescontoVendasSimplificada();
     setTabelaSimplificada(true)
     setTabelaDetalhada(false)
     setTabelaMotivo(false)
-    setCurrentPage(+1);
-    refetchDescontoVendasSimplificada();
   }
 
   const handleClickPesquisaMotivo = () => {
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchDescontoMotivoVendas(); 
     setTabelaMotivo(true)
     setTabelaSimplificada(false)
     setTabelaDetalhada(false)
-    setCurrentPage(+1);
-    refetchDescontoMotivoVendas(); 
   }
 
   const optionsMotivoDesconto = [ 
@@ -240,7 +247,7 @@ export const ActionPesquisaDescontoVendas = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Desconto Vendas por Loja e Período"]}
         title="Desconto Vendas por Loja e Período"
-        subTitle="Nome da Loja"
+        subTitle={empresaSelecionadaNome}
         
         InputFieldDTInicioComponent={InputField}
         valueInputFieldDTInicio={dataPesquisaInicio}
@@ -274,10 +281,9 @@ export const ActionPesquisaDescontoVendas = () => {
         InputSelectGrupoComponent={InputSelectAction}
         labelSelectGrupo={"Marca"}
         optionsGrupos={[
-          // { value: '', label: 'Selecione uma loja' },
           ...optionsMarcas.map((marca) => ({
             value: marca.IDGRUPOEMPRESARIAL,
-            label: marca.DSGRUPOEMPRESARIAL
+            label: marca.GRUPOEMPRESARIAL
           }))
         ]}
         valueSelectGrupo={marcaSelecionada}
@@ -291,7 +297,7 @@ export const ActionPesquisaDescontoVendas = () => {
 
         ButtonTypeCadastro={ButtonType}
         linkNome={"Pesquisa Simplificada"}
-        onButtonClickCadastro={handleClickPesqSimplificada}
+        onButtonClickCadastro={() => handleClickPesqSimplificada()}
         corCadastro={"warning"}
         IconCadastro={AiOutlineSearch}
 

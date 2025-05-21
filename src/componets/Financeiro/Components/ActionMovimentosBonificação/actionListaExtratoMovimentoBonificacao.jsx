@@ -4,7 +4,7 @@ import { ButtonType } from "../../../Buttons/ButtonType";
 import { get } from "../../../../api/funcRequest";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { ActionCadastroDepositoBonificacaoModal } from "./actionCadastroDepositoBonificacaoModal";
+import { ActionCadastroDepositoBonificacaoModal } from "./CadastrarBonificao/actionCadastroDepositoBonificacaoModal";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import { toFloat } from "../../../../utils/toFloat";
 import HeaderTable from "../../../Tables/headerTable";
@@ -13,12 +13,12 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { dataFormatada } from "../../../../utils/dataFormatada";
+import Swal from "sweetalert2";
 
 
-export const ActionListaExtratoMovimentoBonificacao = ({dadosExtratoBonificacao}) => {
+export const ActionListaExtratoMovimentoBonificacao = ({usuarioLogado, dadosExtratoBonificacao, optionsModulos, funcionarioSelecionado, setFuncionarioSelecionado}) => {
   const [modalVisivel, setModalVisivel] = useState(false);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -156,8 +156,23 @@ export const ActionListaExtratoMovimentoBonificacao = ({dadosExtratoBonificacao}
     }
   };
 
+
   const handleShowModal = () => {
-    setModalVisivel(true);
+    if(optionsModulos[0]?.ALTERAR == 'True')  {
+      setModalVisivel(true);
+    } else {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Acesso Negado!',
+        text: 'Você não tem permissão para editar esta despesa.',
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: {
+          container: 'custom-swal',
+        }
+      })
+    }
   }
 
   return (
@@ -213,12 +228,16 @@ export const ActionListaExtratoMovimentoBonificacao = ({dadosExtratoBonificacao}
             <DataTable
             
               value={dados}
-              size={size}
+              size="small"
               sortField="VRTOTALPAGO"
               sortOrder={-1}
               paginator={true}
               rows={10}
-              rowsPerPageOptions={[5, 10, 20, 50]}
+              globalFilter={globalFilterValue}
+              rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+              currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+              filterDisplay="menu"
               showGridlines
               stripedRows
               emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
@@ -243,11 +262,13 @@ export const ActionListaExtratoMovimentoBonificacao = ({dadosExtratoBonificacao}
 
         </div>
 
-  
       <ActionCadastroDepositoBonificacaoModal 
         show={modalVisivel}
         handleClose={() => setModalVisivel(false)}
-        
+        usuarioLogado={usuarioLogado}
+        funcionarioSelecionado={funcionarioSelecionado}
+        setFuncionarioSelecionado={setFuncionarioSelecionado}
+        optionsModulos={optionsModulos}
       />
     </Fragment>
   )

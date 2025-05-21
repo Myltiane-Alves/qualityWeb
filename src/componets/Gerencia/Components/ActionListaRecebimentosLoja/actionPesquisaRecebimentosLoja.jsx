@@ -11,6 +11,7 @@ import { ActionListaRecebimentosOperador } from "./actionListaRecebimentosOperad
 import { useQuery } from "react-query"
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
 import { MultSelectAction } from "../../../Select/MultSelectAction"
+import { useNavigate } from "react-router-dom"
 
 
 export const ActionPesquisaRecebimentosLoja = () => {
@@ -24,9 +25,25 @@ export const ActionPesquisaRecebimentosLoja = () => {
   const [pagamentoSelecionado, setPagamentoSelecionado] = useState([])
   const [tabelaRecebimentos, setTabelaRecebimentos] = useState(false)
   const [tabelaRecebimentosOperador, setTabelaRecebimentosOperador] = useState(false)
-  const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(500); 
+  const [usuarioLogado, setUsuarioLogado] = useState(null)
+  
+  const navigate = useNavigate();
+  useEffect(() => {
+    const usuarioArmazenado = localStorage.getItem('usuario');
+
+    if (usuarioArmazenado) {
+      try {
+        const parsedUsuario = JSON.parse(usuarioArmazenado);
+        setUsuarioLogado(parsedUsuario);;
+      } catch (error) {
+        console.error('Erro ao parsear o usuário do localStorage:', error);
+      }
+    } else {
+      navigate('/');
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const dataInicial = getDataAtual()
@@ -37,25 +54,6 @@ export const ActionPesquisaRecebimentosLoja = () => {
 
   }, [])
 
-  
-  const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas, refetch: refetchMarcas } = useQuery(
-    'marcasLista',
-    async () => {
-      const response = await get(`/marcasLista`);
-      return response.data;
-    },
-    { staleTime: 5 * 60 * 1000, }
-  );
-  
-  const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch: refetchEmpresas } = useQuery(
-    'listaEmpresaComercial',
-    async () => {
-      const response = await get(`/listaEmpresaComercial?idMarca=${marcaSelecionada}`);
-      
-      return response.data;
-    },
-    { enabled: false, staleTime: 5 * 60 * 1000, }
-  );
 
   const { data: dadosFormaPagamento = [], error: errorFormaPagamentos, isLoading: isLoadingFormaPagamentos, refetch: refetchFormaPagamentos } = useQuery(
     'forma-pagamentos',
@@ -82,17 +80,12 @@ export const ActionPesquisaRecebimentosLoja = () => {
     }
   }, [empresaSelecionada, refetchFuncionarios]);
 
-  useEffect(() => {
-    if (marcaSelecionada) {
-      refetchEmpresas();
-    }
-    refetchMarcas()
-  }, [marcaSelecionada, refetchEmpresas]);
+
 
   const fetchListaRecebimentos = async () => {
     try {
       
-      const urlApi = `/venda-total-forma-pagamento?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idFuncionario=${colaboradorSelecionado}&dsFormaPagamento=${pagamentoSelecionado}&dsParcela=${parcelaSelecionada}&idGrupo=${marcaSelecionada}`;
+      const urlApi = `venda-total-forma-pagamento?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idFuncionario=${colaboradorSelecionado}&dsFormaPagamento=${pagamentoSelecionado}&dsParcela=${parcelaSelecionada}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -131,8 +124,8 @@ export const ActionPesquisaRecebimentosLoja = () => {
   };
    
   const { data: dadosRecebimentos = [], error: errorRecebimentos, isLoading: isLoadingRecebimentos, refetch: refetchListaRecebimentos } = useQuery(
-    ['venda-total-forma-pagamento', empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, colaboradorSelecionado, pagamentoSelecionado, parcelaSelecionada, marcaSelecionada, currentPage, pageSize],
-    () => fetchListaRecebimentos(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, colaboradorSelecionado, pagamentoSelecionado, parcelaSelecionada, marcaSelecionada, currentPage, pageSize),
+    ['venda-total-forma-pagamento', empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, colaboradorSelecionado, pagamentoSelecionado, parcelaSelecionada, currentPage, pageSize],
+    () => fetchListaRecebimentos(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, colaboradorSelecionado, pagamentoSelecionado, parcelaSelecionada,  currentPage, pageSize),
     {
       enabled: false, 
     }
@@ -141,7 +134,7 @@ export const ActionPesquisaRecebimentosLoja = () => {
   const fetchListaRecebimentosOperador = async () => {
     try {
       
-      const urlApi = `/venda-total-recebido-periodo-adm?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idFuncionario=${colaboradorSelecionado}&dsFormaPagamento=${pagamentoSelecionado}&dsParcela=${parcelaSelecionada}&idGrupo=${marcaSelecionada}`;
+      const urlApi = `venda-total-recebido-periodo-adm?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idFuncionario=${colaboradorSelecionado}&dsFormaPagamento=${pagamentoSelecionado}&dsParcela=${parcelaSelecionada}&idGrupo=${marcaSelecionada}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -180,18 +173,12 @@ export const ActionPesquisaRecebimentosLoja = () => {
   };
    
   const { data: dadosRecebimentosOperador = [], error: errorRecebimentosOperador, isLoading: isLoadingRecebimentosOpredador, refetch: refetchListaRecebimentosOperador } = useQuery(
-    ['venda-total-recebido-periodo-adm', empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, colaboradorSelecionado, pagamentoSelecionado, parcelaSelecionada, marcaSelecionada, currentPage, pageSize],
-    () => fetchListaRecebimentosOperador(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, colaboradorSelecionado, pagamentoSelecionado, parcelaSelecionada, marcaSelecionada, currentPage, pageSize),
+    ['venda-total-recebido-periodo-adm', empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, colaboradorSelecionado, pagamentoSelecionado, parcelaSelecionada, currentPage, pageSize],
+    () => fetchListaRecebimentosOperador(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, colaboradorSelecionado, pagamentoSelecionado, parcelaSelecionada, currentPage, pageSize),
     {
       enabled: false, 
     }
   );
-
-  const handleSelectEmpresa = (e) => {
-    const empresa = optionsEmpresas.find(empresa => empresa.IDEMPRESA === e.value);
-    setEmpresaSelecionada(e.value);
-    setEmpresaSelecionadaNome(empresa.NOFANTASIA);
-  }
 
   const handleChangePagamento = (selectedOptions) => {
     const values = selectedOptions.map(option => option.value);
@@ -260,35 +247,6 @@ export const ActionPesquisaRecebimentosLoja = () => {
         valueInputFieldDTFim={dataPesquisaFim}
         onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
 
-        InputSelectEmpresaComponent={InputSelectAction}
-        onChangeSelectEmpresa={handleSelectEmpresa}
-        valueSelectEmpresa={empresaSelecionada}
-        optionsEmpresas={[
-          { value: '0', label: 'Selecionar Empresa' },
-          ...optionsEmpresas.map((empresa) => {
-            return {
-              value: empresa.IDEMPRESA,
-              label: empresa.NOFANTASIA,
-
-            }
-        })]}
-        labelSelectEmpresa={"Empresa"}
-
-        InputSelectMarcasComponent={InputSelectAction}
-        labelSelectMarcas={"Marca"}
-        optionsMarcas={[
-          { value: '0', label: 'Selecionar Marca' },
-            ...optionsMarcas.map((marca) => {
-            return {
-              
-              value: marca.IDGRUPOEMPRESARIAL,
-              label: marca.DSGRUPOEMPRESARIAL,
-            }
-          })
-        ]}
-        valueSelectMarca={marcaSelecionada}
-        onChangeSelectMarcas={handleSelectMarca}
-
         MultSelectMarcaComponent={MultSelectAction}
         labelMultSelectMarca={"Formas de Pagamentos"}
         optionsMultSelectMarca={[
@@ -324,7 +282,6 @@ export const ActionPesquisaRecebimentosLoja = () => {
         valueMultSelectSubGrupo={pagamentoSelecionado}
         onChangeMultSelectSubGrupo={handleSelectParcela}
         
-
 
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Por Pagamentos"}

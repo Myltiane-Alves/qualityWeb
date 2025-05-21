@@ -1,166 +1,118 @@
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { ButtonTable } from '../../../ButtonsTabela/ButtonTable';
-import { Fragment, useState } from 'react';
-import { Checkbox } from "primereact/checkbox";
-import { get } from '../../../../api/funcRequest';
-import { ActionDetalhePedidoModal } from './actionDetalhePedidoModal';
-import { GrView } from 'react-icons/gr';
+import React, { Fragment } from "react";
+import { toFloat } from "../../../../utils/toFloat";
 
 
 export const ActionListaDistribuicaoSugestoesHistorico = ({ dadosSugestoesHistorico }) => {
-  const [actionListaPedidos, setActionListaPedidos] = useState(true)
-  const [actionPedidoResumido, setActionPedidoResumido] = useState(true)
-  const [rowClick, setRowClick] = useState(true);
-  const [empresaSelecionada, setEmpresaSelecionada] = useState(null);
+
+  const processarDados = (dados) => {
+    return dados.map((item) => {
+      const filiais = Array.isArray(item.filial) ? item.filial.map(f => ({
+        IdFilial: f.IdFilial,
+        DescFilial: f.DescFilial,
+        totalqtd: 0 // Inicializa para cada filial
+      })) : [];
+  
+      const sugestoes = item.Sugestao || [];
+  
+      // Percorre cada filial e calcula o total para cada uma individualmente
+      filiais.forEach(filial => {
+        sugestoes.forEach(sug => {
+          if (sug.IdFilial === filial.IdFilial) {
+            const qtdSugestaoAlterada = sug.QtdSugestaoAlteracao === 0 ? sug.QtdSugestao : sug.QtdSugestaoAlteracao;
+            filial.totalqtd += parseInt(qtdSugestaoAlterada);
+          }
+        });
+      });
+      console.log(sugestoes, 'sugestoes')
+  
+      return {
+        DescProduto: item.venda.DescProduto,
+        CodBarras: item.venda.CodBarras,
+        Grade: item.venda.Grade,
+        IdEmpresa: item.venda.IdEmpresa,
+        IdPedidoCompra: item.venda.IdPedidoCompra,
+        PrecoVenda: item.venda.PrecoVenda,
+        QtdGrade: item.venda.QtdGrade,
+        StConcluido: item.venda.StConcluido,
+        Filiais: filiais, // Agora cada filial tem seu próprio totalqtd
+        Sugestao: sugestoes
+      };
+    });
+  };
+  
 
 
-  const dados = dadosSugestoesHistorico.map((item, index) => {
-
-    return {
-      DescProduto: item.DescProduto,
-      CodBarras: item.CodBarras,
-      Grade: item.Grade,
-      IdEmpresa: item.IdEmpresa,
-      IdPedidoCompra: item.IdPedidoCompra,
-      PrecoVenda: item.PrecoVenda,
-      QtdGrade: item.QtdGrade,
-      StConcluido: item.StConcluido,
-      
-      Filiais: item[0]?.Filiais.DescFilial,
-      Filiais: item[0]?.Filiais.IdFilial,
-
-      IdDistribuicaoCompras:item[0]?.Sugestao.IdDistribuicaoCompras,
-      IdFilial:item[0]?.Sugestao.IdFilial,
-      QtdSugestao:item[0]?.Sugestao.QtdSugestao,
-      QtdSugestaoAlteracao:item[0]?.Sugestao.QtdSugestaoAlteracao,
-
-    }
-  });
+  const dadosProcessados = processarDados(dadosSugestoesHistorico);
 
 
-  const colunasPedidos = [
-
-    {
-      field: 'DescProduto',
-      header: 'Produto',
-      body: row => row.DescProduto,
-      sortable: true,
-    },
-    {
-      field: 'PrecoVenda',
-      header: 'Valor',
-      body: row => row.PrecoVenda,
-      sortable: true,
-    },
-    {
-      field: 'QtdGrade',
-      header: 'QTD',
-      body: row => row.QtdGrade,
-      sortable: true,
-    },
-    {
-      field: 'Grade',
-      header: 'Grade',
-      body: row => row.Grade,
-      sortable: true,
-    },
-    {
-      field: 'Grade',
-      header: 'Total',
-      body: (row) => {
-        return (
-          <input type="text" value={row.QtdGrade * row.PrecoVenda} />
-        )
-      },
-      sortable: true,
-    },
-    {
-      field: 'IDPEDIDOCOMPRA',
-      header: 'Opções',
-      body: (row) => {
-
-        return (
-          <div className="p-1 "
-            style={{ display: "flex" }}
-          >
-
-            <div className="p-1">
-              <ButtonTable
-                Icon={GrView}
-                cor={"success"}
-                iconColor={"white"}
-                iconSize={20}
-                onClickButton={() => handleClickDetalhar(row)}
-                titleButton={"Imprimir Pedido Com Preço de Venda"}
-              />
-            </div>
-            <div className="p-1">
-              <Checkbox variant="filled" onChange={e => setRowClick(e.checked)} checked={rowClick}></Checkbox>
-              
-            </div>
-
-          </div>
-        )
-
-      },
-    },
-
-
-  ]
-
-
-  const handleClickDetalhar = (row) => {
-    if(row && row.IDPEDIDOCOMPRA) {
-      handleDetalhar(row.IDPEDIDOCOMPRA)
-    }
-  }
-
-  const handleDetalhar = async (IDPEDIDOCOMPRA) => {
-    try {
-      const response = await get(`/detalheDistribuicaoCompras?idPedido=${IDPEDIDOCOMPRA}`)
-      setDadosDetalhePedido(response.data)
-      setModalDetalhePedido(true)
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  const handleSugestaoAlteradaChange = (codBarras, idDistribuicaoCompras, valor) => {
+    console.log("Alteração de sugestão: ", codBarras, idDistribuicaoCompras, valor);
+  };
 
   return (
     <Fragment>
-      <div className="card">
-        <DataTable
-          title="Vendas por Loja"
-          value={dados}
-          sortField="VRTOTALPAGO"
-          selectionMode={rowClick ? null : 'checkbox'}
-          selection={empresaSelecionada}
-          onSelectionChange={e => setEmpresaSelecionada(e.value)}
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-        >
-          {colunasPedidos.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
+      <div className="scroll table-responsive">
+        <table id="dt-basic-distribuicao" className="table table-bordered table-hover table-striped w-100">
+          <thead className="bg-primary-600" style={{ height: '300px' }}>
+            <tr id="dt-basic-distribuicao-titulo">
+              <th>Produto</th>
+              <th>Valor</th>
+              <th>Qtd</th>
 
-            />
-          ))}
-        </DataTable>
+              <th>Grade</th>
+              <th>Total</th>
+              {/* Renderiza as filiais no cabeçalho */}
+
+              {dadosProcessados.length > 0 && dadosProcessados[0]?.Filiais.map((filial) => (
+                <th key={filial.IdFilial} style={{ alignContent: 'end', margin: '0px', padding: '0px' }}>
+                  {/* <span style={{ width: '200px', height: '20%', backgroundColor: 'red' }} className="rotate-270 text-nowrap h-200 d-flex pos-top"> */}
+                  <p style={{ width: '45px', marginBottom: '30px' }} className="rotate-270 text-nowrap h-200 d-flex pos-top">
+                    {filial.DescFilial}
+                  </p>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {dadosProcessados.map((row, index) => (
+              <tr key={index}>
+                <td>
+                  <p style={{ width: '350px', fontWeight: 700 }}>{row.DescProduto}</p>
+                </td>
+                <td style={{ fontWeight: 500 }}>{row.PrecoVenda}</td>
+                <td style={{ fontWeight: 500 }}>{row.QtdGrade}</td>
+                <td style={{ fontWeight: 500 }}>{row.Grade}</td>
+
+                {/* Renderiza as sugestões para cada filial */}
+                {row.Filiais.map((filial) => (
+  <td key={filial.IdFilial}>
+    <input
+      type="number"
+      value={filial.totalqtd} // Agora pega o total correto de cada filial
+      onChange={(e) =>
+        handleSugestaoAlteradaChange(row.CodBarras, filial.IdFilial, e.target.value)
+      }
+      style={{ width: '35px' }}
+    />
+  </td>
+))}
+
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
     </Fragment>
-  )
-}
+  );
+};
+
+//  preciso entender qual a diferença da logica do totalqtd retornoListaDistribuicaoCompras que está em javascript
+// estou fazendo a mesma logica, em reactjs com os meus dados vindo mesmo banco, mais está mostrando resultados diferentes
+// a diferença esta apenas na nomeação do respostaListaDistribuicaoCompras e dadosSugestoesHistorico
+
+// no codigo javascript que esta em funcionamento os resultados são esses: e são corretotos estou tentando fazer este mesmo codigo em reactjs porém os mesmos produtos vindos do mesmo balanco
+// estão retornando resultados diferentes no produto do final 38 o total 10 e o produto 16 o total 23 estão vindo desse jeito no reactjs
+// nos produtos Calca L.2954 JEANS Mom Destroyed Escuro Focus 38 o total 10
+// Calca L.2954 JEANS Mom Destroyed Escuro Focus 36, o total 13,
+
+// estou enviando os códigos para que possam me ajudar a entender o que está acontecendo.

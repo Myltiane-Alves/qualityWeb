@@ -17,6 +17,7 @@ export const ActionPesquisaVendasVendedor = () => {
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [marcaSelecionada, setMarcaSelecionada] = useState([])
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('')
   const [percComissaoSelecionada, setPercComissaoSelecionada] = useState('');
   const [ufSelecionado, setUfSelecionado] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,27 +33,10 @@ export const ActionPesquisaVendasVendedor = () => {
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', '/marcasLista');
   const { data: optionsEmpresas = [],} = useFetchEmpresas(marcaSelecionada);
 
-
-  // const getVendaVendedor = async () => {
-  //   try {
-  //     dataFormatada(dataPesquisaInicio)
-  //     dataFormatada(dataPesquisaFim)
-      
-  //     const response = await get(`/vendaVendedorAction?idGrupo=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`)
-  //     if (response.data) {
-  //       setDadosVendasVendedor(response.data)
-  //       console.log(response.data, 'get tabelas VendaVendedor')
-  //     }
-  //     return response.data
-  //   } catch (error) {
-  //     console.log(error, "não foi possivel pegar os dados da tabela ")
-  //   }
-  // }
-
   const fetchListaVendasVendedor = async ( ) => {
     try {
       
-      const urlApi = `venda-vendedor-adm?idGrupo=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;    
+      const urlApi = `/venda-vendedor-adm?idGrupo=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;    
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -136,7 +120,7 @@ export const ActionPesquisaVendasVendedor = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Vendas por Vendedor e Período"]}
         title="Vendas por Vendedor e Período"
-        subTitle="Nome da Loja"
+        subTitle={empresaSelecionadaNome}
 
         InputFieldDTInicioComponent={InputField}
         labelInputFieldDTInicio={"Data Início"}
@@ -147,15 +131,6 @@ export const ActionPesquisaVendasVendedor = () => {
         labelInputFieldDTFim={"Data Fim"}
         valueInputFieldDTFim={dataPesquisaFim}
         onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
-
-        // InputSelectEmpresaComponent={InputSelectAction}
-        // optionsEmpresas={optionsEmpresas.map((empresa) => ({
-        //   value: empresa.IDEMPRESA,
-        //   label: empresa.NOFANTASIA,
-        // }))}
-        // labelSelectEmpresa={"Empresa"}
-        // valueSelectEmpresa={empresaSelecionada}
-        // onChangeSelectEmpresa={handleSelectEmpresa}
 
         MultSelectEmpresaComponent={MultSelectAction}
         optionsMultSelectEmpresa={[
@@ -173,7 +148,7 @@ export const ActionPesquisaVendasVendedor = () => {
         labelSelectMarcas={"Marca"}
         optionsMarcas={optionsMarcas.map((marca) => ({
           value: marca.IDGRUPOEMPRESARIAL,
-          label: marca.DSGRUPOEMPRESARIAL,
+          label: marca.GRUPOEMPRESARIAL,
         }))}
         valueSelectMarca={marcaSelecionada}
         onChangeSelectMarcas={handleSelectMarca}

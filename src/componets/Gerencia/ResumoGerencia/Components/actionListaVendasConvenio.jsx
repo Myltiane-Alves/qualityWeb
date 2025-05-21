@@ -12,7 +12,6 @@ import * as XLSX from 'xlsx';
 
 export const ActionListaVendasConvenio = ({ dadosVendasConvenioDesconto }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef()
 
   const onGlobalFilterChange = (e) => {
@@ -72,7 +71,7 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenioDesconto }) => {
 
   const dados = dadosVendasConvenioDesconto.map((item, index) => {
     let contador = index + 1;
-
+    console.log(item, 'item.VRBRUTOPAGO')
     return {
       contador,
       IDCAIXAWEB: `${item.IDCAIXAWEB} - ${item.DSCAIXA}`,
@@ -83,9 +82,9 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenioDesconto }) => {
       NOCONVENIADO: item.NOCONVENIADO,
       CPFCONVENIADO: item.CPFCONVENIADO,
 
-      VRBRUTOPAGO: item.VRBRUTOPAGO,
-      VRDESPAGO: item.VRDESPAGO,
-      VRLIQPAGO: item.VRLIQPAGO,
+      VRBRUTOCONVENIADO: item.VRBRUTOCONVENIADO,
+      VRDESCONTOCONVENIADO: item.VRDESCONTOCONVENIADO,
+      VRRECCONVENIO: item.VRRECCONVENIO,
      
     };
   });
@@ -93,7 +92,7 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenioDesconto }) => {
   const calcularValorBruto = () => {
     let total = 0;
     for (let dadosConvenio of dados) {
-      total += parseFloat(dadosConvenio.VRBRUTOPAGO);
+      total += parseFloat(dadosConvenio.VRBRUTOCONVENIADO);
     }
     return total;
   }
@@ -101,7 +100,7 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenioDesconto }) => {
   const calcularValorDesconto = () => {
     let total = 0;
     for (let dadosConvenio of dados) {
-      total += parseFloat(dadosConvenio.VRDESPAGO);
+      total += parseFloat(dadosConvenio.VRDESCONTOCONVENIADO);
     }
     return total;
   }
@@ -109,7 +108,7 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenioDesconto }) => {
   const calcularValorLiquido = () => {
     let total = 0;
     for (let dadosConvenio of dados) {
-      total += parseFloat(dadosConvenio.VRLIQPAGO);
+      total += parseFloat(dadosConvenio.VRRECCONVENIO);
     }
     return total;
   }
@@ -164,21 +163,21 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenioDesconto }) => {
       sortable: true,
     },
     {
-      field: 'VRBRUTOPAGO',
+      field: 'VRBRUTOCONVENIADO',
       header: 'Valor Bruto',
-      body: row => <th>{formatMoeda(row.VRBRUTOPAGO)}</th>,
+      body: row => <th>{formatMoeda(row.VRBRUTOCONVENIADO)}</th>,
       sortable: true,
     },
     {
-      field: 'VRDESPAGO',
+      field: 'VRDESCONTOCONVENIADO',
       header: 'Desconto',
-      body: row => <th>{formatMoeda(row.VRDESPAGO)}</th>,
+      body: row => <th>{formatMoeda(row.VRDESCONTOCONVENIADO)}</th>,
       sortable: true,
     },
     {
-      field: 'VRLIQPAGO',
+      field: 'VRRECCONVENIO',
       header: 'Valor Liq',
-      body: row => <th>{formatMoeda(row.VRLIQPAGO)}</th>,
+      body: row => <th>{formatMoeda(row.VRRECCONVENIO)}</th>,
       sortable: true,
     },
   ]
@@ -187,10 +186,10 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenioDesconto }) => {
     <ColumnGroup>
 
       <Row>
-        <Column footer="Total Vendas Convenio " colSpan={8} footerStyle={{ textAlign: 'center', color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularValorBruto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularValorDesconto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularValorLiquido())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer="Total Vendas Convenio " colSpan={8} footerStyle={{ textAlign: 'center', color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={formatMoeda(calcularValorBruto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={formatMoeda(calcularValorDesconto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={formatMoeda(calcularValorLiquido())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
 
 
       </Row>
@@ -223,7 +222,7 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenioDesconto }) => {
             title="Vendas Convênio Desconto em Folha"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
@@ -242,9 +241,9 @@ export const ActionListaVendasConvenio = ({ dadosVendasConvenioDesconto }) => {
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

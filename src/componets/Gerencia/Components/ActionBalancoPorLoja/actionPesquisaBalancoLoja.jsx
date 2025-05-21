@@ -3,55 +3,49 @@ import { ActionMain } from "../../../Actions/actionMain";
 import { InputField } from "../../../Buttons/Input";
 import { ButtonType } from "../../../Buttons/ButtonType";
 import { get } from "../../../../api/funcRequest";
-import { useNavigate } from "react-router-dom"
 import { getDataAtual } from "../../../../utils/dataAtual";
 import { ActionListaBalanco } from "./actionListaBalancoLoja";
 import { AiOutlineSearch } from "react-icons/ai";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 
 
-export const ActionPesquisaBalancoLoja = () => {
+export const ActionPesquisaBalancoLoja = ({usuarioLogado, ID, optionsEmpresas}) => {
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [descricao, setDescricao] = useState('')
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
-
-  const navigate = useNavigate();
-
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  const [empresaUsada, setEmpresaUsada] = useState('');
 
   useEffect(() => {
     const dataInicial = getDataAtual()
     const dataFinal = getDataAtual()
     setDataPesquisaInicio(dataInicial)
     setDataPesquisaFim(dataFinal)
-    const usuarioArmazenado = localStorage.getItem('usuario');
+   
+  }, []);
 
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
+  
 
-  useEffect(() => {
-    const dataInicial = getDataAtual()
-    const dataFim = getDataAtual()
-    setDataPesquisaInicio(dataInicial)
-    setDataPesquisaFim(dataFim)
-  }, [usuarioLogado]);
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
 
   const fetchListaBalanco = async () => {
     try {
-      const urlApi = `/balanco-loja?idEmpresa=${usuarioLogado.IDEMPRESA}&dsDescricao=${descricao}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const idEmpresa = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      setEmpresaUsada(idEmpresa);
+      const urlApi = `/balanco-loja?idEmpresa=${idEmpresa}&dsDescricao=${descricao}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -90,8 +84,8 @@ export const ActionPesquisaBalancoLoja = () => {
   };
    
   const { data: dadosListaBalanco = [], error: errorBalanco, isLoading: isLoadingBalanco, refetch: refetchListaBalanco } = useQuery(
-    ['estoqueAtual', usuarioLogado?.IDEMPRESA, descricao, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
-    () => fetchListaBalanco(usuarioLogado?.IDEMPRESA, descricao, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+    ['balanco-loja', usuarioLogado?.IDEMPRESA, descricao, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    () => fetchListaBalanco(),
     {
       enabled: false, 
     }
@@ -115,15 +109,28 @@ export const ActionPesquisaBalancoLoja = () => {
         title="Lista de Balanço por Loja"
         subTitle="Nome da Loja"
         
-        InputFieldDTInicioComponent={InputField}
-        labelInputFieldDTInicio={"Data Início"}
-        valueInputFieldDTInicio={dataPesquisaInicio}
-        onChangeInputFieldDTInicio={e => setDataPesquisaInicio(e.target.value)}
+        InputSelectPendenciaComponent={InputSelectAction}
+        labelSelectPendencia="Selecione a Empresa"
+        optionsPendencia={[
+          { value: '', label: 'Todas' },
+          ...optionsEmpresas?.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+          }))
+        ]}
+        onChangeSelectPendencia={(e) => setEmpresaSelecionada(e.value)}
+        valueSelectPendencia={empresaSelecionada}
+        isVisible={{display: optionsModulos[0]?.ADMINISTRADOR == false ? "none" : "block"}}
 
-        InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
+        InputFieldDTInicioAComponent={InputField}
+        valueInputFieldDTInicioA={dataPesquisaInicio}
+        labelInputDTInicioA={"Data Início"}
+        onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
+        
+        InputFieldDTFimAComponent={InputField}
+        labelInputDTFimA={"Data Fim"}
+        valueInputFieldDTFimA={dataPesquisaFim}
+        onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
 
         InputFieldVendedor={InputField}
         labelInputFieldVendedor={"Descrição"}
@@ -139,7 +146,12 @@ export const ActionPesquisaBalancoLoja = () => {
 
       {tabelaVisivel &&
          
-        <ActionListaBalanco dadosListaBalanco={dadosListaBalanco} />
+        <ActionListaBalanco 
+          dadosListaBalanco={dadosListaBalanco}
+          usuarioLogado={usuarioLogado}
+          optionsModulos={optionsModulos}  
+          empresaUsada={empresaUsada}
+        />
       }
     </Fragment>
   )

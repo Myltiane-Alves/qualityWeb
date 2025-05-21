@@ -1,7 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react"
 import { ActionMain } from "../../../Actions/actionMain"
 import { InputField } from "../../../Buttons/Input"
-import { ButtonSearch } from "../../../Buttons/ButtonSearch"
 import { ButtonType } from "../../../Buttons/ButtonType"
 import { get } from "../../../../api/funcRequest"
 import { MultSelectAction } from "../../../Select/MultSelectAction"
@@ -14,8 +13,8 @@ import { getDataAtual } from "../../../../utils/dataAtual"
 import { InputSelectAction } from "../../../Inputs/InputSelectAction"
 import { AiOutlineSearch } from "react-icons/ai"
 import { useQuery } from 'react-query';
-import Swal from 'sweetalert2';
 import { useFetchData, useFetchEmpresas } from "../../../../hooks/useFetchData"
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
 
 export const ActionPesquisaVendasMarca = () => {
   const [tabelaFinanceiroActionPesqVendasMarca, setTabelaFinanceiroActionPesqVendasMarca] = useState(false)
@@ -24,15 +23,15 @@ export const ActionPesquisaVendasMarca = () => {
   const [tabelaFinanceiroResultadoOperacionalBruto, setTabelaFinanceiroResultadoOperacionalBruto] = useState(false)
   const [tabelaFinanceiroPCJVendas, setTabelaFinanceiroPCJVendas] = useState(false)
   const [clickContador, setClickContador] = useState(0);
-  const [marcaSelecionada, setMarcaSelecionada] = useState(null);
+  const [marcaSelecionada, setMarcaSelecionada] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState([]);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [empresaLivre, setEmpresaLivre] = useState('');
+  const [empresaLivre, setEmpresaLivre] = useState([]);
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(1000);
-  const [totalPages, setTotalPages] = useState(0);
+  const [pageSize, setPageSize] = useState(500);
+
  
   useEffect(() => {
     const dataInicial = getDataAtual();
@@ -42,135 +41,186 @@ export const ActionPesquisaVendasMarca = () => {
 
   }, [])
 
+
   const { data: optionsMarcas = [] } = useFetchData('marcasLista', '/marcasLista');
   const { data: optionsEmpresas = [], refetch: refetchEmpresas } = useFetchEmpresas(marcaSelecionada);
 
-  const fetchListaVendasPCJ = async (marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre, currentPage, pageSize) => {
+  const fetchListaVendasPCJ = async () => {
     try {
-      // const urlApi = `listaCaixasMovimentoFinanceiro?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLojaPesquisa=${empresaLivre}`;
-      const urlApi = `lista-caixas-movimento?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLojaPesquisa=${empresaLivre}`;
-      let allData = [];
-      let currentPage = 1;
-      let hasMoreData = true;
-
-      while (hasMoreData) {
-        const response = await get(`${urlApi}&page=${currentPage}&pageSize=${pageSize}`);
-        allData = [...allData, ...response.data];
-
-        if (response.data.length < pageSize) {
-          hasMoreData = false;
-        } else {
-          currentPage++;
+      const urlApi = `/lista-caixas-movimento?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLojaPesquisa=${empresaLivre}`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
         }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+        
+        return response.data;
       }
-
-      setTotalPages(currentPage);
-      return allData;
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
       throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
   };
-
-  const { data: dadosVendasPCJ = [], error: errorVendasPCJ, isLoading: isLoadingVendasPCJ, refetch } = useQuery(
+  
+  const { data: dadosVendasPCJ = [], error: errorVendasLoja, isLoading: isLoadingVendasPCJ, refetch: refecthPcj } = useQuery(
     ['lista-caixas-movimento', marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre, currentPage, pageSize],
     () => fetchListaVendasPCJ(marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre, currentPage, pageSize),
-    { enabled: false }
+    { enabled: false, staleTime: 5 * 60 * 1000, }
   );
-
   
-  const fetchListaVendasMarca = async (marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre) => {
+  
+  const fetchListaVendasMarca = async () => {
     try {
-      const urlApi = `vendaMarcaPeriodoFinanceiro?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLojaPesquisa=${empresaLivre}`
-      let allData = [];
-      let currentPage = 1;
-      let hasMoreData = true;
-
-      while(hasMoreData) {
-        const response = await get(`${urlApi}&page=${currentPage}&pageSize=${pageSize}`);
-        allData = [...allData, ...response.data];
-
-        if (response.data.length < pageSize) {
-          hasMoreData = false;
-        } else {
-          currentPage++;
+      const urlApi = `/vendas-marca-periodo?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idEmpresa=${empresaSelecionada}&idLojaPesquisa=${empresaLivre}`
+      const response = await get(urlApi);
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
         }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+        
+        return response.data;
       }
-      setTotalPages(currentPage);
-      return allData;
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
       throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
   }
 
   const {data: dadosListaVendasMarca = [], error: errorVendasMarca, isLoading: isLoadingVendasMarca, refetch: refetchVendasMarca} = useQuery(
-    ['vendaMarcaPeriodoFinanceiro', marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre],
+    ['vendas-marca-periodo', marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre],
     () => fetchListaVendasMarca(marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre),
-    { enabled: false }
+    { enabled: false, staleTime: 5 * 60 * 1000 }
   ); 
 
-  const fetchListaVendasMarcaROB = async (marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre) => {
+  const fetchListaVendasMarcaROB = async ( ) => {
     try {
-      const urlApi = `vendaMarcaRob?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLojaPesquisa=${empresaLivre}`
-      let allData = [];
-      let currentPage = 1;
-      let hasMoreData = true;
-
-      while(hasMoreData) {
-        const response = await get(`${urlApi}&page=${currentPage}&pageSize=${pageSize}`);
-        allData = [...allData, ...response.data];
-
-        if (response.data.length < pageSize) {
-          hasMoreData = false;
-        } else {
-          currentPage++;
+      const urlApi = `/vendaMarcaRob?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLojaPesquisa=${empresaLivre}`
+      const response = await get(urlApi);
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
         }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+        
+        return response.data;
       }
-      setTotalPages(currentPage);
-      return allData;
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
       throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
   }
 
   const {data: dadosListaVendasMarcaROB = [], error: errorVendasMarcaROB, isLoading: isLoadingVendasMarcaROB, refetch: refetchVendasMarcaROB} = useQuery(
     ['vendaMarcaRob', marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre],
     () => fetchListaVendasMarcaROB(marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre),
-    { enabled: false }
+    { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 
-  const fetchListaVendasMarcaMarckup = async (marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre) => {
+  const fetchListaVendasMarcaMarckup = async () => {
     try {
-      const urlApi = `vendaMarcaMarckup?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLojaPesquisa=${empresaLivre}`
-      let allData = [];
-      let currentPage = 1;
-      let hasMoreData = true;
-
-      while(hasMoreData) {
-        const response = await get(`${urlApi}&page=${currentPage}&pageSize=${pageSize}`);
-        allData = [...allData, ...response.data];
-
-        if (response.data.length < pageSize) {
-          hasMoreData = false;
-        } else {
-          currentPage++;
+      const urlApi = `/vendaMarcaMarckup?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLojaPesquisa=${empresaLivre}`
+      const response = await get(urlApi);
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
         }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+        
+        return response.data;
       }
-      setTotalPages(currentPage);
-      return allData;
-
-      } catch (error) {
+    } catch (error) {
       console.error('Erro ao buscar dados:', error);
       throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
   }
 
   const {data: dadosListaVendasMarcaMarckup = [], error: errorVendasMarcaMarckup, isLoading: isLoadingVendasMarcaMarckup, refetch: refetchVendasMarcaMarckup} = useQuery(
     ['vendaMarcaMarckup', marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre],
     () => fetchListaVendasMarcaMarckup(marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, empresaLivre),
-    { enabled: false }
+    { enabled: false,staleTime: 5 * 60 * 1000  }
   );
 
 
@@ -178,115 +228,70 @@ export const ActionPesquisaVendasMarca = () => {
     setMarcaSelecionada(e.value);
   };
 
-  const handleEmpresaChange = (selectedOptions) => {
-    const values = selectedOptions.map((option) => option.value);
-    setEmpresaSelecionada(values);
-
+  const handleChangeEmpresa = (selectedOptions) => {
+    const selectedValues = selectedOptions.map(option => option.value);
+    setEmpresaSelecionada(selectedValues);
+    
   }
+
 
   const handleClick = () => {
     setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaFinanceiroActionPesqVendasMarca(true)
-      setTabelaFinanceiroActionPesqVendasMarcaMarckup(false)
-      setTabelaFinanceiroVendasPeriodoTicketMedio(false)
-      setTabelaFinanceiroResultadoOperacionalBruto(false)
-      setTabelaFinanceiroPCJVendas(false)
-
-
-      setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
-      refetchVendasMarca()
-    }
+    setTabelaFinanceiroActionPesqVendasMarca(true)
+    setTabelaFinanceiroActionPesqVendasMarcaMarckup(false)
+    setTabelaFinanceiroVendasPeriodoTicketMedio(false)
+    setTabelaFinanceiroResultadoOperacionalBruto(false)
+    setTabelaFinanceiroPCJVendas(false)
+    setIsLoadingPesquisa(true);
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchVendasMarca()
   }
 
   const handleClickMarckup = () => {
     setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaFinanceiroActionPesqVendasMarcaMarckup(true)
-      setTabelaFinanceiroVendasPeriodoTicketMedio(false)
-      setTabelaFinanceiroResultadoOperacionalBruto(false)
-      setTabelaFinanceiroPCJVendas(false)
-      setTabelaFinanceiroActionPesqVendasMarca(false)
-      setCurrentPage(+1);
-      refetchVendasMarcaMarckup()
-    }
+    setTabelaFinanceiroActionPesqVendasMarcaMarckup(true)
+    setTabelaFinanceiroVendasPeriodoTicketMedio(false)
+    setTabelaFinanceiroResultadoOperacionalBruto(false)
+    setTabelaFinanceiroPCJVendas(false)
+    setTabelaFinanceiroActionPesqVendasMarca(false)
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchVendasMarcaMarckup()
   }
 
   const handleClickTicketMedio = () => {
     setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaFinanceiroVendasPeriodoTicketMedio(true)
-      setTabelaFinanceiroResultadoOperacionalBruto(false)
-      setTabelaFinanceiroPCJVendas(false)
-      setTabelaFinanceiroActionPesqVendasMarca(false)
-      setTabelaFinanceiroActionPesqVendasMarcaMarckup(false)
-      
-      setCurrentPage(+1);
-      refetchVendasMarca()
-    }
+    setTabelaFinanceiroVendasPeriodoTicketMedio(true)
+    setTabelaFinanceiroResultadoOperacionalBruto(false)
+    setTabelaFinanceiroPCJVendas(false)
+    setTabelaFinanceiroActionPesqVendasMarca(false)
+    setTabelaFinanceiroActionPesqVendasMarcaMarckup(false)
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchVendasMarca()
   }
 
   const handleClickROB = () => {
     setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaFinanceiroResultadoOperacionalBruto(true)
-      setTabelaFinanceiroPCJVendas(false)
-      setTabelaFinanceiroActionPesqVendasMarca(false)
-      setTabelaFinanceiroActionPesqVendasMarcaMarckup(false)
-      setTabelaFinanceiroVendasPeriodoTicketMedio(false)
- 
-
-      setCurrentPage(+1);
-      refetchVendasMarcaROB()
-    }
+    setTabelaFinanceiroResultadoOperacionalBruto(true)
+    setTabelaFinanceiroPCJVendas(false)
+    setTabelaFinanceiroActionPesqVendasMarca(false)
+    setTabelaFinanceiroActionPesqVendasMarcaMarckup(false)
+    setTabelaFinanceiroVendasPeriodoTicketMedio(false)
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchVendasMarcaROB()
   }
 
   const handleClickPCJVendas = () => {
     setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaFinanceiroPCJVendas(true)
-      setTabelaFinanceiroActionPesqVendasMarca(false)
-      setTabelaFinanceiroActionPesqVendasMarcaMarckup(false)
-      setTabelaFinanceiroVendasPeriodoTicketMedio(false)
-      setTabelaFinanceiroResultadoOperacionalBruto(false)
-
-  
-      setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
-      refetch();
-    }
+    setTabelaFinanceiroPCJVendas(true)
+    setTabelaFinanceiroActionPesqVendasMarca(false)
+    setTabelaFinanceiroActionPesqVendasMarcaMarckup(false)
+    setTabelaFinanceiroVendasPeriodoTicketMedio(false)
+    setTabelaFinanceiroResultadoOperacionalBruto(false)
+    setIsLoadingPesquisa(true);
+    setCurrentPage(prevPage => prevPage + 1);
+    refecthPcj();
   }
 
-  useEffect(() => {
-    if (isLoadingVendasPCJ) {
-      const swalContent = {
-        title: 'Dados Sendo Processados...',
-        // text: `Páginas carregadas: ${currentPage} de ${totalPages}\nPáginas restantes: ${totalPages - currentPage}`,
-        value: currentPage,
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      };
-
-      Swal.fire(swalContent).then((result) => {
-        if (result.isConfirmed) {
-          Swal.update(swalContent);
-        }
-      });
-    } else {
-      Swal.close();
-      if (!isLoadingPesquisa) {
-        setIsLoadingPesquisa(false);
-      }
-    }
-  }, [isLoadingVendasPCJ, isLoadingPesquisa, currentPage, totalPages]);
 
   return (
 
@@ -296,7 +301,7 @@ export const ActionPesquisaVendasMarca = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista de Vendas"]}
         title="Vendas por Marcas e Período"
-
+      
 
         InputFieldDTInicioComponent={InputField}
         labelInputFieldDTInicio={"Data Início"}
@@ -314,7 +319,7 @@ export const ActionPesquisaVendasMarca = () => {
           { value: '0', label: 'Selecione uma Marca' },
           ...optionsMarcas.map((item) => ({
             value: item.IDGRUPOEMPRESARIAL,
-            label: item.DSGRUPOEMPRESARIAL,
+            label: item.GRUPOEMPRESARIAL,
 
           }))
         ]}
@@ -331,8 +336,8 @@ export const ActionPesquisaVendasMarca = () => {
           }))
         ]}
         labelMultSelectEmpresa={"Empresa"}
-        valueMultSelectEmpresa={[empresaSelecionada[0]]}
-        onChangeMultSelectEmpresa={handleEmpresaChange}
+        valueMultSelectEmpresa={empresaSelecionada}
+        onChangeMultSelectEmpresa={handleChangeEmpresa}
 
         InputFieldComponent={InputField}
         labelInputField={"Empresas  Livre"}

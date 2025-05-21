@@ -7,6 +7,10 @@ import { ActionMain } from "../../../Actions/actionMain";
 import { InputField } from "../../../Buttons/Input";
 import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 import { ButtonType } from "../../../Buttons/ButtonType";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { useFetchData } from "../../../../hooks/useFetchData";
+import { getDataAtual } from "../../../../utils/dataAtual";
 
 
 export const ActionPesquisaVendasMarca = () => {
@@ -14,56 +18,65 @@ export const ActionPesquisaVendasMarca = () => {
   const [clickContador, setClickContador] = useState(0);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [marcas, setMarcas] = useState([]);
   const [marcaSelecionada, setMarcaSelecionada] = useState(null);
-  const [dadosVendasMarca, setDadosVendasMarca] = useState([]);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
   useEffect(() => {
-    getGrupoEmpresas()
+    const dataAtual = getDataAtual();
+    setDataPesquisaInicio(dataAtual);
+    setDataPesquisaFim(dataAtual);
   }, [])
 
+  const { data: dadosMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', `/marcasLista`);
 
-  const getGrupoEmpresas = async () => {
+  const fetchListaVendasMarca = async () => {
     try {
-      const response = await get(`/marcasLista`)
-      if (response.data) {
-        setMarcas(response.data)
+
+      const urlApi = `/venda-marca-periodo?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const response = await get(urlApi);
+
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+
+        return response.data;
       }
     } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
+      console.error('Erro ao buscar dados:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
+  };
 
-  const getListaVendasMarca = async () => {
-    try {
-      const response = await get(`/vendaMarcaPeriodo?idMarcaPesqVenda=${marcaSelecionada}&dataPesqInicio=${dataPesquisaInicio}&dataPesqFim=${dataPesquisaFim}`)
-      if (response.data) {
-        setDadosVendasMarca(response.data)
-      }
-      return response.data
-    } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
-    }
-  }
+  const { data: dadosVendasMarca = [], error: errorVendas, isLoading: isLoadingVendas, refetch: refetchListaVendasMarca } = useQuery(
+    ['venda-marca-periodo', marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    () => fetchListaVendasMarca(marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+    { enabled: Boolean(marcaSelecionada), staleTime: 5 * 60 * 1000 }
+  );
+
+
 
   const handleSelectMarca = (e) => {
     const selectId = e.value;
@@ -74,13 +87,10 @@ export const ActionPesquisaVendasMarca = () => {
   }
 
   const handleClick = () => {
-    setClickContador(prevContador => prevContador + 1);
+    setCurrentPage(prevPage => prevPage + 1);
 
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      getListaVendasMarca(marcaSelecionada)
-    }
-
+    setTabelaVisivel(true)
+    refetchListaVendasMarca(marcaSelecionada)
   }
 
   return (
@@ -108,9 +118,9 @@ export const ActionPesquisaVendasMarca = () => {
         optionsEmpresas={[
 
           { value: '', label: 'Selecione a Marca' },
-          ...marcas.map((empresa) => ({
+          ...dadosMarcas.map((empresa) => ({
             value: empresa.IDGRUPOEMPRESARIAL,
-            label: empresa.DSGRUPOEMPRESARIAL,
+            label: empresa.GRUPOEMPRESARIAL,
           }))
         ]}
         labelSelectEmpresa={"Marca"}

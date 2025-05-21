@@ -11,12 +11,16 @@ import Swal from 'sweetalert2';
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
 import { InputSelectAction } from "../../../Inputs/InputSelectAction"
 import { useFetchData } from "../../../../hooks/useFetchData"
+import { ActionImportacaoArquivo } from "./actionImportacaoArquivo"
 
-export const ActionPesquisaFaturasLoja = () => {
+export const ActionPesquisaFaturasLoja = ({usuarioLogado, ID}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
+  const [actionArquivo, setActionArquivo] = useState(false);
+  const [actionMain, setActionMain] = useState(true);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('')
   const [codigoFatura, setCodigoFatura] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(1000)
@@ -45,7 +49,7 @@ export const ActionPesquisaFaturasLoja = () => {
   const fetchFatura = async () => {
     try {
       
-      const urlApi = `detalhe-faturas?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&codigoFatura=${codigoFatura}`;
+      const urlApi = `/detalhe-faturas?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&codigoFatura=${codigoFatura}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -129,24 +133,35 @@ export const ActionPesquisaFaturasLoja = () => {
     }
    
   }
-  const {data: dadosVendaMarcaPeriodo= [], error: erroVendaMarcaPeriodo, isLoading: isLoadingVendaMarcaPeriodo, refetch: refetchVendaMarcaPeriodo} = useQuery(
-    'detalhe-faturas',
+  const {data: dadosVendaMarcaPeriodo = [], error: erroVendaMarcaPeriodo, isLoading: isLoadingVendaMarcaPeriodo, refetch: refetchVendaMarcaPeriodo} = useQuery(
+    'vendas-marca-periodo',
     () => fetchVendaMarcaPeriodo( dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize ),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 
-  
-  const handleChangeSelectEmpresa = (e) => {
-    setEmpresaSelecionada(e.value)
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
+
+  const handleChangeEmpresa = (e) => {
+    const empresa = optionsEmpresas.find((item) => item.IDEMPRESA === e.value);
+    setEmpresaSelecionada(e.value);
+    setEmpresaSelecionadaNome(empresa.NOFANTASIA);
   }
 
+
   const handleClick = () => {
+    setTabelaVisivel(true)
+    setIsLoadingPesquisa(true);
+    setCurrentPage(prevPage => prevPage +1); 
+    refetchFatura()
     if(empresaSelecionada) {
 
-      setTabelaVisivel(true)
-      setIsLoadingPesquisa(true);
-      setCurrentPage(+1); 
-      refetchFatura()
   
     } else {
       Swal.fire({
@@ -161,6 +176,8 @@ export const ActionPesquisaFaturasLoja = () => {
 
       setCurrentPage(+1); 
       refetchVendaMarcaPeriodo()
+      setActionArquivo(true)
+      setActionMain(false)
       setTabelaVisivel(false)
     } else {
       Swal.fire({
@@ -175,61 +192,65 @@ export const ActionPesquisaFaturasLoja = () => {
   return (
 
     <Fragment>
+      {actionMain && (
 
-      <ActionMain
-        linkComponentAnterior={["Home"]}
-        linkComponent={["Lista de Faturas"]}
-        title="Faturas por Lojas e Período"
+        <ActionMain
+          linkComponentAnterior={["Home"]}
+          linkComponent={["Lista de Faturas"]}
+          title="Faturas por Lojas e Período"
+          subTitle={empresaSelecionadaNome}
 
-        InputFieldDTInicioComponent={InputField}
-        labelInputFieldDTInicio={"Data Início"}
-        valueInputFieldDTInicio={dataPesquisaInicio}
-        onChangeInputFieldDTInicio={e => setDataPesquisaInicio(e.target.value)}
+          InputFieldDTInicioComponent={InputField}
+          labelInputFieldDTInicio={"Data Início"}
+          valueInputFieldDTInicio={dataPesquisaInicio}
+          onChangeInputFieldDTInicio={e => setDataPesquisaInicio(e.target.value)}
 
-        InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
+          InputFieldDTFimComponent={InputField}
+          labelInputFieldDTFim={"Data Fim"}
+          valueInputFieldDTFim={dataPesquisaFim}
+          onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
 
-        InputSelectEmpresaComponent={InputSelectAction}
-        labelSelectEmpresa={"Empresa"}
-        optionsEmpresas={[
+          InputSelectEmpresaComponent={InputSelectAction}
+          labelSelectEmpresa={"Empresa"}
+          optionsEmpresas={[
+            ...optionsEmpresas.map((empresa) => ({
+              value: empresa.IDEMPRESA,
+              label: empresa.NOFANTASIA,
+            }))
+          ]}
+          valueSelectEmpresa={empresaSelecionada}
+          onChangeSelectEmpresa={handleChangeEmpresa}
 
-          // { value: '0', label: 'Selecione uma Loja' },
-          ...optionsEmpresas.map((empresa) => ({
-            value: empresa.IDEMPRESA,
-            label: empresa.NOFANTASIA,
-          }))
-        ]}
-        valueSelectEmpresa={empresaSelecionada}
-        onChangeSelectEmpresa={handleChangeSelectEmpresa}
+          InputFieldComponent={InputField}
+          labelInputField={"Código Fatura"}
+          valueInputField={codigoFatura}
+          placeHolderInputFieldComponent={"Código Fatura"}
+          onChangeInputField={(e) => setCodigoFatura(e.target.value)}
 
-        InputFieldComponent={InputField}
-        labelInputField={"Código Fatura"}
-        valueInputField={codigoFatura}
-        placeHolderInputFieldComponent={"Código Fatura"}
-        onChangeInputField={(e) => setCodigoFatura(e.target.value)}
+          ButtonSearchComponent={ButtonType}
+          linkNomeSearch={"Pesquisar"}
+          onButtonClickSearch={handleClick}
+          IconSearch={AiOutlineSearch}
+          corSearch={"primary"}
 
-        ButtonSearchComponent={ButtonType}
-        linkNomeSearch={"Pesquisar"}
-        onButtonClickSearch={handleClick}
-        IconSearch={AiOutlineSearch}
-        corSearch={"primary"}
-
-        ButtonTypeCadastro={ButtonType}
-        linkNome={"Conciliar"}
-        onButtonClickCadastro={handleClickConciliar}
-        corCadastro={"info"}
-        IconCadastro={AiOutlineSearch}
-      />
+          ButtonTypeCadastro={ButtonType}
+          linkNome={"Conciliar"}
+          onButtonClickCadastro={handleClickConciliar}
+          corCadastro={"info"}
+          IconCadastro={AiOutlineSearch}
+        />
+      )}
 
       {tabelaVisivel && (
 
-        <div className="card " style={{marginTop: '7rem'}}>
-          <ActionListaFaturasLoja dadosDetalheFatura={dadosDetalheFatura} />
+        <div className="card">
+          <ActionListaFaturasLoja dadosDetalheFatura={dadosDetalheFatura} optionsModulos={optionsModulos}/>
         </div>
       )}
 
+      {actionArquivo && (
+        <ActionImportacaoArquivo dadosVendaMarcaPeriodo={dadosVendaMarcaPeriodo}/>
+      )}
    
     </Fragment>
   )

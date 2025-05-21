@@ -10,10 +10,11 @@ import {InputSelectAction} from "../../../Inputs/InputSelectAction"
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
-export const ActionPesquisaVendasDescontoFuncionario = () => {
+export const ActionPesquisaVendasDescontoFuncionario = ({ usuarioLogado, ID}) => {
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('')
   const [funcionarioSelecionado, setFuncionarioSelecionado] = useState('')
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,6 +28,16 @@ export const ActionPesquisaVendasDescontoFuncionario = () => {
 
   }, []);
 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
+
   const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch: refetchEmpresas } = useQuery(
     'listaEmpresasIformatica',
     async () => {
@@ -37,7 +48,7 @@ export const ActionPesquisaVendasDescontoFuncionario = () => {
   );
   
   const { data: dadosFuncionarios = [], error: errorFuncionarios, isLoading: isLoadingFuncionarios, refetch: refetchFuncionarios } = useQuery(
-    'funcionarios',
+    'listaFuncionarioVendasDesconto',
     async () => {
       const response = await get(`/funcionarios?idEmpresa=${empresaSelecionada}`);
       
@@ -98,12 +109,14 @@ export const ActionPesquisaVendasDescontoFuncionario = () => {
     ['listaVendasMarca',  empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, funcionarioSelecionado, currentPage, pageSize],
     () => fetchListaVendasConvenio(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, funcionarioSelecionado, currentPage, pageSize),
     {
-      enabled: false, 
+      enabled: Boolean(empresaSelecionada), 
     }
   );
 
   const handleSelectEmpresa = (e) => {
+    const empresa = optionsEmpresas.find(empresa => empresa.IDEMPRESA === e.value)
     setEmpresaSelecionada(e.value);
+    setEmpresaSelecionadaNome(empresa.NOFANTASIA)
   };
 
   const handleChangeFuncionario = (e) => {
@@ -112,7 +125,7 @@ export const ActionPesquisaVendasDescontoFuncionario = () => {
  
   const handleClick = () => {
     setTabelaVisivel(true);
-    setCurrentPage(+1)
+    setCurrentPage(prevPage => prevPage + 1)
     refetchListaVendasConvenio()
   };
 
@@ -124,7 +137,7 @@ export const ActionPesquisaVendasDescontoFuncionario = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Vendas por Desconto e Período"]}
         title="Vendas por Desconto e Período"
-        // subTitle="Nome da Loja"
+        subTitle={empresaSelecionadaNome}
         
         InputFieldDTInicioComponent={InputField}
         labelInputFieldDTInicio={"Data Início"}
@@ -138,12 +151,14 @@ export const ActionPesquisaVendasDescontoFuncionario = () => {
 
         InputSelectEmpresaComponent={InputSelectAction}
         labelSelectEmpresa={"Empresa"}
-        optionsEmpresas={optionsEmpresas.map((empresa) => ({
-          value: empresa.IDEMPRESA,
-          label: empresa.NOFANTASIA,
-        }))}
+        optionsEmpresas={[
+          { value: '0', label: 'Todas' },
+          ...optionsEmpresas.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+        }))]}
         
-        onChangeSelectEmpresa={handleSelectEmpresa}
+        onChangeSelectEmpresa={(e) => handleSelectEmpresa(e)}
         valueSelectEmpresa={empresaSelecionada}
 
         InputSelectFuncionarioComponent={InputSelectAction}
@@ -166,7 +181,11 @@ export const ActionPesquisaVendasDescontoFuncionario = () => {
 
       {tabelaVisivel &&
          
-        <ActionListaVendasDescontoFuncionario dadosVendasConvenio={dadosVendasConvenio} />
+        <ActionListaVendasDescontoFuncionario 
+          dadosVendasConvenio={dadosVendasConvenio} 
+          usuarioLogado={usuarioLogado}  
+          optionsModulos={optionsModulos}
+        />
       }
     </Fragment>
   )

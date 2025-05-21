@@ -12,15 +12,10 @@ import { MdOutlinePayment } from "react-icons/md";
 import { BsGem, BsGlobe } from "react-icons/bs";
 import { FaCashRegister, FaRegLightbulb } from "react-icons/fa";
 import { toFloat } from "../../../../utils/toFloat";
+import { useQuery } from 'react-query';
 
 export const ResumoDashBoardComercial = ({ }) => {
-  const [dadosDetalheFechamento, setDadosDetalheFechamento] = useState([]);
-  const [dadosVendasPagamentos, setDadosVendasPagamentos] = useState([]);
-  const [resumoVendas, setResumoVendas] = useState([]);
-  const [dadosVendasResumo, setDadosVendasResumo] = useState([]);
-  const [dataPesq, setDataPesq] = useState('');
   const [clickContador, setClickContador] = useState(0);
-  const [modalVisivel, setModalVisivel] = useState(false);
   const [dataPesquisa, setDataPesquisa] = useState(''); 
 
   useEffect(() => {
@@ -28,27 +23,17 @@ export const ResumoDashBoardComercial = ({ }) => {
     setDataPesquisa(dataAtual);
   }, []);
 
-  useEffect(() => {
-    if (dataPesquisa) {
-
-      getListaVendasLoja();
-      getResumoVendas();
-    }
-
-  }, [dataPesquisa]);
-
-  const getResumoVendas = async () => {
-
-    try {
-      const response = await get(`/resumoVendaFinanceiro?dataPesquisa=${dataPesquisa}`);
-      if (response.data) {
-        setDadosVendasResumo(response.data);
-      }
+  const { data: dadosVendasResumo = [],  refetch: refetchResumoVendas } = useQuery(
+    'venda-total',
+    async () => {
+      const response = await get(`/venda-total?dataPesquisa=${dataPesquisa}`);   
       return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar resumo das vendas: ', error);
+    },
+    {
+      enabled: Boolean(dataPesquisa), staleTime: 5 * 60 * 1000, 
     }
-  };
+  );
+
 
   const calcularTotalRealizado = (item) => {
     
@@ -70,42 +55,37 @@ export const ResumoDashBoardComercial = ({ }) => {
     const totalRealizado = calcularTotalRealizado(item);
   
     return {
-      VALORTOTALDINHEIRO: item[0]?.VALORTOTALDINHEIRO,
-      VALORTOTALCARTAO: item[0]?.VALORTOTALCARTAO,
-      VALORTOTALCONVENIO: item[0]?.VALORTOTALCONVENIO,
-      VALORTOTALPOS: item[0]?.VALORTOTALPOS,
-      VALORTOTALVOUCHER: item[0]?.VALORTOTALVOUCHER,
-      VALORTOTALFATURA: item[0]?.VALORTOTALFATURA,
-      VALORTOTALDESPESA: item[0]?.VALORTOTALDESPESA,
-      VALORTOTALADIANTAMENTOSALARIAL: item[0]?.VALORTOTALADIANTAMENTOSALARIAL,
+      VALORTOTALDINHEIRO: toFloat(item[0]?.VALORTOTALDINHEIRO),
+      VALORTOTALCARTAO: toFloat(item[0]?.VALORTOTALCARTAO),
+      VALORTOTALCONVENIO: toFloat(item[0]?.VALORTOTALCONVENIO),
+      VALORTOTALPOS: toFloat(item[0]?.VALORTOTALPOS),
+      VALORTOTALVOUCHER: toFloat(item[0]?.VALORTOTALVOUCHER),
+      VALORTOTALFATURA: toFloat(item[0]?.VALORTOTALFATURA),
+      VALORTOTALDESPESA: toFloat(item[0]?.VALORTOTALDESPESA),
+      VALORTOTALADIANTAMENTOSALARIAL: toFloat(item[0]?.VALORTOTALADIANTAMENTOSALARIAL),
 
       totalDespesaAdiantamento: totalDespesaAdiantamento,
       totalRealizado: totalRealizado
     }
   })
-  const getListaVendasLoja = async () => {
 
-    try {
-      const response = await get(`/vendaTotalEmpresa?dataPesquisa=${dataPesquisa}`)
-      if (response.data) {
-        setDadosVendasPagamentos(response.data)
-      }
+  const { data: dadosVendasPagamentos = [], error: erroTotalVendas, isLoading: isLoadingTotalVendas, refetch: refetchVendas } = useQuery(
+    'venda-total-empresa',
+    async () => {
+      const response = await get(`/venda-total-empresa?dataPesquisa=${dataPesquisa}`);
       return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }   
-  }
-
+    },
+    {
+     enabled: Boolean(dataPesquisa), staleTime: 5 * 60 * 1000, 
+    }
+  );
+  
 
   const handleClick = () => {
     setClickContador(prevContador => prevContador + 1);
 
-    if (clickContador % 2 === 0) {
-      getResumoVendas();
-      getListaVendasLoja(dataPesquisa);
-    } else {
-
-    }
+    refetchResumoVendas();
+    refetchVendas();
   }
 
 

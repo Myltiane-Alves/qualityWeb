@@ -20,7 +20,6 @@ export const ActionListaVendasDescontoFuncionario = ({ dadosVendasConvenioDescon
   const [modalPagamentoVisivel, setModalPagamentoVisivel] = useState(false)
   const [dadosPagamentoModal, setDadosPagamentoModal] = useState([])
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef()
 
   const onGlobalFilterChange = (e) => {
@@ -151,7 +150,7 @@ export const ActionListaVendasDescontoFuncionario = ({ dadosVendasConvenioDescon
     {
       field: 'DTHORAFECHAMENTO',
       header: 'Abertura',
-      body: row => <th >{dataFormatada(row.DTHORAFECHAMENTO)}</th>,
+      body: row => <th >{row.DTHORAFECHAMENTO}</th>,
       sortable: true,
     },
     {
@@ -203,6 +202,8 @@ export const ActionListaVendasDescontoFuncionario = ({ dadosVendasConvenioDescon
             Icon={GrView}
             cor={"primary"}
             iconSize={18}
+            width='35px'
+            height='35px'
             onClickButton={() => handleClickPagamento(row)}
           />
 
@@ -235,11 +236,11 @@ export const ActionListaVendasDescontoFuncionario = ({ dadosVendasConvenioDescon
   const footerGroup = (
     <ColumnGroup>
       <Row>
-        <Column footer="Total Vendas Convenio Desconto" colSpan={8} footerStyle={{ textAlign: 'center', color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularValorBruto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularValorDesconto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularValorLiquido())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={""} colSpan={1} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+        <Column footer="Total Vendas Convenio Desconto" colSpan={8} footerStyle={{ textAlign: 'center', color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={formatMoeda(calcularValorBruto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={formatMoeda(calcularValorDesconto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={formatMoeda(calcularValorLiquido())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
+        <Column footer={""} colSpan={1} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}/>
 
       </Row>
     </ColumnGroup>
@@ -271,12 +272,15 @@ export const ActionListaVendasDescontoFuncionario = ({ dadosVendasConvenioDescon
             title="Vendas Convênio Desconto em Folha"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
@@ -290,9 +294,9 @@ export const ActionListaVendasDescontoFuncionario = ({ dadosVendasConvenioDescon
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

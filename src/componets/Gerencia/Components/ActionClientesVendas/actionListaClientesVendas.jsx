@@ -19,7 +19,7 @@ import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "jspdf-autotable";
 import { toFloat } from "../../../../utils/toFloat";
 
-export const ActionListaClientesVendas = ({ dadosClientes }) => {
+export const ActionListaClientesVendas = ({ dadosClientes, usuarioLogado, optionsModulos }) => {
   const [dadosVendas, setDadosVendas] = useState([]);
   const [dadosProdutoModal, setDadosProdutoModal] = useState([]);
   const [dadosPagamentoModal, setDadosPagamentoModal] = useState([]);
@@ -27,7 +27,6 @@ export const ActionListaClientesVendas = ({ dadosClientes }) => {
   const [modalProdutoVisivel, setModalProdutoVisivel] = useState(false);
   const [modalPagamentoVisivel, setModalPagamentoVisivel] = useState(false);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -189,7 +188,9 @@ export const ActionListaClientesVendas = ({ dadosClientes }) => {
                 titleButton={"Venda"}
                 cor={"success"}
                 Icon={FcSalesPerformance}
-                iconSize={20}
+                iconSize={25}
+                width="35px"
+                height="35px"
                 onClickButton={() => handleClickVenda(row)}
               />
             </div>
@@ -198,7 +199,9 @@ export const ActionListaClientesVendas = ({ dadosClientes }) => {
                 titleButton={"Produtos"}
                 cor={"warning"}
                 Icon={GiClothes}
-                iconSize={20}
+                iconSize={25}
+                width="35px"
+                height="35px"
                 onClickButton={() => handleClickProduto(row)}
               />
             </div>
@@ -207,7 +210,9 @@ export const ActionListaClientesVendas = ({ dadosClientes }) => {
                 titleButton={"Pagamento"}
                 cor={"info"}
                 Icon={BsCash}
-                iconSize={20}
+                iconSize={25}
+                width="35px"
+                height="35px"
                 onClickButton={() => handleClickPagamento(row)}
               />
             </div>
@@ -223,6 +228,9 @@ export const ActionListaClientesVendas = ({ dadosClientes }) => {
 
   const calcularValorTotalDescnto = () => {
     return dados.reduce((total, dados) => total + toFloat(dados.VRTOTALDESCONTO), 0);
+  }
+  const calcularValorTotalPago = () => {
+    return dados.reduce((total, dados) => total + toFloat(dados.VRTOTALPAGO), 0);
   }
 
   const handleClickVenda = async (row) => {
@@ -264,12 +272,11 @@ export const ActionListaClientesVendas = ({ dadosClientes }) => {
 
   const handleEditPagamento = async (IDVENDA) => {
     try {
-      const response = await get(`/vendas-recebimentos?idVenda=${IDVENDA}`)
+      const response = await get(`/recebimento?idVenda=${IDVENDA}`)
       if (response.data) {
         setDadosPagamentoModal(response.data)
         setModalPagamentoVisivel(true)
       }
-
     } catch (error) {
       console.log(error, 'não foi possivel pegar os dados da tabela')
     }
@@ -288,7 +295,8 @@ export const ActionListaClientesVendas = ({ dadosClientes }) => {
        
         <Column footer={formatMoeda(calcularValorTotalBruto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} /> 
         <Column footer={formatMoeda(calcularValorTotalDescnto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} /> 
-        <Column footer={""} colSpan={3}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+        <Column footer={formatMoeda(calcularValorTotalPago())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} /> 
+        <Column footer={""} colSpan={2}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
       </Row>
     </ColumnGroup>
   )
@@ -315,13 +323,16 @@ export const ActionListaClientesVendas = ({ dadosClientes }) => {
           <DataTable
             title="Vendas Clientes"
             value={dados}
-            size={size}
+            size="small"
             globalFilter={globalFilterValue}
             footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50, 100]}
+            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

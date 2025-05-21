@@ -2,13 +2,10 @@ import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
-
-import { GrFormView, GrView } from "react-icons/gr";
+import { GrView } from "react-icons/gr";
 import { MdOutlineLocalPrintshop, MdOutlineSend } from "react-icons/md";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import { CiEdit } from "react-icons/ci";
-import { AiOutlineDelete } from "react-icons/ai";
-import { FaCheck } from "react-icons/fa";
 import { SiSap } from "react-icons/si";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
@@ -17,13 +14,34 @@ import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 import { ActionPDFPedido } from "./ActionPDF/actionPDFPedido";
 import { get } from "../../../../api/funcRequest";
+import { ActionNotaPDFSemPreco } from "./ActionPDFSemPreco/actionNotaPDFSemPreco";
+import { ActionPDFPedidoSemPreco } from "./ActionPDFSemPreco/actionPDFPedidoSemPreco";
+import { ActionNovoPedido } from "../ActionNovoPedido/actionNovoPedido";
+import Swal from "sweetalert2";
+import { useEnviarPedidoComprasADM } from "./hooks/useEnviarPedidoComprasADM";
+import { useEnviarPedidoCompras } from "./hooks/useEnviarPedidoCompras";
+import { useMigrarPedidoSap } from "./hooks/useMigrarPedidoSap";
+import { ActionEditarNovoPedido } from "../ActionNovoPedido/actionEditarNovoPedido";
 
-export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
+export const ActionListaPedidosPeriodo = ({ dadosListaPedidos, tabelaPedidoPeriodo, setTabelaPedidoPeriodo }) => {
   const [modalPedidoNota, setModalPedidoNota] = useState(false);
+  const [modalPedidoNotaSemPreco, setModalPedidoNotaSemPreco] = useState(false);
   const [dadosPedido, setDadosPedido] = useState([]);
+  const [dadosPedidoSemPreco, setDadosPedidoSemPreco] = useState([]);
   const [dadosDetalhePedido, setDadosDetalhePedido] = useState([]);
+  const [dadosDetalheProdutoPedido, setDadosDetalheProdutoPedido] = useState([]);
+  const [dadosVisualizarPedido, setDadosVisualizarPedido] = useState([]);
+  const [dadosEditarPedido, setDadosEditarPedido] = useState([]);
+  const [dadosReceberPedido, setDadosReceberPedido] = useState([]);
+  const [dadosEnviarComprasADM, setDadosEnviarComprasADM] = useState([]);
+  const [actionVsualizarPedido, setActionVisualizarPedido] = useState(false);
+  const [actionEditarPedido, setActionEditarPedido] = useState(false);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
+
+  const { enviarPedidoComprasADM } = useEnviarPedidoComprasADM();
+  const { enviarPedidoCompras } = useEnviarPedidoCompras();
+  const { migrarPedidoSap } = useMigrarPedidoSap();
 
 
   const onGlobalFilterChange = (e) => {
@@ -81,7 +99,6 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
     XLSX.writeFile(workbook, 'pedidos_periodo.xlsx');
   };
 
-
   const calcularTotalFabricante = () => {
     let total = 0;
     for (let dados of dadosListaPedidos) {
@@ -93,7 +110,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
   const dadosPedidos = dadosListaPedidos.map((item, index) => {
     let contador = index + 1;
     const totalFabricante = calcularTotalFabricante();
-
+    // console.log(item, 'item')
     return {
       IDPEDIDO: item.IDPEDIDO,
       DTPEDIDO: item.DTPEDIDO,
@@ -112,7 +129,6 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
       contador
     }
   });
-
 
   const colunasPedidos = [
     {
@@ -170,11 +186,19 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
       field: 'DSSETOR',
       header: 'Setor',
       body: row => {
-        return (
-          <div>
-            <th style={{ color: row.DSSETOR == 'CADASTRO' ? 'green' : row.DSSETOR == 'COMPRAS' ? 'blue' : row.DSSETOR == 'COMPRAS ADM' ? 'gray' : '' }} >{row.DSSETOR}</th>
-          </div>
-        )
+        if(row.DSSETOR == 'COMPRAS') {
+          return (
+            <div>
+              <th style={{ color: 'blue' }} > COMPRAS </th>
+            </div>
+          )
+        } else if(row.DSSETOR == 'CADASTRO' || row.DSSETOR == 'COMPRASADM') {
+          return (
+            <div>
+              <th style={{ color: 'green' }} > CADASTRO </th>
+            </div>
+          )
+        }
       },
       sortable: true,
     },
@@ -234,11 +258,11 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
       sortable: true
     },
     {
-      field: 'DSSETOR',
+      field: 'IDPEDIDO',
       header: 'Opções',
       body: (row) => {
         if (row.DSSETOR == 'CADASTRO') {
-
+       
           if (row.DSANDAMENTO == 'PRODUTOS/INCLUSÃO INICIADA') {
             return (
               <div className="p-1 "
@@ -250,7 +274,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                     cor={"primary"}
                     iconColor={"white"}
                     iconSize={20}
-                    onClickButton
+                    onClickButton={() => handleClickEditarPedido(row)}
                     titleButton={"Editar Pedido"}
                   />
                 </div>
@@ -270,7 +294,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                     cor={"dark"}
                     iconColor={"white"}
                     iconSize={20}
-                    onClickButton={() => handleClickImprimir(row)}
+                    onClickButton={() => handleClickImprimirSempreco(row)}
                     titleButton={"Imprimir Pedido Sem Preço de Venda"}
                   />
                 </div>
@@ -280,7 +304,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                     cor={"success"}
                     iconColor={"white"}
                     iconSize={20}
-                    onClickButton
+                    onClickButton={() => handleClickEnviarCompras(row)}
                     titleButton={"Enviar Compras para Ajuste"}
                   />
                 </div>
@@ -291,13 +315,14 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
               <div className="p-1 "
                 style={{ justifyContent: "space-between", display: "flex" }}
               >
+                <h2>testettsts</h2>
                 <div className="p-1">
                   <ButtonTable
                     Icon={GrView}
                     cor={"primary"}
                     iconColor={"white"}
                     iconSize={20}
-                    onClickButton
+                    onClickButton={() => handleClickVisualizarPedido(row)}
                     titleButton={"Visualizar Pedido"}
                   />
                 </div>
@@ -307,7 +332,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                     cor={"danger"}
                     iconColor={"white"}
                     iconSize={20}
-                    onClickButton
+                    onClickButton={() => handleClickEnviarComprasADM(row)}
                     titleButton={"Enviar Compras Adm para Cancelar"}
                   />
                 </div>
@@ -327,7 +352,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                     cor={"dark"}
                     iconColor={"white"}
                     iconSize={20}
-                    onClickButton={() => handleClickImprimir(row)}
+                    onClickButton={() => handleClickImprimirSempreco(row)}
                     titleButton={"Imprimir Pedido Sem Preço de Venda"}
                   />
                 </div>
@@ -337,7 +362,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                     cor={"secondary"}
                     iconColor={"white"}
                     iconSize={20}
-                    onClickButton
+                    onClickButton={() => handleClickReceberPedido(row)}
                     titleButton={"Recepção de Mercadoria do Pedido"}
                   />
                 </div>
@@ -347,7 +372,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                     cor={"success"}
                     iconColor={"white"}
                     iconSize={20}
-                    onClickButton
+                    onClickButton={() => handleClickEnviarCompras(row)}
                     titleButton={"Enviar Compras para Ajuste"}
                   />
                 </div>
@@ -357,7 +382,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                     cor={"primary"}
                     iconColor={"white"}
                     iconSize={20}
-                    onClickButton
+                    onClickButton={() => handleClickMigrarPedido(row)}
                     titleButton={"Migrar Pedido SAP"}
                   />
                 </div>
@@ -375,7 +400,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                   cor={"success"}
                   iconColor={"white"}
                   iconSize={20}
-                  onClickButton
+                  onClickButton={() => handleClickVisualizarPedido(row)}
                   titleButton={"Visualizar o Pedido"}
                 />
               </div>
@@ -395,7 +420,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                   cor={"dark"}
                   iconColor={"white"}
                   iconSize={20}
-                  onClickButton={() => handleClickImprimir(row)}
+                  onClickButton={() => handleClickImprimirSempreco(row)}
                   titleButton={"Imprimir Pedido Sem Preço de Venda"}
                 />
               </div>
@@ -413,7 +438,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                   cor={"success"}
                   iconColor={"white"}
                   iconSize={20}
-                  onClickButton
+                  onClickButton={() => handleClickVisualizarPedido(row)}
                   titleButton={"Visualizar o Pedido"}
                 />
               </div>
@@ -433,7 +458,7 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
                   cor={"dark"}
                   iconColor={"white"}
                   iconSize={20}
-                  onClickButton={() => handleClickImprimir(row)}
+                  onClickButton={() => handleClickImprimirSempreco(row)}
                   titleButton={"Imprimir Pedido Sem Preço de Venda"}
                 />
               </div>
@@ -445,12 +470,65 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
 
   ]
 
+  const handleClickEnviarComprasADM = async (row) => {
+    if (row.IDPEDIDO) {
+      enviarPedidoComprasADM(row.IDPEDIDO)
+    }
+  }
+
+  const handleClickEnviarCompras = async (row) => {
+    if (row.IDPEDIDO) {
+      enviarPedidoCompras(row.IDPEDIDO)
+    }
+  }
+
   const handleImprimir = async (IDPEDIDO) => {
+    let stOutlet = false;
     try {
-      const response = await get(`/listaPedidos?idPedido=${IDPEDIDO}`)
-      const responseDetlhe = await get(`/listaDetalhePedidos?idPedido=${IDPEDIDO}`)
+       const result = await Swal.fire({
+         icon: "question",
+         text: 'Este pedido é para o Outlet Família?',
+         showDenyButton: true,
+         confirmButtonText: 'Sim',
+         denyButtonText: 'Não',
+         customClass: {
+           container: 'custom-swal', 
+         }
+       });
+ 
+       if (result.isConfirmed) {
+         stOutlet = true;
+       } else if (result.isDenied) {
+         stOutlet = false;
+       } else {
+         return; 
+       }
+ 
+       const response = await get(`/lista-pedidos?idPedido=${IDPEDIDO}`);
+       const responseDetlhe = await get(`/lista-detalhe-pedidos-grade?idPedido=${IDPEDIDO}`);
+ 
+       if (response.data && responseDetlhe.data) {
+         setDadosPedido([{ ...response.data, stOutlet }]);
+         setDadosDetalhePedido(responseDetlhe.data);
+         setModalPedidoNota(true); 
+       }
+    } catch (error) {
+       console.log(error, "Não foi possível pegar os dados da tabela");
+    }
+  };
+  
+  const handleClickImprimir = async (row) => {
+    if (row.IDPEDIDO) {
+      await handleImprimir(row.IDPEDIDO); 
+    }
+  };
+ 
+  const handleImprimirSemPreco = async (IDPEDIDO) => {
+    try {
+      const response = await get(`/lista-pedidos?idPedido=${IDPEDIDO}`)
+      const responseDetlhe = await get(`/lista-detalhe-pedidos-grade?idPedido=${IDPEDIDO}`)
       if (response.data && responseDetlhe.data) {
-        setDadosPedido(response.data)
+        setDadosPedidoSemPreco(response.data)
         setDadosDetalhePedido(responseDetlhe.data)
       }
     } catch (error) {
@@ -458,63 +536,217 @@ export const ActionListaPedidosPeriodo = ({ dadosListaPedidos }) => {
     }
   }
 
-  const handleClickImprimir = async (row) => {
+  const handleClickImprimirSempreco = async (row) => {
     if (row.IDPEDIDO) {
-      handleImprimir(row.IDPEDIDO)
-      setModalPedidoNota(true)
+      handleImprimirSemPreco(row.IDPEDIDO)
+      setModalPedidoNotaSemPreco(true)
     }
   }
 
+  const handleVisualizarPedido = async (IDPEDIDO) => {
+    try {
+      const response = await get(`/lista-pedidos?idPedido=${IDPEDIDO}`)
+      const responseDetlhe = await get(`/lista-detalhe-pedidos?idPedido=${IDPEDIDO}`)
+      if (response.data && responseDetlhe.data) {
+        setDadosVisualizarPedido(response.data)
+        setDadosDetalhePedido(responseDetlhe.data)
+        setActionVisualizarPedido(true)
+        setTabelaPedidoPeriodo(false)
+      }
+    } catch (error) {
+      console.log(error, "não foi possivel pegar os dados da tabela ")
+    }
+  }
+
+  const handleClickVisualizarPedido = async (row) => {
+    if (row.IDPEDIDO) {
+      handleVisualizarPedido(row.IDPEDIDO)
+      setActionVisualizarPedido(true)
+    }
+  }
+
+  const handleEditarPedido = async (IDPEDIDO) => {
+    try {
+      // const response = await get(`/lista-pedidos?idPedido=${IDPEDIDO}`)
+      const responseDetlhe = await get(`/lista-detalhe-pedidos?idPedido=${IDPEDIDO}`)
+      if (responseDetlhe.data) {
+        // setDadosEditarPedido(response.data)
+        setDadosDetalhePedido(responseDetlhe.data)
+        setActionEditarPedido(true)
+        setTabelaPedidoPeriodo(false)
+        console.log(response.data, "responseDetalhe.data")
+
+      }
+    } catch (error) {
+      console.log(error, "não foi possivel pegar os dados da tabela ")
+    }
+  }
+
+  const handleClickEditarPedido = async (row) => {
+    if (row && row.IDPEDIDO) {
+      handleEditarPedido(row.IDPEDIDO)
+      setActionEditarPedido(true)
+    }
+  }
+
+  const handleReceberPedido = async (IDPEDIDO) => {
+    try {
+      const response = await get(`/vincula-nfPedido?idResumoPedido=${IDPEDIDO}`);
+     if(response.data) {
+
+       setDadosReceberPedido(response.data)
+      }
+      verificarExistenciaNF(response.data, IDPEDIDO)
+    } catch (error) {
+      console.error("Não foi possível pegar os dados da tabela", error);
+    }
+  };
+
+  const handleClickReceberPedido = async (row) => {
+    if (row.IDPEDIDO) {
+      handleReceberPedido(row.IDPEDIDO)
+    }
+  }
+
+  const handleMigrarPedidio = async (IDPEDIDO) => {
+    try {
+      const response = await get(`/lista-detalhe-produto-pedidos?idPedido=${IDPEDIDO}&stMigradoSap=False`);
+      if(response.data) {
+        setDadosDetalheProdutoPedido(response.data);
+      }
+      migrarPedidoSap(dadosDetalheProdutoPedido);
+    } catch (error) {
+      console.error("Não foi possível pegar os dados da tabela", error);
+    }
+  };
+
+  const handleClickMigrarPedido = async (row) => {
+    if (row && row.IDPEDIDO) {
+      handleMigrarPedidio(row.IDPEDIDO)
+    }
+  }
+
+  const verificarExistenciaNF = async (respostaSeExisteNF, IDPEDIDO) => {
+    try {
+      const response = await get(`/lista-detalhe-produto-pedidos?idPedido=${IDPEDIDO}`);
+      carregarPedidoParaConciliar(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar detalhes do pedido", error);
+    }
+
+    exibirBarraCarregamento(IDPEDIDO);
+  };
+
+  const exibirBarraCarregamento = async (IDPEDIDO) => {
+   
+    Swal.fire({
+      icon: 'info',
+      title: 'Carregando Dados...Aguarde!',
+      timer: 180000,
+      backdrop: false,
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      didOpen: async () => {
+        Swal.showLoading();
+
+        try {
+          const response = await get(`/lista-detalhe-produto-pedidos?idPedido=${IDPEDIDO}`);
+          setDadosDetalheProdutoPedido(response.data);
+          modalCadastroNfePedido(response.data);
+        } catch (error) {
+          console.error("Erro ao carregar detalhes do pedido", error);
+          // clearInterval(animacaoBarra);
+        }
+      }
+    }).then((result) => {
+      if (result.dismiss === Swal.DismissReason.timer) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro ao carregar os dados, recarregue a página e tente novamente',
+          timer: 15000,
+        });
+      }
+    });
+  };
+
   return (
     <Fragment>
-      <div className="panel">
+      {tabelaPedidoPeriodo && (
 
-        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-          <HeaderTable
-            globalFilterValue={globalFilterValue}
-            onGlobalFilterChange={onGlobalFilterChange}
-            handlePrint={handlePrint}
-            exportToExcel={exportToExcel}
-            exportToPDF={exportToPDF}
-          />
+        <div className="panel">
 
-        </div>
-        <div className="card mb-4" ref={dataTableRef}></div>
-        <DataTable
-          title="Vendas por Loja"
-          value={dadosPedidos}
-          size="small"
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-        >
-          {colunasPedidos.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
-
+          <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+            <HeaderTable
+              globalFilterValue={globalFilterValue}
+              onGlobalFilterChange={onGlobalFilterChange}
+              handlePrint={handlePrint}
+              exportToExcel={exportToExcel}
+              exportToPDF={exportToPDF}
             />
-          ))}
-        </DataTable>
-      </div>
 
+          </div>
+          <div className="card mb-4" ref={dataTableRef}>
+
+          <DataTable
+            title="Vendas por Loja"
+            value={dadosPedidos}
+            globalFilter={globalFilterValue}
+            size="small"
+            sortOrder={-1}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[5, 10, 20, 50]}
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+          >
+            {colunasPedidos.map(coluna => (
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                header={coluna.header}
+                body={coluna.body}
+                footer={coluna.footer}
+                sortable={coluna.sortable}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                footerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '0.8rem' }}
+
+              />
+            ))}
+          </DataTable>
+          </div>
+        </div>
+
+      )}
       <ActionPDFPedido 
         show={modalPedidoNota}
         handleClose={() => setModalPedidoNota(false)}
         dadosPedido={dadosPedido}
         dadosDetalhePedido={dadosDetalhePedido}
+        
       />
+
+      <ActionPDFPedidoSemPreco
+        show={modalPedidoNotaSemPreco}
+        handleClose={() => setModalPedidoNotaSemPreco(false)}
+        dadosPedidoSemPreco={dadosPedidoSemPreco}
+        dadosDetalhePedido={dadosDetalhePedido}
+      />
+
+      {actionVsualizarPedido && (
+        
+        <ActionNovoPedido dadosVisualizarPedido={dadosVisualizarPedido} dadosDetalhePedido={dadosDetalhePedido} />
+      )}
+
+      {actionEditarPedido && (
+
+        <ActionEditarNovoPedido
+          dadosEditarPedido={dadosEditarPedido}
+          dadosDetalhePedido={dadosDetalhePedido}
+        />
+      )}
+    
     </Fragment >
   )
 }

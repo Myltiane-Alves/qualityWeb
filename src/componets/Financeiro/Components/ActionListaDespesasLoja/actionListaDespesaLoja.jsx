@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { AiOutlineDelete } from "react-icons/ai"
@@ -6,56 +6,24 @@ import { dataFormatada } from "../../../../utils/dataFormatada";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { CiEdit } from "react-icons/ci";
-import { IoIosAdd } from "react-icons/io";
-import { get, post, put } from "../../../../api/funcRequest";
-import { ActionAjusteDespesasModal } from "./actionAjusteDespesasModal";
+import { get } from "../../../../api/funcRequest";
+import { ActionAjusteDespesasModal } from "./ActionAjusteDespesaLoja/actionAjusteDespesasModal";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 import Swal from "sweetalert2";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { FaCheck } from "react-icons/fa";
+import { useEditarDespesa } from "./hooks/useEditarDespesa";
 
-export const ActionListaDespesaLoja = ({ dadosDespesasLoja }) => {
+export const ActionListaDespesaLoja = ({ dadosDespesasLoja, usuarioLogado, optionsModulos }) => {
+  const { onSubmit } = useEditarDespesa(usuarioLogado, optionsModulos);
   const [modalDespesasVisivel, setModalDespesasVisivel] = useState(false);
   const [dadosDespesasLojaDetalhe, setDadosDespesasLojaDetalhe] = useState([]);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
-  const [usuarioLogado, setUsuarioLogado] = useState(null);                
-  const [ipUsuario, setIpUsuario] = useState('');
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-    
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    getIPUsuario();
-  }, [usuarioLogado]);
-
-  const getIPUsuario = async () => {
-    const response = await axios.get('http://ipwho.is/');
-    if (response.data) {
-      setIpUsuario(response.data.ip);
-    }
-    return response.data;
-  };
-
+ 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
   };
@@ -212,15 +180,16 @@ export const ActionListaDespesaLoja = ({ dadosDespesasLoja }) => {
               }}
             >
               <div>
-
               
                 <ButtonTable
                   titleButton={"Editar Despesa"}
                   onClickButton={() => handleClickEditar(row)}
                   Icon={CiEdit}
-                  iconSize={20}
                   iconColor={"#fff"}
                   cor={"primary"}
+                  iconSize={25} 
+                  width="30px"
+                  height="30px"
                 />
 
               </div>
@@ -230,9 +199,11 @@ export const ActionListaDespesaLoja = ({ dadosDespesasLoja }) => {
                   titleButton={"Cancelar Despesa"}
                   onClickButton={() => onSubmit(row, true)}
                   Icon={AiOutlineDelete}
-                  iconSize={20}
                   iconColor={"#fff"}
                   cor={"danger"}
+                  iconSize={25}
+                  width="30px"
+                  height="30px"
                 />
               </div>
             </div>
@@ -252,7 +223,9 @@ export const ActionListaDespesaLoja = ({ dadosDespesasLoja }) => {
                 titleButton={"Ativar Despesa"}
                 onClickButton={() => onSubmit(row, false)}
                 Icon={FaCheck}
-                iconSize={20}
+                iconSize={25}
+                width="30px"
+                height="30px"
                 iconColor={"#fff"}
                 cor={"success"}
               />
@@ -280,62 +253,25 @@ export const ActionListaDespesaLoja = ({ dadosDespesasLoja }) => {
 
 
   const handleClickEditar = (row) => {
-    if (row && row.IDDESPESASLOJA) {
-      handleEditar(row.IDDESPESASLOJA);
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.IDDESPESASLOJA) {
+        handleEditar(row.IDDESPESASLOJA);
+      }
+
+    } else {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Acesso Negado!',
+        text: 'Você não tem permissão para editar esta despesa.',
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: {
+          container: 'custom-swal',
+        }
+      })
     }
   };
-
-  const onSubmit = async (row, status) => {
-
-    const postData = {
-      IDDESPESASLOJA: row.IDDESPESASLOJA,
-      IDUSRCACELAMENTO: usuarioLogado.id,
-      DSMOTIVOCANCELAMENTO: status ? 'Despesa Cancelada' : 'Despesa Ativada',
-      STCANCELADO: status ? 'True' : 'False',
-    }
-
-    try {
-      const response = await put('/editar-status-despesa/:id', postData)
-      Swal.fire({
-        title: 'Sucesso',
-        text: 'Despesa alterada com Sucesso',
-        icon: 'success',
-        timer: 3000,
-        customClass: {
-          container: 'custom-swal',
-        }
-      })
-   
-
-      const textDados = JSON.stringify(postData)
-      let textoFuncao = 'FINANCEIRO/ATUALIZAÇÃO DE ESTATUS DA DESPESA';
-  
-  
-      const createData = {
-        IDFUNCIONARIO: usuarioLogado.id,
-        PATHFUNCAO: textoFuncao,
-        DADOS: textDados,
-        IP: ipUsuario
-      }
-  
-      const responsePost = await post('/log-web', createData)
-  
-      return responsePost.data;
-    } catch (error) {
-      Swal.fire({
-        title: 'Erro',
-        text: 'Erro ao Tentar Editar Despesa',
-        icon: 'error',
-        timer: 3000,
-        customClass: {
-          container: 'custom-swal',
-        }
-      })
-
-    }
-  }
-
-
 
   return (
 
@@ -361,11 +297,14 @@ export const ActionListaDespesaLoja = ({ dadosDespesasLoja }) => {
             title="Vendas por Loja"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50, 100]}
+            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

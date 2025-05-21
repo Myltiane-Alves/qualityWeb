@@ -1,10 +1,9 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { BsGem } from "react-icons/bs";
-import { FaCashRegister, FaRegLightbulb, FaRegMoneyBillAlt, FaSearch } from "react-icons/fa";
+import { FaCashRegister, FaRegLightbulb, FaRegMoneyBillAlt,} from "react-icons/fa";
 import { MdOutlinePayment } from "react-icons/md";
 import { ResultadoResumo } from "../../../ResultadoResumo/ResultadoResumo";
-import { get } from "../../../../api/funcRequest";
 import { ActionMain } from "../../../Actions/actionMain";
 import { InputField } from "../../../Buttons/Input";
 import { ButtonType } from "../../../Buttons/ButtonType";
@@ -13,16 +12,14 @@ import { getDataAtual } from "../../../../utils/dataAtual";
 import { toFloat } from "../../../../utils/toFloat";
 import { ActionListaVendasLojasResumo } from "./actionListaVendasLojasResumo";
 import { ActionListaTransacoesLojas } from "./actionListaTransacoesLojas";
-import { useQuery } from 'react-query';
+import { useFetchData } from "../../../../hooks/useFetchData";
+import { useQuery } from "react-query";
+import { get } from "../../../../api/funcRequest";
+import { setYear } from "date-fns";
 
 export const ResumoDashBoardFinaneiro = () => {
-  const [resumoVisivel, setResumoVisivel] = useState(false);
-  const [resumoVendas, setResumoVendas] = useState([]);
   const [dataPesquisa, setDataPesquisa] = useState('');
-  const [clickContador, setClickContador] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(1000)
-  const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(true)
+  const [isQueryData, setIsQueryData] = useState(false);
 
   useEffect(() => {
     const dataAtual = getDataAtual();
@@ -30,17 +27,36 @@ export const ResumoDashBoardFinaneiro = () => {
 
   }, [])
 
-
-  const { data: dadosResumoVendas = [],  refetch: refetchResumoVendas } = useQuery(
+  const { data: dadosResumoVendas = [], error: errorGrupo, isLoading: isLoadingGrupo, refetch: refetchResumoVendas } = useQuery(
     'venda-total',
     async () => {
-      const response = await get(`/venda-total?dataPesquisa=${dataPesquisa}`);   
+      const response = await get(`/venda-total?dataPesquisa=${dataPesquisa}`);
       return response.data;
     },
-    {
-      enabled: Boolean(dataPesquisa), staleTime: 5 * 60 * 1000, 
-    }
+    { enabled: Boolean(isQueryData), staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
   );
+
+  const { data: dadosTotalVendasEmpresa = [], error: errorVendaEmpresa, isLoading: isLoadingEmpresa, refetch: refetchTotalVendasEmpresa } = useQuery(
+    'venda-total-empresa',
+    async () => {
+      const response = await get(`/venda-total-empresa?dataPesquisa=${dataPesquisa}`);
+      return response.data;
+    },
+    { enabled: Boolean(isQueryData), staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  );
+
+  const { data: dadosTransacoesEmpresas = [], error: errorTransacoes, isLoading: isLoadingTransacoes, refetch: refetchTransacoes } = useQuery(
+    'venda-pagamentos',
+    async () => {
+      const response = await get(`/venda-pagamentos?dataPesquisa=${dataPesquisa}`);
+      return response.data;
+    },
+    { enabled: Boolean(isQueryData), staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  );
+
+  // const { data: dadosResumoVendas = [], refetch: refetchResumoVendas } = useFetchData('venda-total', `/venda-total?dataPesquisa=${dataPesquisa}`);
+  // const { data: dadosTotalVendasEmpresa = [], refetch: refetchTotalVendasEmpresa } = useFetchData('venda-total-empresa', `/venda-total-empresa?dataPesquisa=${dataPesquisa}`);
+  // const { data: dadosTransacoesEmpresas = [], refetch: refetchTransacoes } = useFetchData('venda-pagamentos', `/venda-pagamentos?dataPesquisa=${dataPesquisa}`);
 
   const calcularTotalDespesasAdiantamento = (item) => {
 
@@ -57,9 +73,8 @@ export const ResumoDashBoardFinaneiro = () => {
       toFloat(item.VALORTOTALDINHEIRO) +
       toFloat(item.VALORTOTALCARTAO) +
       toFloat(item.VALORTOTALCONVENIO) +
-      toFloat(item.VALORTOTALPOS) +
-      toFloat(item.VALORTOTALFATURA) +
-      toFloat(item.VALORTOTALDESPESA)
+      toFloat(item.VALORTOTALPOS) 
+
     );
   }
 
@@ -77,43 +92,20 @@ export const ResumoDashBoardFinaneiro = () => {
       VALORTOTALFATURA: item.VALORTOTALFATURA,
       VALORTOTALPOS: item.VALORTOTALPOS,
       VALORTOTALVOUCHER: item.VALORTOTALVOUCHER,
-      totalDespesasAdiantamento: formatMoeda(totalDespesasAdiantamento),
-      totalRealizado: formatMoeda(totalRealizado),
+      totalDespesasAdiantamento:totalDespesasAdiantamento,
+      totalRealizado: totalRealizado,
       contador
     }
   }): [];
 
-
-  const { data: dadosTotalVendasEmpresa = [], error: erroTotalVendas, isLoading: isLoadingTotalVendas, refetch: refetchTotalVendasEmpresa } = useQuery(
-    'venda-total-empresa',
-    async () => {
-      const response = await get(`/venda-total-empresa?dataPesquisa=${dataPesquisa}`);
-      return response.data;
-    },
-    {
-     enabled: Boolean(dataPesquisa), staleTime: 5 * 60 * 1000, 
-    }
-  );
-
-  const { data: dadosTransacoesEmpresas = [], error: erroTransacoesEmpresa, isLoading: isLoadingTransacoesEmpresas, refetch } = useQuery(
-    'venda-pagamentos',
-    async () => {
-      const response = await get(`/venda-pagamentos?dataPesquisa=${dataPesquisa}`);
-      return response.data;
-    },
-    {
-      enabled: Boolean(dataPesquisa), staleTime: 5 * 60 * 1000, 
-    }
-  );
  
   const handleClick = () => {
-    setResumoVisivel(true);
-    setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
-    refetchResumoVendas()
-    refetchTotalVendasEmpresa()
-    refetch()
-
+   
+    setIsQueryData(true);
+    refetchResumoVendas(dataPesquisa)
+    refetchTotalVendasEmpresa(dataPesquisa)
+    refetchTransacoes(dataPesquisa)
+    
   }
 
 
@@ -138,55 +130,50 @@ export const ResumoDashBoardFinaneiro = () => {
       />
 
     
-        <Fragment>
+        
+      <ResultadoResumo
+        nomeVendas="Dinheiro"
+        valorVendas={formatMoeda(toFloat(dadosVendasResumo[0]?.VALORTOTALDINHEIRO))}
+        cardVendas={true}
+        IconVendas={FaRegMoneyBillAlt}
 
-          <ResultadoResumo
-            nomeVendas="Dinheiro"
-            valorVendas={formatMoeda(toFloat(dadosVendasResumo[0]?.VALORTOTALDINHEIRO))}
-            cardVendas={true}
-            IconVendas={FaRegMoneyBillAlt}
+        nomeCartao="Cartão"
+        valorCartao={formatMoeda(toFloat(dadosVendasResumo[0]?.VALORTOTALCARTAO))}
+        cardCartao={true}
+        IconCartao={MdOutlinePayment}
 
-            nomeCartao="Cartão"
-            valorCartao={formatMoeda(toFloat(dadosVendasResumo[0]?.VALORTOTALCARTAO))}
-            cardCartao={true}
-            IconCartao={MdOutlinePayment}
+        nomeCliente="POS"
+        cardCliente={true}
+        numeroCliente={formatMoeda(toFloat(dadosVendasResumo[0]?.VALORTOTALPOS))}
+        IconNumeroCliente={BsGem}
 
-            nomeCliente="POS"
-            cardCliente={true}
-            numeroCliente={formatMoeda(toFloat(dadosVendasResumo[0]?.VALORTOTALPOS))}
-            IconNumeroCliente={BsGem}
+        nomeTicketMedio="Fatura"
+        valorTicketMedio={formatMoeda(toFloat(dadosVendasResumo[0]?.VALORTOTALFATURA))}
+        cardTicketMedio={true}
+        IconTicketMedio={FaRegLightbulb}
 
-            nomeTicketMedio="Fatura"
-            valorTicketMedio={formatMoeda(toFloat(dadosVendasResumo[0]?.VALORTOTALFATURA))}
-            cardTicketMedio={true}
-            IconTicketMedio={FaRegLightbulb}
+        nomeDespesas="Despesas"
+        valorDespesas={formatMoeda(toFloat(dadosVendasResumo[0]?.totalDespesasAdiantamento))}
+        cardDespesas={true}
+        IconValorDespesas={FaCashRegister}
 
-            nomeDespesas="Despesas"
-            valorDespesas={toFloat(dadosVendasResumo[0]?.totalDespesasAdiantamento)}
-            cardDespesas={true}
-            IconValorDespesas={FaCashRegister}
+        nomeEcommerce="Total Realizado - Vendas"
+        valorEcommerce={formatMoeda(toFloat(dadosVendasResumo[0]?.totalRealizado).toFixed(2))}
+        cardEcommerce={true}
+        IconValorEcommerce={FaCashRegister}
 
-            nomeEcommerce="Total Realizado - Vendas"
-            valorEcommerce={toFloat(dadosVendasResumo[0]?.totalRealizado)}
-            cardEcommerce={true}
-            IconValorEcommerce={FaCashRegister}
+        nomeVoucher="Convênio"
+        valorVoucher={formatMoeda(toFloat(dadosVendasResumo[0]?.VALORTOTALCONVENIO))}
+        cardVoucher={true}
+        IconVoucher={BsGem}
 
-            nomeVoucher="Convênio"
-            valorVoucher={formatMoeda(toFloat(dadosVendasResumo[0]?.VALORTOTALCONVENIO))}
-            cardVoucher={true}
-            IconVoucher={BsGem}
+        iconSize={100}
+        iconColor="white"
+      />
 
-            iconSize={100}
-            iconColor="white"
-          />
+      <ActionListaVendasLojasResumo dadosTotalVendasEmpresa={dadosTotalVendasEmpresa} dataPesquisa={dataPesquisa} />
 
-          <ActionListaVendasLojasResumo dadosTotalVendasEmpresa={dadosTotalVendasEmpresa} dataPesquisa={dataPesquisa} />
-
-          <ActionListaTransacoesLojas dadosTransacoesEmpresas={dadosTransacoesEmpresas} dataPesquisa={dataPesquisa} />
-        </Fragment>
-  
-
-
+      <ActionListaTransacoesLojas dadosTransacoesEmpresas={dadosTransacoesEmpresas} dataPesquisa={dataPesquisa} />
     </Fragment>
   )
 }

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react"
+import { Fragment, useState } from "react"
 import { ButtonType } from "../../../Buttons/ButtonType";
 import { MdAdd } from "react-icons/md";
 import { AiOutlineSearch } from "react-icons/ai";
@@ -7,43 +7,70 @@ import { InputField } from "../../../Buttons/Input";
 import { ActionMain } from "../../../Actions/actionMain";
 import { get } from "../../../../api/funcRequest";
 import { ActionListaCores } from "./actionListaCores";
-import { ActionCadastroCoresModal } from "./actionCadastroCoresModal";
+import { ActionCadastroCoresModal } from "./ActionCadastrarCores/actionCadastroCoresModal";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
 
 export const ActionPesquisaCores = () => {
-  const [dadosCores, setDadosCores] = useState([])
   const [descricao, setDescricao] = useState("")
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [modalVisivel, setModalVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [corSelecionada, setCorSelecionada] = useState('');
-
-  useEffect(() => {
-    getListaCores()
-  }, [])
-
-  const getListaCores = async () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
+    
+     
+  const fetchListaCores = async () => {
     try {
-      const response = await get(`/listaCores?idCor=${corSelecionada}&descricao=${descricao}`)
-      if (response.data) {
-        setDadosCores(response.data)
+      const urlApi = `/listaCores?idCor=${corSelecionada}&descricao=${descricao}`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+        
+        return response.data;
       }
+  
     } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
-
-
+  };
+    
+  const { data: dadosCores = [], error: errorAdiantamento, isLoading: isLoadingAdiantamento, refetch: refetchListaCores } = useQuery(
+    ['listaCores', corSelecionada, descricao, currentPage, pageSize],
+    () => fetchListaCores(corSelecionada, descricao,  currentPage, pageSize),
+    { enabled: true, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+  )
 
   const handlePesquisar = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      getListaCores()
-    } 
-    
-
+    setCurrentPage(prevPage => prevPage + 1)
+    refetchListaCores()
+    setTabelaVisivel(true)
   }
 
   const handleChangeCor = (e) => {
@@ -56,13 +83,6 @@ export const ActionPesquisaCores = () => {
   const handleClose = () => {
     setModalVisivel(false)
   }
-
-
-  const optionsF = [
-    { value: '1', label: 'Ativo' },
-    { value: '2', label: 'Inativo' }
-  ]
-
 
   return (
 

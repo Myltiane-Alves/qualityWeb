@@ -1,6 +1,4 @@
 import React, { Fragment, useState, useEffect } from "react"
-import makeAnimated from 'react-select/animated';
-import { useNavigate } from "react-router-dom";
 import { MdAdd } from "react-icons/md";
 import { AiOutlineSearch } from "react-icons/ai";
 import { ActionListaAlteracaoPreco } from "./actionListaAlteracaoPreco";
@@ -16,10 +14,9 @@ import { useFetchData } from "../../../../hooks/useFetchData";
 
 
 export const ActionPesquisaAlteracaoPreco = () => {
-  const [dadosGrupos, setDadosGrupos] = useState([]);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [grupoSelecionado, setGrupoSelecionado] = useState(null);
+  const [grupoSelecionado, setGrupoSelecionado] = useState('');
   const [subGrupoSelecionado, setSubGrupoSelecionado] = useState(null);
   const [listaPrecoSelecionada, setListaPrecoSelecionada] = useState('');
   const [responsavelSelcionado, setResponsavelSelecionado] = useState('');
@@ -28,23 +25,25 @@ export const ActionPesquisaAlteracaoPreco = () => {
   const [descricaoProduto, setDescricaoProduto] = useState('');
   const [idProduto, setIdProduto] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(1000);
+
 
   useEffect(() => {
     const dataInicial = getDataAtual()
     const dataFim = getDataAtual()
     setDataPesquisaInicio(dataInicial)
     setDataPesquisaFim(dataFim)
-    
   }, []);
 
-  const { data: dadosResponsaveisAlteracao = [] } = useFetchData('responsaveisAlteracaoPrecos', '/responsaveisAlteracaoPrecos');
-  const { data: dadosMarcas = [] } = useFetchData('listaMarcaProduto', '/listaMarcaProduto');
-  const { data: dadosListaAlteracaoPreco = [] } = useFetchData('listaPreco', '/listaPreco');
 
+
+  const { data: dadosResponsaveisAlteracao = [] } = useFetchData('responsaveisAlteracaoPrecos', '/responsaveisAlteracaoPrecos');
+  // const { data: dadosMarcas = [] } = useFetchData('listaMarcaProduto', '/listaMarcaProduto');
+  const { data: dadosListaPreco = [] } = useFetchData('lista-de-preco', '/lista-de-preco');
+  
   const fetchListaPreco = async () => {
     try {
-      const urlApi = `/alteracoes-de-precos-resumo?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLista=${grupoSelecionado}&idUsuario=${responsavelSelcionado}&descproduto${descricaoProduto}`;
+      const urlApi = `/alteracoes-de-precos-resumo?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLista=${listaPrecoSelecionada}&idUsuario=${responsavelSelcionado}&descproduto${descricaoProduto}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -83,10 +82,10 @@ export const ActionPesquisaAlteracaoPreco = () => {
   };
    
   const { data: dadosAlteracaoPreco = [], error: errorEstilos, isLoading: isLoadingEstilos, refetch: refetchListaPreco } = useQuery(
-    ['alteracoes-de-precos-resumo', dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
-    () => fetchListaPreco( currentPage, pageSize),
+    ['alteracoes-de-precos-resumo', listaPrecoSelecionada, responsavelSelcionado, descricaoProduto, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    () => fetchListaPreco(listaPrecoSelecionada, responsavelSelcionado, descricaoProduto, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     {
-      enabled: Boolean(dataPesquisaFim && dataPesquisaInicio)
+      enabled: Boolean(listaPrecoSelecionada),
     }
   );
 
@@ -108,11 +107,10 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
 
   const handleTabelaVisivel = () => {
-    setContadorClickTabela((prevClickCount) => prevClickCount + 1);
-    if (contadorClickTabela % 2 === 0) {
-      setTabelaVisivel(false);
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchListaPreco();
+    setTabelaVisivel(false);
 
-    }
   };
 
   const handleActionVisivel = () => {
@@ -123,19 +121,17 @@ export const ActionPesquisaAlteracaoPreco = () => {
     }
   };
 
-  
-  const handleChangeGrupos = (e) => {
-    setGrupoSelecionado(e.value);
-  };
-
-  const handleChangeSubGrupos = (e) => {
-    setSubGrupoSelecionado(e.value);
-  };
-
+  const optionsEmpresas = dadosListaPreco.map((item) => ({
+    value: item.IDRESUMOLISTAPRECO,
+    label: item.NOMELISTA,
+    title: item.TITLE, // Presumo que "title" está nos dados originais.
+  }));
 
   return (
 
     <Fragment>
+
+
       <ActionMain
         linkComponentAnterior={["Home"]}
         linkComponent={["Alteração de Preços"]}
@@ -179,12 +175,12 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
         InputSelectEmpresaComponent={InputSelectAction}
         labelSelectEmpresa={"Lista de Preço"}
-        optionsEmpresas={dadosMarcas.map((item) => ({
-          value: item.IDEMPRESA,
-          label: item.NOFANTASIA,
+        optionsEmpresas={dadosListaPreco.map((item) => ({
+          value: item.listaPreco.IDRESUMOLISTAPRECO,
+          label: item.listaPreco.NOMELISTA,
         }))}
         valueSelectEmpresa={listaPrecoSelecionada}
-        onChangeSelectEmpresa={handleChangeGrupos}
+        onChangeSelectEmpresa={(e) => setListaPrecoSelecionada(e.value)}
 
         InputSelectGrupoComponent={InputSelectAction}
         labelSelectGrupo={"Responsável Alt."}

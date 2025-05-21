@@ -8,13 +8,11 @@ import { getDataAtual } from "../../../../utils/dataAtual"
 import { AiOutlineSearch } from "react-icons/ai"
 import { ActionListaAdiantamentoSalarioLoja } from "./actionListaAdiantamentoSalarioLoja"
 import { useQuery } from 'react-query';
-import Swal from 'sweetalert2';
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
 import { useFetchData, useFetchEmpresas } from "../../../../hooks/useFetchData"
 
-export const ActionPesquisaAdiantamentoSalarioLoja = () => {
+export const ActionPesquisaAdiantamentoSalarioLoja = ({usuarioLogado, ID }) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState('0');
@@ -24,7 +22,7 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
-  const [totalPages, setTotalPages] = useState(0);
+  const [isQueryData, setIsQueryData] = useState(false);
 
   useEffect(() => {
     const dataInicial = getDataAtual();
@@ -37,7 +35,14 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', '/marcasLista');
   const { data: optionsEmpresas = [],} = useFetchEmpresas(marcaSelecionada);
 
-
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
   
   const fetchListaVendasPCJ = async () => {
     try {
@@ -82,7 +87,7 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
   const { data: dadosAdiantamentoFuncionarios = [], error: errorAdiantamento, isLoading: isLoadingAdiantamento, refetch } = useQuery(
     ['adiantamento-loja', marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada, currentPage, pageSize],
     () => fetchListaVendasPCJ(marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, empresaSelecionada,  currentPage, pageSize),
-    { enabled: false }
+    { enabled: Boolean(isQueryData), staleTime: 60 * 60 * 1000,}
   )
 
   const handleChangeEmpresa = (e) => {
@@ -100,10 +105,11 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
   }
 
   const handleClick = () => {
+    setCurrentPage(prevPage => prevPage + 1);
+    setIsQueryData(true);
+    refetch()
     setTabelaVisivel(true)
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
-    refetch()
   }
 
 
@@ -132,6 +138,7 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
         linkComponent={["Adiantamento Salarial"]}
         title="Adiantamento Salarial das Lojas"
         subTitle={empresaSelecionadaNome}
+        
         InputFieldDTInicioComponent={InputField}
         valueInputFieldDTInicio={dataPesquisaInicio}
         labelInputFieldDTInicio={"Data Início"}
@@ -160,7 +167,7 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
           { value: 0, label: 'Selecione uma loja' },
           ...optionsMarcas.map((marca) => ({
             value: marca.IDGRUPOEMPRESARIAL,
-            label: marca.DSGRUPOEMPRESARIAL
+            label: marca.GRUPOEMPRESARIAL
           }))
         ]}
         valueSelectMarca={marcaSelecionada}
@@ -184,7 +191,12 @@ export const ActionPesquisaAdiantamentoSalarioLoja = () => {
       />
 
       {tabelaVisivel && (
-        <ActionListaAdiantamentoSalarioLoja dadosAdiantamentoFuncionarios={dadosAdiantamentoFuncionarios} />
+        <ActionListaAdiantamentoSalarioLoja 
+          dadosAdiantamentoFuncionarios={dadosAdiantamentoFuncionarios} 
+          optionsModulos={optionsModulos}
+          usuarioLogado={usuarioLogado}
+          handleClick={handleClick}
+        />
       )}
 
     </Fragment>

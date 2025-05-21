@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useState } from "react"
 import { InputField } from "../../../Buttons/Input"
-import { ButtonSearch } from "../../../Buttons/ButtonSearch"
 import { ActionMain } from "../../../Actions/actionMain"
 import { ButtonType } from "../../../Buttons/ButtonType"
 import { get } from "../../../../api/funcRequest"
@@ -19,9 +18,10 @@ export const ActionPesquisaVendasDigital = () => {
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(500)
-  
+  const [isQueryData, setIsQueryData] = useState(false)
   
   useEffect(() => {
     const dataInicial = getDataAtual();
@@ -33,14 +33,14 @@ export const ActionPesquisaVendasDigital = () => {
 
   const { data: optionsEmpresas = [] } = useFetchData('listaEmpresasIformatica', '/listaEmpresasIformatica');
 
-  const refetchVendasDetalhadas = async (empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage = 1, pageSize) => {
+  const refetchVendasDetalhadas = async () => {
     try {
-      const urlApi = `venda-digital?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&page=${currentPage}`;
+      const urlApi = `/venda-digital?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
   
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
-  
+        
         async function fetchNextPage(currentPage) {
           try {
             currentPage++;
@@ -60,7 +60,6 @@ export const ActionPesquisaVendasDigital = () => {
         await fetchNextPage(currentPage);
         return allData;
       } else {
-       
         return response.data;
       }
     } catch (error) {
@@ -72,25 +71,25 @@ export const ActionPesquisaVendasDigital = () => {
   const { data: dadosVendasDetalhadas = [], error: errorVendasDetalhada, isLoading: isLoadingVendasDetalhada, refetch: refetchVendaDetalhada } = useQuery(
     ['venda-digital', empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => refetchVendasDetalhadas(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    { enabled: false, staleTime: 5 * 60 * 1000 }
+    { enabled: Boolean(isQueryData), staleTime: 5 * 60 * 1000 }
   );
-
-  const handleChangeSelectEmpresa = (e) => {
-    setEmpresaSelecionada(e.value)
+ 
+  const handleChangeEmpresa = (e) => {
+    const empresa = optionsEmpresas.find((item) => item.IDEMPRESA === e.value);
+    setEmpresaSelecionada(e.value);
+    setEmpresaSelecionadaNome(empresa.NOFANTASIA);
   }
 
   const handleClickResumido = () => {
-    
     setTabelaResumidoVisivel(true)
     setTabelaDetalhadoVisivel(false)    
   }
 
   const handleClickDetalhado = () => {
-   
     setTabelaDetalhadoVisivel(true)
     setTabelaResumidoVisivel(false)
-
-    setCurrentPage(+1); 
+    setCurrentPage(prevPage => prevPage + 1); 
+    setIsQueryData(true)
     refetchVendaDetalhada()
     
   }
@@ -104,7 +103,7 @@ export const ActionPesquisaVendasDigital = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista de Vendas Digital"]}
         title="Vendas Digitais e Período"
-        subTitle="Nome da Loja"
+        subTitle={empresaSelecionadaNome}
 
         InputFieldDTInicioComponent={InputField}
         labelInputFieldDTInicio={"Data Início"}
@@ -127,7 +126,7 @@ export const ActionPesquisaVendasDigital = () => {
         ]}
         labelSelectEmpresa={"Loja"}
         valueSelectEmpresa={empresaSelecionada}
-        onChangeSelectEmpresa={handleChangeSelectEmpresa}
+        onChangeSelectEmpresa={handleChangeEmpresa}
 
 
         ButtonSearchComponent={ButtonType}
@@ -146,7 +145,7 @@ export const ActionPesquisaVendasDigital = () => {
 
       {tabelaDetalhadoVisivel && (
         
-        <div className="card">
+        <div className="card" >
           <ActionListaVendasDigital dadosVendasDetalhadas={dadosVendasDetalhadas} />
         </div>
         
@@ -154,7 +153,7 @@ export const ActionPesquisaVendasDigital = () => {
 
       {tabelaResumidoVisivel && (
 
-        <div className="card">
+        <div className="card" >
           <ActionListaVendasResumidaDigital dadosVendasDetalhadas={dadosVendasDetalhadas} />
         </div>
 

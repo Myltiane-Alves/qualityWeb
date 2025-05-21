@@ -32,8 +32,11 @@ export const ActionEditarListasPrecos = ({ show, handleClose, dadosListaLoja }) 
       head: [['Nº', 'ID Lista', 'Nome Loja', 'Status']],
       body: dados.map(item => [
         item.contador,
-        item.IDEMPRESA,
-        item.NOFANTASIA,
+        item.IDRESUMOLISTAPRECO,
+        item.NOMELISTA,
+        item.detalheLista,
+        item.DATACRIACAO,
+        item.DATAALTERACAO,
         item.STATIVO == 'True' ? 'ATIVA' : 'INATIVA'
       ]),
       horizontalPageBreak: true,
@@ -62,10 +65,10 @@ export const ActionEditarListasPrecos = ({ show, handleClose, dadosListaLoja }) 
     let contador = index + 1;
     return {
 
-        contador,
-        IDEMPRESA: item.IDEMPRESA,
-        NOFANTASIA: item.NOFANTASIA,
-        STATIVO: item.STATIVO,
+      IDEMPRESA: item.IDEMPRESA,
+      NOFANTASIA: item.NOFANTASIA,
+      STATIVO: item.STATIVO,
+      contador
 
     }
   })

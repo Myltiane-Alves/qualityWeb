@@ -17,6 +17,7 @@ export const ActionPesquisaVendasConciliacao = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
@@ -35,8 +36,9 @@ export const ActionPesquisaVendasConciliacao = () => {
 
   const fetchListaVendasConciliacao = async () => {
     try {
-      const urlApi = `/venda-conciliacao?idGrupo=${marcaSelecionada}&idLoja=&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/venda-conciliacao?idGrupo=${marcaSelecionada}&idLoja=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
+
       
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
@@ -75,7 +77,7 @@ export const ActionPesquisaVendasConciliacao = () => {
   const { data: dadosVendasConciliacao = [], error: errorVendasConciliacao, isLoading: isLoadingVendasConciliacao, refetch } = useQuery(
     ['venda-conciliacao', marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchListaVendasConciliacao(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    { enabled: false }
+    { enabled: Boolean(marcaSelecionada) }
   );
 
 
@@ -83,66 +85,19 @@ export const ActionPesquisaVendasConciliacao = () => {
     setMarcaSelecionada(e.value)
   }
 
-  const handleEmpresaChange = (selectedOptions) => {
-    const values = selectedOptions.map((option) => option.value);
-    setEmpresaSelecionada(values);
+  const handleChangeEmpresa = (selectedOptions) => {
+    const selectedValues = selectedOptions.map(option => option.value);
+    setEmpresaSelecionada(selectedValues);
+    
   }
 
   const handleClick = () => {
+    setCurrentPage(prevPage => prevPage + 1);
     setTabelaVisivel(true)
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
     refetch();
-    // getListaVendas();
   }
 
-  // useEffect(() => {
-  //   if (isLoadingVendasConciliacao) {
-  //     const swalContent = {
-  //       title: 'Dados Sendo Processados...',
-  //       // text: `Páginas carregadas: ${currentPage} de ${totalPages}\nPáginas restantes: ${totalPages - currentPage}`,
-  //       value: currentPage,
-  //       allowOutsideClick: false,
-  //       didOpen: () => {
-  //         Swal.showLoading();
-  //       },
-  //     };
-  
-  //     Swal.fire(swalContent).then((result) => {
-  //       if (result.isConfirmed) {
-  //         Swal.update(swalContent);
-  //       }
-  //     });
-  //   } else {
-  //     Swal.close();
-  //     if (!isLoadingPesquisa) {
-  //       setIsLoadingPesquisa(false);
-  //     }
-  //   }
-  // }, [isLoadingVendasConciliacao, isLoadingPesquisa, currentPage, totalPages]);
-  
-
-  // useEffect(() => {
-  //   if (isLoadingVendasConciliacao) {
-  //     // preciso fazer um contador de páginas aqui currentPage é a página atual e totalPages é o total de páginas preciso de contador para ser exibido no swal
-  //     Swal.fire({
-  //       title:  'Carregando vendas...',
-  //       text: `Páginas carregadas: ${currentPage } de ${totalPages}\nPáginas restantes: ${totalPages - currentPage}`,
-  //       value: currentPage,
-  //       allowOutsideClick: false,
-  //       didOpen: () => {
-  //         Swal.showLoading();
-  //       },
-  //     });
-  //   } else {
-  //     Swal.close();
-  //     if (!isLoadingPesquisa) {
-  //       setIsLoadingPesquisa(false);
-  //     }
-  //   }
-  //   console.log(currentPage, totalPages)
-  // }, [ isLoadingVendasConciliacao, isLoadingPesquisa, currentPage, totalPages]);
- 
 
   return (
 
@@ -151,7 +106,6 @@ export const ActionPesquisaVendasConciliacao = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Pesquisa Vendas"]}
         title="Vendas Conciliação"
-        subTitle="Nome da Loja"
 
         InputFieldDTInicioComponent={InputField}
         labelInputFieldDTInicio={"Data Início"}
@@ -169,7 +123,7 @@ export const ActionPesquisaVendasConciliacao = () => {
           { value: '0', label: 'Selecione uma Marca' },
           ...optionsMarcas.map((item) => ({
             value: item.IDGRUPOEMPRESARIAL,
-            label: item.DSGRUPOEMPRESARIAL,
+            label: item.GRUPOEMPRESARIAL,
 
           }))
         ]}
@@ -186,8 +140,8 @@ export const ActionPesquisaVendasConciliacao = () => {
           }))
         ]}
         labelMultSelectEmpresa={"Empresa"}
-        valueMultSelectEmpresa={[empresaSelecionada[0]]}
-        onChangeMultSelectEmpresa={handleEmpresaChange}
+        valueMultSelectEmpresa={[empresaSelecionada]}
+        onChangeMultSelectEmpresa={handleChangeEmpresa}
 
 
         ButtonSearchComponent={ButtonType}

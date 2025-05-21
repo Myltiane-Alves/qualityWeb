@@ -1,5 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom";
+import React, { Fragment, useState } from "react"
 import { ActionMain } from "../../../Actions/actionMain";
 import { ButtonType } from "../../../Buttons/ButtonType";
 import { get } from "../../../../api/funcRequest";
@@ -8,37 +7,24 @@ import { ActionListaEmpresas } from "./actionListaEmpresas";
 import { AiOutlineSearch } from "react-icons/ai";
 import { useQuery } from 'react-query';
 import { useFetchData } from "../../../../hooks/useFetchData";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
-export const ActionPesquisaEmpresas = () => {
+export const ActionPesquisaEmpresas = ({ usuarioLogado, ID }) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false)
-  const [clickContador, setClickContador] = useState(0)
-  const [empresas, setEmpresas] = useState([])
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('')
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
 
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-
-  }, [usuarioLogado]);
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas } = useFetchData('empresas', '/empresas');
 
@@ -47,10 +33,11 @@ export const ActionPesquisaEmpresas = () => {
 
       const urlApi = `/empresas?idEmpresa=${empresaSelecionada}`;
       const response = await get(urlApi);
-  
+
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
-  
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+
         async function fetchNextPage(currentPage) {
           try {
             currentPage++;
@@ -66,39 +53,38 @@ export const ActionPesquisaEmpresas = () => {
             throw error;
           }
         }
-  
+
         await fetchNextPage(currentPage);
         return allData;
       } else {
-       
+
         return response.data;
       }
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
       throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
   };
 
   const { data: dadosEmpresas = [], error: errorListaEmpresas, isLoading: isLoadingListaEmpresas, refetch: refetchListaEmpresas } = useQuery(
-    ['empresas',  empresaSelecionada, currentPage, pageSize],
-    () => fetchListaEmpresas( empresaSelecionada,  currentPage, pageSize),
+    ['empresas', empresaSelecionada, currentPage, pageSize],
+    () => fetchListaEmpresas(empresaSelecionada, currentPage, pageSize),
     { enabled: true, staleTime: 5 * 60 * 1000 }
   );
 
-
-  const handleSelectEmpresa = (e) => {
-    const selectId = e.value
-    if (selectId) {
-      setEmpresaSelecionada(selectId)
-    }
+  const handleChangeEmpresa = (e) => {
+    const empresa = optionsEmpresas.find((item) => item.IDEMPRESA === e.value);
+    setEmpresaSelecionada(e.value);
+    setEmpresaSelecionadaNome(empresa.NOFANTASIA);
   }
 
-
   const handleClick = () => {
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchListaEmpresas()
     setTabelaVisivel(true)
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
-    refetchListaEmpresas()
   }
 
   return (
@@ -109,14 +95,14 @@ export const ActionPesquisaEmpresas = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Empresas"]}
         title="Empresas"
-        subTitle="Nome da Loja"
+        subTitle={empresaSelecionadaNome}
 
         InputSelectEmpresaComponent={InputSelectAction}
-        onChangeSelectEmpresa={handleSelectEmpresa}
+        onChangeSelectEmpresa={handleChangeEmpresa}
         valueSelectEmpresa={empresaSelecionada}
 
         optionsEmpresas={[
-          { value: '0', label: 'Selecione'},
+          { value: '0', label: 'Selecione' },
           ...optionsEmpresas.map((empresa) => ({
             value: empresa.IDEMPRESA,
             label: empresa.NOFANTASIA,
@@ -131,11 +117,12 @@ export const ActionPesquisaEmpresas = () => {
         IconSearch={AiOutlineSearch}
       />
 
+      <ActionListaEmpresas 
+        dadosEmpresas={dadosEmpresas} 
+        optionsModulos={optionsModulos}
+        usuarioLogado={usuarioLogado}  
+      />
     
-      <div style={{marginTop: '2rem'}} >
-        <ActionListaEmpresas dadosEmpresas={dadosEmpresas} />
-      </div>
-  
     </Fragment>
   )
 }

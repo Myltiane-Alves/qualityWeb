@@ -10,11 +10,8 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 
-export const ActionListaVendasTicketMedio = ({
-  dadosListaVendasMarca
-}) => {
+export const ActionListaVendasTicketMedio = ({dadosListaVendasMarca}) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -211,11 +208,14 @@ export const ActionListaVendasTicketMedio = ({
             title="Vendas por Loja"
             value={dadosVendasMarca}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator
             rows={10}
             rowsPerPageOptions={[10, 20, 30, 50, 100, dadosVendasMarca.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -228,9 +228,9 @@ export const ActionListaVendasTicketMedio = ({
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

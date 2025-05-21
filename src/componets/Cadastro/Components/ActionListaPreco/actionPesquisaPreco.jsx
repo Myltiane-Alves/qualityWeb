@@ -34,7 +34,7 @@ export const ActionPesquisaPreco = () => {
 
   const fetchListaPreco = async () => {
     try {
-      const urlApi = `/listaPreco?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLista=${numeroPedido}&nomeLista=${nomeLista}`;
+      const urlApi = `/lista-de-preco?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&idLista=${numeroPedido}&nomeLista=${nomeLista}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {

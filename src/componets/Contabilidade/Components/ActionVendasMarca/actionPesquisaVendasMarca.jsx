@@ -43,7 +43,7 @@ export const ActionPesquisaVendasMarca = () => {
   const fetchListaVendasMarca = async () => {
     try {
 
-      const urlApi = `/vendasProdutos?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/vendas-produtos?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -81,7 +81,7 @@ export const ActionPesquisaVendasMarca = () => {
   };
 
   const { data: dadosVendasMarca = [], error: errorVendas, isLoading: isLoadingVendas, refetch: refetchListaVendasMarca } = useQuery(
-    ['vendasProdutos', marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    ['vendas-produtos', marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchListaVendasMarca(marcaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     { enabled: Boolean(marcaSelecionada), staleTime: 5 * 60 * 1000 }
   );

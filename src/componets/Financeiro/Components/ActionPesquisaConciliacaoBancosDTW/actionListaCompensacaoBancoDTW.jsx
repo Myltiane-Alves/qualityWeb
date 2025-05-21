@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { formatMoeda } from "../../../../utils/formatMoeda";
@@ -9,47 +9,19 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 import Swal from "sweetalert2";
-import { post, put } from "../../../../api/funcRequest";
-import { useNavigate } from "react-router-dom";
 import { BsTrash3 } from "react-icons/bs";
 import { formatarDataDTW } from "../../../../utils/dataFormatada";
 import { toFloat } from "../../../../utils/toFloat";
+import { useEditarDeposito } from "./hooks/useEditarDeposito";
 
 
-export const ActionListaCompensacaoBancoDTW = ({ dadosConciliarBanco, contaSelecionada }) => {
+export const ActionListaCompensacaoBancoDTW = ({ dadosConciliarBanco, contaSelecionada, optionsModulos, usuarioLogado, handleClickCompensacao }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [ipUsuario, setIpUsuario] = useState('');
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    getIPUsuario();
-  }, [usuarioLogado]);
-
-  const getIPUsuario = async () => {
-    const response = await fetch('http://ipwho.is/')
-    if (response.data) {
-      setIpUsuario(response.data);
-    }
-    return response.data;
-  }
+  const {
+    handleCancelar
+  } = useEditarDeposito({ optionsModulos, usuarioLogado, handleClickCompensacao })
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -141,10 +113,10 @@ export const ActionListaCompensacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
   
     }
   })
+
   const dadosListaConciliarBanco = dadosConciliarBanco.map((item) => {
     let contaTransitoriaSap = '';
    
-
     if (contaSelecionada === 43 || contaSelecionada === 218 || contaSelecionada === 58 || contaSelecionada === 10006 || contaSelecionada === 10018 || contaSelecionada === 10008) {
       contaTransitoriaSap = '1.01.01.01.0003';
     } else if (contaSelecionada === 3) {
@@ -171,68 +143,69 @@ export const ActionListaCompensacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
       NUCONTASAP: item.NUCONTASAP,
     }
   })
+
  
   const colunasConciliarBanco = [
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => <p style={{ color: '' }}>{row.NOFANTASIA}</p>,
+      body: row => <th style={{ color: '' }}>{row.NOFANTASIA}</th>,
       sortable: true
     },
     {
       field: 'contaTransitoriaSap',
       header: 'Conta Transitória',
-      body: row => <p style={{ color: '' }}>{row.contaTransitoriaSap}</p>,
+      body: row => <th style={{ color: '' }}>{row.contaTransitoriaSap}</th>,
       sortable: true
     },
     {
       field: 'NUCONTASAP',
       header: 'Conta Débito',
-      body: row => <p style={{ color: '' }}>{row.NUCONTASAP}</p>,
+      body: row => <th style={{ color: '' }}>{row.NUCONTASAP}</th>,
       sortable: true
     },
     {
       field: 'DTCOMPENSACAO',
       header: 'Data Compensação',
-      body: row => <p style={{ color: '' }}>{row.DTCOMPENSACAO || 'Não Informado'}</p>,
+      body: row => <th style={{ color: '' }}>{row.DTCOMPENSACAO || 'Não Informado'}</th>,
       sortable: true
     },
     {
       field: 'DSBANCO',
       header: 'Banco',
-      body: row => <p style={{ color: '' }}>{row.DSBANCO}</p>,
+      body: row => <th style={{ color: '' }}>{row.DSBANCO}</th>,
       footer: 'Total',
       sortable: true
     },
     {
       field: 'VRDEPOSITO',
       header: 'Valor',
-      body: row => <p style={{ color: '' }}>{formatMoeda(row.VRDEPOSITO)}</p>,
+      body: row => <th style={{ color: '' }}>{formatMoeda(row.VRDEPOSITO)}</th>,
       footer: formatMoeda(calcularValorDeposito()),
       sortable: true
     },
     {
       field: 'NUDOCDEPOSITO',
       header: 'Doc.',
-      body: row => <p style={{ color: '' }}>{toFloat(row.NUDOCDEPOSITO)}</p>,
+      body: row => <th style={{ color: '' }}>{toFloat(row.NUDOCDEPOSITO)}</th>,
       sortable: true
     },
     {
       field: 'STCANCELADO',
       header: 'Status',
       body: row => (
-        <p style={{ color: row.STCANCELADO === 'False' ? 'blue' : 'red' }}>
+        <th style={{ color: row.STCANCELADO === 'False' ? 'blue' : 'red' }}>
           {row.STCANCELADO === 'False' ? 'Dep. Ativo' : 'Dep. Cancelado'}
-        </p>
+        </th>
       ),
     },
     {
       field: 'STCONFERIDO',
       header: 'Situação',
       body: row => (
-        <p style={{ color: row.STCONFERIDO === 'True' ? 'green' : 'red' }}>
+        <th style={{ color: row.STCONFERIDO === 'True' ? 'green' : 'red' }}>
           {row.STCONFERIDO === 'True' ? 'Conciliado' : 'Não Conciliado'}
-        </p>
+        </th>
       ),
     },
     {
@@ -252,6 +225,8 @@ export const ActionListaCompensacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
                   cor={"danger"}
                   Icon={BsTrash3}
                   iconSize={20}
+                  width="40px"
+                  height="40px"
                   onClickButton={() => handleClickCancelar(row)}
                 />
               </div>
@@ -263,67 +238,35 @@ export const ActionListaCompensacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
     },
   ]
 
-  const handleCancelar = async (IDDEPOSITOLOJA) => {
-    Swal.fire({
-      title: 'Tem Certeza que Deseja Cancelar a Conciliação do Depósito?',
-      text: 'Você não poderá reverter esta ação!',
-      icon: 'warning',
-      showCancelButton: true,
-      showConfirmButton: true,
-      cancelButtonText: 'Cancelar',
-      confirmButtonText: 'OK',
-      customClass: {
-        confirmButton: 'btn btn-primary',
-        cancelButton: 'btn btn-danger',
-        loader: 'custom-loader'
-      },
-      buttonsStyling: false
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const putData = {  
-            IDDEPOSITOLOJA: IDDEPOSITOLOJA,
-    
-          }
-          const response = await put('/atualizar-deposito-loja', putData)
-          console.log('response: ', putData)
-          const textDados = JSON.stringify(putData)
-          let textoFuncao = 'FINANCEIRO/CANCELADO CONCILIAÇÃO DO DEPOSITO';
-       
-          const postData = {  
-            IDFUNCIONARIO: usuarioLogado.id,
-            PATHFUNCAO:  textoFuncao,
-            DADOS: textDados,
-            IP: ipUsuario
-          }
-  
-          const responsePost = await post('/logWeb', postData)
-          console.log('responsePost: ', responsePost)
-          Swal.fire({
-            title: 'Cancelado', 
-            text: 'Conciliação do Depósito cancelado com Sucesso', 
-            icon: 'success'
-          })
-        } catch (error) {
-          console.error('Erro ao buscar detalhes da venda: ', error);
-        }
-      }
-    })
-    
-  }
-  
+
   const handleClickCancelar = (row) => {
+    if (optionsModulos[0]?.ALTERAR == 'False') {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Erro!',
+        text: 'Você não tem permissão para cancelar a conciliação do depósito!',
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 4000 
+      });
+      return
+    } 
     if (row && row.IDDEPOSITOLOJA) {
       handleCancelar(row.IDDEPOSITOLOJA);
     }
   };
+
+
 
   return (
 
     <Fragment>
 
      
-      <div className="card " style={{marginTop: "5rem"}}>
+      <div className="panel" >
         <div className="panel-hdr">
           <h2>
             Lista de Depósitos <span class="fw-300"><i>Por Bancos</i> DTW</span>
@@ -338,17 +281,20 @@ export const ActionListaCompensacaoBancoDTW = ({ dadosConciliarBanco, contaSelec
             exportToPDF={exportToPDF}
           />
         </div>
-        <div ref={dataTableRef}>
+        <div className="card" ref={dataTableRef}>
 
           <DataTable
-            title="Vendas por Loja"
+            title=" Depósitos Compensados"
             value={dadosListaConciliarBanco}
-            size={size}
+            size="small"
             globalFilter={globalFilterValue}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dadosListaConciliarBanco.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

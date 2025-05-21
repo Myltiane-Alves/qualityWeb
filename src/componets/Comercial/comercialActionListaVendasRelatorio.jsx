@@ -195,7 +195,7 @@ export const ComercialActionListVendasRelatorioGeral  = () => {
     const firstIndex = page * rowsPerPage; 
     const lastIndex = firstIndex + rowsPerPage;
     const dataPaginada = dadosListaVendasCustosLojas.slice(firstIndex, lastIndex)
-    console.log(dataPaginada, 'dataPaginada')
+   
     for (let item of dataPaginada) {
       total += parseFloat(item.QTD_CLIENTE);
     }

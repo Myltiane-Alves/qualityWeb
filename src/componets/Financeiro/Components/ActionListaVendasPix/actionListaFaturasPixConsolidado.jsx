@@ -10,7 +10,6 @@ import * as XLSX from 'xlsx';
 
 export const ActionListaFaturasPixConsolidado = ({ dadosVendasFaturasPixConsolidadoPeriodo }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -66,20 +65,20 @@ export const ActionListaFaturasPixConsolidado = ({ dadosVendasFaturasPixConsolid
     {
       field: 'contador',
       header: 'Nº',
-      body: row => <p style={{ color: 'blue' }}>{row.contador}</p>,
+      body: row => <th style={{ color: 'blue' }}>{row.contador}</th>,
       sortable: true,
     },
     {
       field: 'DSSUBGRUPOEMPRESARIAL',
       header: 'Marca',
-      body: row => <p style={{ color: 'blue' }}>{row.DSSUBGRUPOEMPRESARIAL}</p>,
+      body: row => <th style={{ color: 'blue' }}>{row.DSSUBGRUPOEMPRESARIAL}</th>,
       footer: 'Total ',
       sortable: true,
     },
     {
       field: 'VRRECEBIDO',
       header: 'Valor Fatura PIX',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.VRRECEBIDO)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.VRRECEBIDO)}</th>,
       footer: formatMoeda(calcularTotalValorPix()),
       sortable: true,
     },
@@ -114,10 +113,12 @@ export const ActionListaFaturasPixConsolidado = ({ dadosVendasFaturasPixConsolid
                     title="Vendas por Loja"
                     value={dadosListaVendasPix}
                     globalFilter={globalFilterValue}
-                    size={size}
-                    sortField="VRTOTALPAGO"
+                    size="small"
                     sortOrder={-1}
                     rows={dadosListaVendasPix.length}
+                    paginator   paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                    filterDisplay="menu"
                     showGridlines
                     stripedRows
                     emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -131,9 +132,9 @@ export const ActionListaFaturasPixConsolidado = ({ dadosVendasFaturasPixConsolid
                         body={coluna.body}
                         footer={coluna.footer}
                         sortable={coluna.sortable}
-                        headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                        footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                        bodyStyle={{ fontSize: '0.8rem',color: '#d1cdc7' }}
+                        headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                        footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                        bodyStyle={{ fontSize: '1rem',color: '#d1cdc7' }}
 
                       />
                     ))}

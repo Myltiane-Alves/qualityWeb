@@ -1,37 +1,31 @@
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { dataFormatada } from "../../../../utils/dataFormatada";
 import { formatMoeda } from "../../../../utils/formatMoeda";
-import { CiEdit } from "react-icons/ci";
-import { AiOutlineDelete } from "react-icons/ai";
 import { MdOutlineLocalPrintshop } from "react-icons/md";
-import { get, post, put } from "../../../../api/funcRequest";
-import { ModalImprimirQuebra } from "../../Components/ModalImprimirQuebra";
 import { FaCheck, FaRegTrashAlt } from "react-icons/fa";
+import { get, } from "../../../../api/funcRequest";
+import { ModalImprimirQuebra } from "../../Components/ModalImprimirQuebra";
 import HeaderTable from "../../../Tables/headerTable";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { useForm } from "react-hook-form";
+import { useAtivarCancelar } from "./hooks/useAtivarCancelar";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 
-export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
+export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, usuarioLogado, optionsModulos }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
-  const handleCloseModal = () => setModalVisivel(false);
   const [dadosQuebraCaixasModal, setDadosQuebraCaixasModal] = useState([])
-  const { register, handleSubmit, errors } = useForm();
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [ipUsuario, setIpUsuario] = useState('');
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
-  const navigate = useNavigate();
+  const {
+    handleCancelar
+  } = useAtivarCancelar({ usuarioLogado, optionsModulos });
+ 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
   };
@@ -84,13 +78,17 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
     XLSX.writeFile(workbook, 'quebra_caixa_loja.xlsx');
   };
 
-  const dados = dadosQuebraDeCaixa.map((item) => {
+  const dados = dadosQuebraDeCaixa.map((item, index) => {
+    let contador = index + 1;
     return {
+      contador,
       IDQUEBRACAIXA: item.IDQUEBRACAIXA,
+      NOFANTASIA: item.NOFANTASIA,
       DTLANCAMENTO: item.DTLANCAMENTO,
       IDMOVIMENTOCAIXA: item.IDMOVIMENTOCAIXA,
       IDFUNCIONARIO: item.IDFUNCIONARIO,
       NOMEOPERADOR: item.NOMEOPERADOR,
+      CPFOPERADOR:  item.CPFOPERADOR,
       VRQUEBRASISTEMA: item.VRQUEBRASISTEMA,
       VRQUEBRAEFETIVADO: item.VRQUEBRAEFETIVADO,
       TXTHISTORICO: item.TXTHISTORICO,
@@ -101,9 +99,21 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
 
   const colunasQuebraDeCaixa = [
     {
+      field: 'contador',
+      header: 'Nº',
+      body: row => <th style={{ color: 'blue' }}>{row.contador}</th>,
+      sortable: true,
+    },
+    {
       field: 'IDQUEBRACAIXA',
       header: 'ID',
       body: row => <th style={{ color: 'blue' }}>{row.IDQUEBRACAIXA}</th>,
+      sortable: true,
+    },
+    {
+      field: 'NOFANTASIA',
+      header: 'Empresa',
+      body: row => <p style={{ color: 'blue', width: '200px', margin: '0px', fontWeight: 600 }}>{row.NOFANTASIA}</p>,
       sortable: true,
     },
     {
@@ -115,7 +125,7 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
     {
       field: 'IDMOVIMENTOCAIXA',
       header: 'Nº Movimento',
-      body: row => <th style={{ color: 'blue' }}>{row.IDMOVIMENTOCAIXA}</th>,
+      body: row => <p style={{ color: 'blue',width: '150px', margin: '0px', fontWeight: 600  }}>{row.IDMOVIMENTOCAIXA}</p>,
       sortable: true,
 
     },
@@ -129,7 +139,14 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
     {
       field: 'NOMEOPERADOR',
       header: 'Colaborador',
-      body: row => <th style={{ color: 'blue' }}>{row.NOMEOPERADOR}</th>,
+      body: row => <p style={{ color: 'blue', width: '200px', margin: '0px', fontWeight: 600  }}>{row.NOMEOPERADOR}</p>,
+      sortable: true,
+
+    },
+    {
+      field: 'CPFOPERADOR',
+      header: 'CPF',
+      body: row => <th style={{ color: 'blue' }}>{row.CPFOPERADOR}</th>,
       sortable: true,
 
     },
@@ -172,7 +189,7 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
     },
 
     {
-      field: 'STATIVO',
+      field: 'IDQUEBRACAIXA',
       header: 'Opções',
       body: (row) => {
         if (row.STATIVO == 'True') {
@@ -186,8 +203,10 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
                   titleButton={"Cancelar Quebra"}
                   cor={"danger"}
                   Icon={FaRegTrashAlt}
-                  iconSize={18}
-                  onClickButton={() => handleClickCancelar(row.IDQUEBRACAIXA, false)}
+                  iconSize={20}
+                  width="30px"
+                  height="30px"
+                  onClickButton={() => handleClickCancelar(row, false)}
                 />
 
               </div>
@@ -196,7 +215,9 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
                   titleButton={"Imprimir Quebra"}
                   cor={"primary"}
                   Icon={MdOutlineLocalPrintshop}
-                  iconSize={18}
+                  iconSize={20}
+                  width="30px"
+                  height="30px"
                   onClickButton={() => handleClickImprimir(row)}
                 />
 
@@ -212,8 +233,10 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
                 titleButton={"Ativar Quebra"}
                 cor={"success"}
                 Icon={FaCheck}
-                iconSize={18}
-                onClickButton={() => handleCancelar(row.IDQUEBRACAIXA, true)}
+                onClickButton={() => handleCancelar(row, true)}
+                iconSize={20}
+                width="30px"
+                height="30px"
               />
 
             </div>
@@ -223,34 +246,6 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
 
     },
   ]
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    getIPUsuario();
-  }, [usuarioLogado]);
-
-  const getIPUsuario = async () => {
-    const response = await axios.get('http://ipwho.is/')
-    if(response.data) {
-      setIpUsuario(response.data.ip);
-    }
-    return response.data;
-  }
-
 
   const handleImprimir = async (IDQUEBRACAIXA) => {
     try {
@@ -266,114 +261,90 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa }) => {
 
   const handleClickImprimir = (row) => {
     if (row && row.IDQUEBRACAIXA) {
-
       handleImprimir(row.IDQUEBRACAIXA);
     }
   };
 
-  const handleCancelar = async (IDQUEBRACAIXA, status) => {
-    const putData = {  
-      IDQUEBRACAIXA: IDQUEBRACAIXA,
-      STATIVO: status ? 'True' : 'False'
-    }
-    try {
-      const response = await put('/atualizar-status-quebra', putData)
-      Swal.fire({
-        title: 'Sucesso',
-        text: `Quebra de Caixa ${status ? 'Ativada' : 'Cancelada'} com Sucesso`,
-        icon: 'success',
-        timer: 3000,
-        customClass: {
-          container: 'custom-swal',
-        }
-      })
-
-      const textDados = JSON.stringify(putData)
-      let textoFuncao = status ? 'FINANCEIRO/ATIVADO QUEBRA DE CAIXA' : 'FINANCEIRO/CANCELAMENTO DE QUEBRA DE CAIXA';
-
-    
-  
-      const postData = {  
-        IDFUNCIONARIO: usuarioLogado.id,
-        PATHFUNCAO:  textoFuncao,
-        DADOS: textDados,
-        IP: ipUsuario
-      }
-
-      const responsePost = await post('/log-web', postData)
-  
-      return responsePost.data;
-
-    } catch (error) {
-      Swal.fire({
-        title: 'Erro',
-        text: `Erro ao Tentar ${status ? 'Ativar' : 'Cancelar'} a Quebra de Caixa`,
-        icon: 'error',
-        timer: 3000,
-        customClass: {
-          container: 'custom-swal',
-        }
-      })
-    }
-    
-  }
-
   const handleClickCancelar = (row) => {
-    if (row && row.IDQUEBRACAIXA) {
-      handleCancelar(row.IDQUEBRACAIXA, row.STATIVO);
-      
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.IDQUEBRACAIXA) {
+        handleCancelar(row.IDQUEBRACAIXA, row.STATIVO);
+        
+      }
+    } else {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Acesso Negado!',
+        text: 'Você não tem permissão para editar esta despesa.',
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: {
+          container: 'custom-swal',
+        }
+      })
     }
   };
   
   return (
 
     <Fragment>
-      <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-        <HeaderTable
-          globalFilterValue={globalFilterValue}
-          onGlobalFilterChange={onGlobalFilterChange}
-          handlePrint={handlePrint}
-          exportToExcel={exportToExcel}
-          exportToPDF={exportToPDF}
-        />
-      </div>
-      <div className="card" ref={dataTableRef}>
-   
-        <DataTable
-          title="Quebra de Caixa das Lojas"
-        
-          value={dados}
-          globalFilter={globalFilterValue}
-          size={size}
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado negativa</div>}
-        >
-          {colunasQuebraDeCaixa.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
-
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
-
+  
+        <div className="panel">
+          <div className="panel-hdr">
+            <h4>Lista de Quebras de Caixa</h4>
+          </div>
+          <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+            <HeaderTable
+              globalFilterValue={globalFilterValue}
+              onGlobalFilterChange={onGlobalFilterChange}
+              handlePrint={handlePrint}
+              exportToExcel={exportToExcel}
+              exportToPDF={exportToPDF}
             />
-          ))}
-        </DataTable>
-      </div>
+          </div>
+          <div className="card" ref={dataTableRef}>
+      
+            <DataTable
+              title="Quebra de Caixa das Lojas"
+            
+              value={dados}
+              globalFilter={globalFilterValue}
+              size="small"
+              sortOrder={-1}
+              paginator={true}
+              rows={10}
+              rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+              currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+              filterDisplay="menu"
+              showGridlines
+              stripedRows
+              emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado negativa</div>}
+            >
+              {colunasQuebraDeCaixa.map(coluna => (
+                <Column
+                  key={coluna.field}
+                  field={coluna.field}
+                  header={coluna.header}
+
+                  body={coluna.body}
+                  footer={coluna.footer}
+                  sortable={coluna.sortable}
+                  headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                  bodyStyle={{ fontSize: '0.8rem' }}
+
+                />
+              ))}
+            </DataTable>
+          </div>
+        </div>
+      
 
       <ModalImprimirQuebra
         show={modalVisivel}
-        handleClose={handleCloseModal}
+        handleClose={() => setModalVisivel(false)}
         dadosQuebraCaixasModal={dadosQuebraCaixasModal}
       />
     </Fragment>

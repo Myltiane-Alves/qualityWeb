@@ -12,7 +12,7 @@ import { ActionListaQuebraCaixaLojaPositiva } from "./actionListaQuebraCaixaLoja
 import { useQuery } from 'react-query';
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
-export const ActionPesquisaQuebraCaixaLoja = () => {
+export const ActionPesquisaQuebraCaixaLoja = ({usuarioLogado, ID}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [tabelaVisivelPositiva, setTabelaVisivelPositiva] = useState(false);
   const [tabelaVisivelNegativa, setTabelaVisivelNegativa] = useState(false);
@@ -36,6 +36,15 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
 
   }, []);
 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas, refetch: refetchMarcas } = useQuery(
     'marcasLista',
@@ -236,7 +245,7 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
       setCurrentPage(prevPage => prevPage + 1)
       await refetchQuebraNegativa(quebraSelecionada);
       
-    } else if (quebraSelecionada === "0") {
+    } else if (quebraSelecionada === "") {
       setTabelaVisivel(true)
       setTabelaVisivelNegativa(false)
       setTabelaVisivelPositiva(false)
@@ -250,7 +259,7 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
 
   const optionsQuebraDeCaixa = [
     {
-      value: "0",
+      value: "",
       label: 'Todas'
     },
     {
@@ -310,7 +319,7 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
         valueSelectEmpresa={empresaSelecionada}
 
         optionsEmpresas={[
-          { value: 0, label: 'Selecione uma loja' },
+          { value: '0', label: 'Todas' },
           ...optionsEmpresas.map((empresa) => ({
             value: empresa.IDEMPRESA,
             label: empresa.NOFANTASIA,
@@ -324,7 +333,7 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
           // { value: 0, label: 'Selecione uma loja' },
           ...optionsMarcas.map((marca) => ({
             value: marca.IDGRUPOEMPRESARIAL,
-            label: marca.DSGRUPOEMPRESARIAL
+            label: marca.GRUPOEMPRESARIAL
           }))
         ]}
         valueSelectMarca={marcaSelecionada}
@@ -361,20 +370,34 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
 
 
       {tabelaVisivel && (
-        <ActionListaQuebraCaixaLoja dadosQuebraDeCaixa={dadosQuebraDeCaixa} handleClick={handleClick} quebraSelecionada={quebraSelecionada} />
+        <ActionListaQuebraCaixaLoja 
+          dadosQuebraDeCaixa={dadosQuebraDeCaixa} 
+          handleClick={handleClick} 
+          quebraSelecionada={quebraSelecionada} 
+          optionsModulos={optionsModulos}
+          usuarioLogado={usuarioLogado}  
+        />
       )}
 
 
       <div>
         {tabelaVisivelNegativa && (
 
-          <ActionListaQuebraCaixaLojaNegativa dadosQuebraDeCaixaNegativa={dadosQuebraDeCaixaNegativa} />
+          <ActionListaQuebraCaixaLojaNegativa 
+            dadosQuebraDeCaixaNegativa={dadosQuebraDeCaixaNegativa} 
+            optionsModulos={optionsModulos}
+            usuarioLogado={usuarioLogado}
+          />
         )}
       </div>
       <div>
         {tabelaVisivelPositiva && (
 
-          <ActionListaQuebraCaixaLojaPositiva dadosQuebraDeCaixaPositiva={dadosQuebraDeCaixaPositiva} />
+          <ActionListaQuebraCaixaLojaPositiva 
+            dadosQuebraDeCaixaPositiva={dadosQuebraDeCaixaPositiva} 
+            optionsModulos={optionsModulos}
+            usuarioLogado={usuarioLogado}  
+          />
         )}
       </div>
     </Fragment>

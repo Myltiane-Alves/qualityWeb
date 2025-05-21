@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react"
+import { Fragment,  useState } from "react"
 import { get } from "../../../../api/funcRequest";
 import { InputField } from "../../../Buttons/Input";
 import { InputSelectAction } from "../../../Inputs/InputSelectAction";
@@ -7,44 +7,75 @@ import { ActionMain } from "../../../Actions/actionMain";
 import { AiOutlineSearch } from "react-icons/ai";
 import { MdAdd } from "react-icons/md";
 import { ActionListaTipoTecidos } from "./actionListaTipoTecidos";
-import { ActionCadastrarTipoTecidosModal } from "./actionCadastrarTipoTecidosModal";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { ActionCriarTipoTecidosModal } from "./ActionCadastrar/actionCriarTipoTecidosModal";
 
 
 export const ActionPesquisaTiposTecidos = () => {
-  const [dadosTecidos, setDadosTecidos] = useState([]);
   const [descricao, setDescricao] = useState(''); 
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [modalVisivel, setModalVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [tecidoSelecionado, setTecidoSelecionado] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
-  useEffect(() => {
-    getTabelas()
-  }, [])
-
-  const getTabelas = async () => {
+ 
+  const fetchListaTecidos = async () => {
     try {
-      const response = await get(`/tipoTecidos?idTecido=${tecidoSelecionado}&descricao=${descricao}`)
-      if (response.data) {
-        setDadosTecidos(response.data)
-        // console.log(response.data, 'get tabelas')
+      const urlApi = `/tipo-tecido?idTecido=${tecidoSelecionado}&descricaoTecido=${descricao}`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+        
+        return response.data;
       }
+  
     } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
+  };
+  
+  const { data: dadosTecidos = [], error: errorAdiantamento, isLoading: isLoadingAdiantamento, refetch } = useQuery(
+    ['tipo-tecido', tecidoSelecionado, descricao, currentPage, pageSize],
+    () => fetchListaTecidos(tecidoSelecionado, descricao,  currentPage, pageSize),
+    { enabled: true  }
+  )
+
 
   const handleChangeTecido = (e) => {
     setTecidoSelecionado(e.value)
   }
 
   const handlePesquisar = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-    } 
-
+    setCurrentPage(prevPage => prevPage + 1)
+    refetch()
+    setTabelaVisivel(true)
   }
 
   const handleModal = () => {
@@ -81,8 +112,8 @@ export const ActionPesquisaTiposTecidos = () => {
           { value: '', label: 'Selecione...' },
           ...dadosTecidos.map((item) => {
             return { 
-              value: item.IDSUBGRUPOESTRUTURA, 
-              label: `${item.DSGRUPOESTRUTURA} - ${item.DSSUBGRUPOESTRUTURA}`
+              value: item.IDTPTECIDO, 
+              label: `${item.DSTIPOTECIDO}`
             }
           })
         ]}
@@ -108,9 +139,9 @@ export const ActionPesquisaTiposTecidos = () => {
         <ActionListaTipoTecidos dadosTecidos={dadosTecidos} />
       )}
 
-      <ActionCadastrarTipoTecidosModal 
+      <ActionCriarTipoTecidosModal
         show={modalVisivel} 
-        handleClose={handleClose} 
+        handleClose={(e) => setModalVisivel(true)} 
       />
     </Fragment>
   )

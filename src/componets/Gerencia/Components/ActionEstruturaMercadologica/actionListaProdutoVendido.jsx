@@ -7,10 +7,13 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { useReactToPrint } from "react-to-print";
 import HeaderTable from "../../../Tables/headerTable";
+import { Row } from "primereact/row";
+import { ColumnGroup } from "primereact/columngroup";
+import { toFloat } from "../../../../utils/toFloat";
+
 
 export const ActionListaProdutoVendido = ({ dadosProdutosMaisVendidos }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(10);
   const dataTableRef = useRef();
@@ -18,7 +21,7 @@ export const ActionListaProdutoVendido = ({ dadosProdutosMaisVendidos }) => {
   const onPageChange = (event) => {
     setFirst(event.first);
     setRows(event.rows);
-};
+  };
 
 
   const onGlobalFilterChange = (e) => {
@@ -68,42 +71,6 @@ export const ActionListaProdutoVendido = ({ dadosProdutosMaisVendidos }) => {
   };
 
 
-  const calcularTotalQuantidadePorPagina = () => {
-    let total = 0;
-    const firstIndex = first * rows;
-    const lastIndex = firstIndex + rows;
-    for(let i = firstIndex; i < lastIndex && i < dadosProdutosMaisVendidos.length; i++) {
-      if(dadosProdutosMaisVendidos[i]) {
-        total += parseFloat(dadosProdutosMaisVendidos[i].QTD);
-      }
-    }
-    return total;
-  }
- 
-
-  const calcularTotalValorUnitarioPorPagina = () => {
-    let total = 0;
-    const firstIndex = first * rows;
-    const lastIndex = firstIndex + rows;
-    for(let i = firstIndex; i < lastIndex && i < dadosProdutosMaisVendidos.length; i++) {
-      if(dadosProdutosMaisVendidos[i]) {
-        total += parseFloat(dadosProdutosMaisVendidos[i].VALOR_UNITARIO);
-      }
-    }
-    return total;
-  }
-
-  const calcularTotalValorTotalPorPagina = () => {
-    let total = 0;
-    const firstIndex = first * rows;
-    const lastIndex = firstIndex + rows;
-    for(let i = firstIndex; i < lastIndex && i < dadosProdutosMaisVendidos.length; i++) {
-      if(dadosProdutosMaisVendidos[i]) {
-        total += parseFloat(dadosProdutosMaisVendidos[i].VALOR_TOTAL);
-      }
-    }
-    return total;
-  }
 
   const dados = dadosProdutosMaisVendidos.map((item, index) => {
     let contador = index + 1;
@@ -119,17 +86,33 @@ export const ActionListaProdutoVendido = ({ dadosProdutosMaisVendidos }) => {
     }
   });
   
+  const calcularTotalPagina = (field) => {
+    return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
+  };
+
+  const calcularTotal = (field) => {
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dados.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + toFloat(item[field] || 0), 0);
+  };
+
   const calcularTotalQuantidade = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.QTD), 0);
-  }
-
+    const totalPagina = calcularTotal('QTD');
+    const total = calcularTotalPagina('QTD' );
+    return `${totalPagina}   (${total} total)`;
+  };
   const calcularTotalValorUnitario = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.VALOR_UNITARIO), 0);
-  }
-
+    const totalPagina = calcularTotal('VALOR_UNITARIO');
+    const total = calcularTotalPagina('VALOR_UNITARIO' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
   const calcularTotalValorTotal = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.VALOR_TOTAL), 0);
-  }
+    const totalPagina = calcularTotal('VALOR_TOTAL');
+    const total = calcularTotalPagina('VALOR_TOTAL' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
+
 
   const colunasProdutoMaisVendidos = [
     {
@@ -160,49 +143,35 @@ export const ActionListaProdutoVendido = ({ dadosProdutosMaisVendidos }) => {
       field: 'QTD',
       header: 'Quantidade',
       body: row => <th>{parseFloat(row.QTD)}</th>,
-      footer: () => {
-        return(
-          <div>          
-            <th style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidadePorPagina())}</th>
-            <hr/>
-            <th style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidade())}</th>
-          </div>
-        )
-      },
       sortable: true
     },
     {
       field: 'VALOR_UNITARIO',
       header: 'Valor Unitário',
       body: row => formatMoeda(row.VALOR_UNITARIO),
-      footer: () => {
-        return(
-          <div>          
-            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorUnitarioPorPagina())}</th>
-            <hr/>
-            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorUnitario())}</th>
-          </div>
-        )
-      },
       sortable: true
     },
     {
       field: 'VALOR_TOTAL',
       header: 'Valor Total',
       body: row => formatMoeda(row.VALOR_TOTAL),
-      footer: () => {
-        return(
-          <div>          
-            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorTotalPorPagina())}</th>
-            <hr/>
-            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalValorTotal())}</th>
-          </div>
-        )
-      },
       sortable: true
     }
   ]
 
+  const footerGroup = (
+      <ColumnGroup>
+  
+        <Row> 
+          <Column footer="Total " colSpan={4} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
+          <Column footer={calcularTotalQuantidade()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+          <Column footer={calcularTotalValorUnitario()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+          <Column footer={calcularTotalValorTotal()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+          <Column footer={""} colSpan={''}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+        </Row>
+      </ColumnGroup>
+    )
+  
   return (
 
     <Fragment>
@@ -226,7 +195,8 @@ export const ActionListaProdutoVendido = ({ dadosProdutosMaisVendidos }) => {
             title="Produtos Mais Vendidos"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            footerColumnGroup={footerGroup}
+            size="small"
             sortOrder={-1}
             paginator={true}
             rows={rows}

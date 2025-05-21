@@ -11,7 +11,6 @@ import * as XLSX from 'xlsx';
 
 export const ActionListaVendasMarca = ({dadosVendasMarca}) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -78,14 +77,16 @@ export const ActionListaVendasMarca = ({dadosVendasMarca}) => {
   }
 
   const calcularTotalTicketMedio = () => {
-    const total = calcularTotal('totalTicketM');
-    return total;
+    const total = calcularTotal('QTDVENDA');
+    const totalVoucher = calcularTotal('vrDisponivelBrutoVoucher');
+    const totalTicketMedio = totalVoucher / total;
+    return formatMoeda(totalTicketMedio);
   }
 
   const dados = dadosVendasMarca.map((item) => {
-    const vrDisponivelBrutoVoucher = calcularValorDisponivelBrutoVoucher(item);
-    const valorTicketM = vrDisponivelBrutoVoucher / parseFloat(item.QTDVENDA);
-    const totalTicketM = ((parseFloat(item.VRTOTALPAGO) - parseFloat(item.VOUCHER)) / parseFloat(item.QTDVENDA));
+    const vrDisponivelBrutoVoucher = toFloat(item.VRTOTALPAGO) - toFloat(item.VOUCHER);
+    const valorTicketM = (vrDisponivelBrutoVoucher / parseFloat(item.QTDVENDA));
+    const totalTicketM = (vrDisponivelBrutoVoucher / parseFloat(item.QTDVENDA));
   
     return {
       IDEMPRESA: item.IDEMPRESA,
@@ -132,7 +133,7 @@ export const ActionListaVendasMarca = ({dadosVendasMarca}) => {
       field: 'valorTicketM',
       header: 'Ticket Médio',
       body: row => <th>{formatMoeda(row.valorTicketM)}</th>,
-      footer: row =>  formatMoeda(calcularTotalTicketMedio()),
+      footer: row =>  calcularTotalTicketMedio(),
       sortable: true,
     },
   ];
@@ -140,7 +141,7 @@ export const ActionListaVendasMarca = ({dadosVendasMarca}) => {
 
   return (
 
-      <div className="panel mt-2">
+      <div className="panel">
         <div className="panel-hdr">
           <h2>Vendas por Loja</h2>
         </div>
@@ -160,11 +161,14 @@ export const ActionListaVendasMarca = ({dadosVendasMarca}) => {
               title="Vendas por Loja"
               value={dados}
               globalFilter={globalFilterValue}
-              size={size}
+              size="small"
               sortOrder={-1}
               // paginator={true}
               // rows={10}
               // rowsPerPageOptions={[5, 10, 20, 50]}
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+              currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+              filterDisplay="menu"
               showGridlines
               stripedRows
               emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -177,9 +181,9 @@ export const ActionListaVendasMarca = ({dadosVendasMarca}) => {
                   body={coluna.body}
                   footer={coluna.footer}
                   sortable={coluna.sortable}
-                  headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                  bodyStyle={{ fontSize: '0.8rem' }}
+                  headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                  bodyStyle={{ fontSize: '1rem' }}
 
                 />
               ))}

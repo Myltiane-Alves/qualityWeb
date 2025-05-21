@@ -15,16 +15,10 @@ import { useFetchData, useFetchEmpresas } from "../../../../hooks/useFetchData";
 export const ActionPesquisaVendasConvenio = () => {
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
- 
-  const [descontoFuncionario, setDescontoFuncionario] = useState(true);
   const [marcaSelecionada, setMarcaSelecionada] = useState('')
-
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
-
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [tabelaVisivelDescontoFuncionario, setTabelaVisivelDescontoFuncionario] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
-  // const [dadosVendasConvenio, setDadosVendasConvenio] = useState([]);
   const [dadosVendasConvenioFuncionario, setDadosVendasConvenioFuncionario] = useState([]);
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -130,7 +124,7 @@ export const ActionPesquisaVendasConvenio = () => {
     setTabelaVisivel(true);
     setTabelaVisivelDescontoFuncionario(false);
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
+    setCurrentPage(prevPage => prevPage + 1);
     refetchListaVendasConvenio();
   };
 
@@ -138,7 +132,7 @@ export const ActionPesquisaVendasConvenio = () => {
     setTabelaVisivelDescontoFuncionario(true);
     setTabelaVisivel(false);
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1);
+    setCurrentPage(prevPage => prevPage + 1);
     getVendaConvenioDescontoFuncionario();
   }
 
@@ -164,11 +158,16 @@ export const ActionPesquisaVendasConvenio = () => {
 
         InputSelectEmpresaComponent={InputSelectAction}
         labelSelectEmpresa={"Empresa"}
-        optionsEmpresas={optionsEmpresas.map((empresa) => ({
-          value: empresa.IDEMPRESA,
-          label: empresa.NOFANTASIA,
-        }))}
         
+        optionsEmpresas={[
+          {value: '', label: 'Todas'},
+          ...optionsEmpresas.map((item) => {
+            return {
+              value: item.IDEMPRESA,
+              label: item.NOFANTASIA
+            }
+          })
+        ]}
         onChangeSelectEmpresa={handleSelectEmpresa}
         valueSelectEmpresa={empresaSelecionada}
 
@@ -176,14 +175,14 @@ export const ActionPesquisaVendasConvenio = () => {
         labelSelectMarcas={"Marcas"}
         optionsMarcas={optionsMarcas.map((empresa) => ({
           value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.DSGRUPOEMPRESARIAL,
+          label: empresa.GRUPOEMPRESARIAL,
 
         }))}
         onChangeSelectMarcas={handleSelectMarca}
         valueSelectMarca={marcaSelecionada}
 
         ButtonSearchComponent={ButtonType}
-        linkNomeSearch={"Pesquisar"}
+        linkNomeSearch={"Convênio"}
         onButtonClickSearch={handleClick}
         corSearch={"primary"}
         IconSearch={AiOutlineSearch}

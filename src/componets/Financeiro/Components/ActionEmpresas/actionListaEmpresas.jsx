@@ -1,24 +1,22 @@
-import React, { Fragment, useEffect, useRef, useState } from "react"
+import React, { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { useNavigate } from "react-router-dom";
-import { get, post } from "../../../../api/funcRequest";
+import { get } from "../../../../api/funcRequest";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
-import { ActionUpdatePixPDVModal } from "./actionUpadatePixPDVModal";
+import { ActionUpdatePixPDVModal } from "./EditarPixPdvModal/actionUpadatePixPDVModal";
 import { MdPix } from "react-icons/md";
 import HeaderTable from "../../../Tables/headerTable";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import Swal from "sweetalert2";
 
 
-export const ActionListaEmpresas = ({dadosEmpresas}) => {
+export const ActionListaEmpresas = ({dadosEmpresas, optionsModulos, usuarioLogado}) => {
   const [modalVisivel, setModalVisivel] = useState(false)
   const [dadosPixPDV, setDadosPixPDV] = useState([])
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -67,28 +65,6 @@ export const ActionListaEmpresas = ({dadosEmpresas}) => {
     XLSX.writeFile(workbook, 'lista_empresas.xlsx');
   };
 
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-
-  }, [usuarioLogado]);
-
-
   const dados = Array.isArray(dadosEmpresas) ? dadosEmpresas.map((item, index) => {
    
     
@@ -99,14 +75,6 @@ export const ActionListaEmpresas = ({dadosEmpresas}) => {
       NUINSCESTADUAL: item.NUINSCESTADUAL,
       CNAE: item.CNAE,
       STATIVO: item.STATIVO,
-
-      // EENDERECO: item.EENDERECO,
-      // SGUF: item.SGUF,
-      // DTULTATUALIZACAO: item.DTULTATUALIZACAO,
-      // IDCONFIGURACAO: item.IDCONFIGURACAO,
-      // DSNOMEPFX: item.DSNOMEPFX,
-      // DTVALIDADECERTIFICADO: item.DTVALIDADECERTIFICADO,
-      // ECIDADE: item.ECIDADE,
     };
   }): [];
   const colunaListaEmpresas = [
@@ -159,7 +127,9 @@ export const ActionListaEmpresas = ({dadosEmpresas}) => {
                 titleButton={"Editar Configurações Pix"}
                 onClickButton={() => handleClickDetalhar(row)}
                 Icon={MdPix}
-                iconSize={18}
+                iconSize={25}
+                width="35px"
+                height="35px"
                 iconColor={"#fff"}
                 cor={"info"}
 
@@ -188,8 +158,22 @@ export const ActionListaEmpresas = ({dadosEmpresas}) => {
 
 
   const handleClickDetalhar = (row) => {
-    if (row && row.IDEMPRESA) {
-      handleDetalhar(row.IDEMPRESA);
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+
+      if (row && row.IDEMPRESA) {
+        handleDetalhar(row.IDEMPRESA);
+      }
+    } else {
+      Swal.fire({
+        position: 'top-end',
+        icon: 'error',
+        title: `Você não tem permissão para alterar!`,
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 3000,
+      });
     }
 
   };
@@ -198,7 +182,7 @@ export const ActionListaEmpresas = ({dadosEmpresas}) => {
   return (
 
     <Fragment>
-      <div className="panel" style={{ marginTop: "6rem"}}>
+      <div className="panel" >
         <div className="panel-hdr">
           <h2>Lista de Empresas</h2>
         </div>
@@ -214,17 +198,17 @@ export const ActionListaEmpresas = ({dadosEmpresas}) => {
         <div className="card" ref={dataTableRef}>
 
         <DataTable
-
           title="Lista de Empresas"
           value={dados}
           globalFilter={globalFilterValue}
-            size={size}
-        
+          size={"small"}
           sortOrder={-1}
           paginator
           rows={10}
           rowsPerPageOptions={[10, 20, 30, 50, 100, dados.length]}
-
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+          filterDisplay="menu"
           showGridlines
           stripedRows
           emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -251,6 +235,8 @@ export const ActionListaEmpresas = ({dadosEmpresas}) => {
         show={modalVisivel}
         handleClose={() => setModalVisivel(false)}
         dadosPixPDV={dadosPixPDV}
+        optionsModulos={optionsModulos}
+        usuarioLogado={usuarioLogado}
       />
     </Fragment>
   )

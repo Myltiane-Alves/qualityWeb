@@ -13,7 +13,6 @@ import { ColumnGroup } from 'primereact/columngroup';
 
 export const ActionListaDepositoLoja = ({ dadosDepositosLoja }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -79,7 +78,7 @@ export const ActionListaDepositoLoja = ({ dadosDepositosLoja }) => {
       DSHISTORIO: item.DSHISTORIO,
       NUDOCDEPOSITO: item.NUDOCDEPOSITO,
       STCANCELADO: item.STCANCELADO,
-
+      STCONFERIDO: item.STCONFERIDO
     }
   });
 
@@ -134,11 +133,39 @@ export const ActionListaDepositoLoja = ({ dadosDepositosLoja }) => {
     {
       field: 'STCANCELADO',
       header: 'Situação',
-      body: row => (
-        <th style={{ color: row.STCANCELADO === 'False' ? 'blue' : 'red' }}>
-          {row.STCANCELADO === 'False' ? 'Ativo' : 'Cancelado'}
-        </th>
-      ),
+      body: row => {
+        if(row.STCONFERIDO == 'False' || row.STCONFERIDO == null || row.STCONFERIDO == '') {
+         if(row.STCANCELADO == 'False') {
+          return (
+            <th style={{color: 'blue' }}>
+              Ativo
+            </th>
+          )
+         } else {
+          return (
+            <th style={{color: 'red' }}>
+              Cancelado
+            </th>
+ 
+           )
+         }
+        } else {
+          if(row.STCANCELADO == 'False') {
+            return (
+              <th style={{color: 'blue' }}>
+                Ativo - <label style={{color: 'red'}}> Conf. Fin</label>
+              </th>
+            )
+           } else {
+            return (
+              <th style={{color: 'red' }}>
+                Cancelado
+              </th>
+   
+             )
+           }
+        }
+      },
     },
 
   ]
@@ -147,8 +174,8 @@ export const ActionListaDepositoLoja = ({ dadosDepositosLoja }) => {
     <ColumnGroup>
 
       <Row>
-        <Column footer="Total Depósitos Ativos " colSpan={4} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
-        <Column footer={formatMoeda(calcularTotal())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer="Total Depósitos Ativos " colSpan={4} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem', textAlign: 'center' }} />
+        <Column footer={formatMoeda(calcularTotal())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} />
         <Column footer={""} colSpan={3} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
       </Row>
     </ColumnGroup>
@@ -173,13 +200,16 @@ export const ActionListaDepositoLoja = ({ dadosDepositosLoja }) => {
           <DataTable
             title="Depósitos da Loja"
             value={dados}
-            size={size}
+            size="small"
             footerColumnGroup={footerGroup}
             globalFilter={globalFilterValue}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
@@ -193,9 +223,9 @@ export const ActionListaDepositoLoja = ({ dadosDepositosLoja }) => {
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

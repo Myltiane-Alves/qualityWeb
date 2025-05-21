@@ -1,43 +1,109 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { GrView } from 'react-icons/gr';
 import { ButtonTable } from '../../../ButtonsTabela/ButtonTable';
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
-import { Button } from 'primereact/button';
-import { Tooltip } from 'primereact/tooltip';
 import { get } from '../../../../api/funcRequest';
-import { ActionVincularFabricanteFornecedorModal } from './actionVincularFabricanteFornecedorModal';
-import { ActionCadastrarFornecedorModal } from './actionCadastrarFornecedorModal';
-import { ActionEditarFornecedorModal } from './actionEditarFornecedorModal';
 
+import { ActionEditarFornecedorModal} from './ActionEditar/actionEditarFornecedorModal';
+import HeaderTable from '../../../Tables/headerTable';
+import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { ActionEditarVinculoFabricanteModal } from '../ActionVincularFabricanteFornecedor/ActionEditar/actionEditarVinculoFabricanteModal';
+import { useExcluirVinculoFabricanteFornecedor } from '../ActionVincularFabricanteFornecedor/hooks/useExluirViculoFabricanteFornecedor';
+
+const formatarCNPJ = (cnpj) => {
+  const x = cnpj.replace(/\D/g, '').match(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/);
+  return !x[2] ? x[1] : x[1] + '.' + x[2] + '.' + x[3] + '/' + x[4] + (x[5] ? '-' + x[5] : '');
+};
 
 export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
   const [dadosDetalheFornecedorFabricante, setDadosDetalheFornecedorFabricante] = useState([]);
   const [dadosDetalheFornecedor, setDadosDetalheFornecedor] = useState([]);
+  const [dadosFornecedorSap, setDadosFornecedorSap] = useState([]);
   const [modalEditarFornecedor, setModalEditarFornecedor] = useState(false);
   const [modalEditarVinculo, setModalEditarVinculo] = useState(false);
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const dataTableRef = useRef();
+  const { handleExcluir } = useExcluirVinculoFabricanteFornecedor();
 
-  const dadosListaFornecedoresFabricantes = dadosFornecedoresFabricantes.map((item, index) => {
+  const onGlobalFilterChange = (e) => {
+    setGlobalFilterValue(e.target.value);
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => dataTableRef.current,
+    documentTitle: 'Relatório Fornecedores',
+  });
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Nº', 'CNPJ', 'Razão Social', 'Nome Fantasia', 'Fabricante', 'Telefone', 'Cidade', 'UF', 'ID SAP', 'Migrado SAP']],
+      body: dados.map(item => [
+        item.contador,
+        item.NUCNPJFORN,
+        item.NORAZAOFORN,
+        item.NOFANTFORN,
+        item.DSFABRICANTE,
+        item.FONEFORN,
+        item.CIDADEFORN,
+        item.UFFORN,
+        item.IDFORNECEDORSAP,
+        item.STMIGRADOSAP,
+      ]),
+      horizontalPageBreak: true,
+      horizontalPageBreakBehaviour: 'immediately'
+    });
+    doc.save('relatorio_fornecedores.pdf');
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(dados);
+    const workbook = XLSX.utils.book_new();
+    const header = ['Nº', 'CNPJ', 'Razão Social', 'Nome Fantasia', 'Fabricante', 'Telefone', 'Cidade', 'UF', 'ID SAP', 'Migrado SAP'];
+    worksheet['!cols'] = [
+      { wpx: 70, caption: 'Nº' },
+      { wpx: 150, caption: 'CNPJ' },
+      { wpx: 300, caption: 'Razão Social' },
+      { wpx: 300, caption: 'Nome Fantasia' },
+      { wpx: 200, caption: 'Fabricante' },
+      { wpx: 100, caption: 'Telefone' },
+      { wpx: 150, caption: 'Cidade' },
+      { wpx: 50, caption: 'UF' },
+      { wpx: 100, caption: 'ID SAP' },
+      { wpx: 200, caption: 'Migrado SAP' },
+    ];
+    XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório Fornecedores');
+    XLSX.writeFile(workbook, 'relatorio_fornecedores.xlsx');
+  };
+
+  const dados = dadosFornecedoresFabricantes.map((item, index) => {
     let contador = index + 1;
 
     return {
-      IDFABRICANTEFORN: item.IDFABRICANTEFORN,
-      IDFORNECEDOR: item.IDFORNECEDOR,
+      contador,
+      NUCNPJFORN: item.NUCNPJFORN,
       NORAZAOFORN: item.NORAZAOFORN,
       NOFANTFORN: item.NOFANTFORN,
-      NUCNPJFORN: item.NUCNPJFORN,
+      DSFABRICANTE: item.DSFABRICANTE,
+      FONEFORN: item.FONEFORN,
       CIDADEFORN: item.CIDADEFORN,
       UFFORN: item.UFFORN,
-      FONEFORN: item.FONEFORN,
-      IDFABRICANTE: item.IDFABRICANTE,
       IDFORNECEDORSAP: item.IDFORNECEDORSAP,
-      STMIGRADOSAP: item.STMIGRADOSAP,
-      LOGFORNECEDORSAP: item.LOGFORNECEDORSAP,
-      DSFABRICANTE: item.DSFABRICANTE,
+      STMIGRADOSAP: item.STMIGRADOSAP == 'True' ? 'MIGRADO COM SUCESSO' : 'NÃO MIGRADO SAP',
+      IDFABRICANTE: item.IDFABRICANTE,
 
-      contador,
+
+      IDFABRICANTEFORN: item.IDFABRICANTEFORN,
+      IDFORNECEDOR: item.IDFORNECEDOR,
+      LOGFORNECEDORSAP: item.LOGFORNECEDORSAP,
+
     }
   })
 
@@ -45,25 +111,25 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
     {
       field: 'contador',
       header: 'Nº',
-      body: row => row.contador,
+      body: row => <th>{row.contador}</th>,
       sortable: true
     },
     {
       field: 'NUCNPJFORN',
       header: 'CNPJ',
-      body: row => row.NUCNPJFORN,
+      body: row => <th>{row.NUCNPJFORN}</th>,
       sortable: true
     },
     {
       field: 'NORAZAOFORN',
       header: 'Razão Social',
-      body: row => row.NORAZAOFORN,
+      body: row => <th>{row.NORAZAOFORN}</th>,
       sortable: true
     },
     {
       field: 'NOFANTFORN',
       header: 'Nome Fantasia',
-      body: row => row.NOFANTFORN,
+      body: row => <th>{row.NOFANTFORN}</th>,
       sortable: true
     },
     {
@@ -73,14 +139,14 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
         if (row.IDFABRICANTE > 0) {
           return (
             <div>
-              <p>{row.DSFABRICANTE?.toUpperCase()}</p>
+              <th>{row.DSFABRICANTE?.toUpperCase()}</th>
             </div>
           )
 
         } else {
           return (
             <div>
-              <p style={{ color: '#fd3995 ', fontWeight: 700 }} >SEM VINCULO</p>
+              <th style={{ color: '#fd3995 ', fontWeight: 700 }} >SEM VINCULO</th>
             </div>
           )
 
@@ -91,25 +157,25 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
     {
       field: 'FONEFORN',
       header: 'Telefone',
-      body: row => row.FONEFORN,
+      body: row => <th>{row.FONEFORN}</th>,
       sortable: true
     },
     {
       field: 'CIDADEFORN',
       header: 'Cidade',
-      body: row => row.CIDADEFORN,
+      body: row => <th>{row.CIDADEFORN}</th>,
       sortable: true
     },
     {
       field: 'UFFORN',
       header: 'UF',
-      body: row => row.UFFORN,
+      body: row => <th>{row.UFFORN}</th>,
       sortable: true
     },
     {
       field: 'IDFORNECEDORSAP',
       header: 'ID SAP',
-      body: row => row.IDFORNECEDORSAP,
+      body: row => <th>{row.IDFORNECEDORSAP}</th>,
       sortable: true
     },
     {
@@ -118,7 +184,7 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
       body: (row) => {
         return (
 
-          <p style={{ color: row.STMIGRADOSAP == 'True' ? '#2196F3' : '#fd3995', fontWeight: 700 }}>{row.STMIGRADOSAP == 'True' ? 'MIGRADO COM SUCESSO' : 'NÃO MIGRADO SAP'}</p>
+          <th style={{ color: row.STMIGRADOSAP == 'MIGRADO COM SUCESSO' ? '#2196F3' : '#fd3995', fontWeight: 700 }}>{row.STMIGRADOSAP}</th>
 
         )
       },
@@ -159,7 +225,7 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
                   cor={"danger"}
                   iconColor={"white"}
                   iconSize={20}
-                  onClickButton
+                  onClickButton={() => handleExcluir(row.IDFABRICANTEFORN)}
                   titleButton={"Excluir Vínculo Fabricante/Fornecedor"}
                 />
               </div>
@@ -169,7 +235,7 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
                   cor={"success"}
                   iconColor={"white"}
                   iconSize={20}
-                  onClickButton
+                  onClickButton={() => hanldeClickVisualizarFornecedorSap(row)}
                   titleButton={"Consultar Fornecedor SAP"}
                 />
               </div>
@@ -185,7 +251,7 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
                   cor={"info"}
                   iconColor={"white"}
                   iconSize={20}
-                  onClickButton
+                  onClickButton={() => clickEditarFonecedor(row)}
                   titleButton={"Editar Fornecedor"}
                 />
               </div>
@@ -196,7 +262,7 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
                   cor={"success"}
                   iconColor={"white"}
                   iconSize={20}
-                  onClickButton
+                  onClickButton={() => hanldeClickVisualizarFornecedorSap(row)}
                   titleButton={"Consultar Fornecedor SAP"}
                 />
               </div>
@@ -215,7 +281,7 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
       if (response.data) {
         setDadosDetalheFornecedor(response.data)
         setModalEditarFornecedor(true);
-        console.log(response.data)
+   
       }
     } catch (error) {
       console.error('Erro ao buscar detalhes da despesa: ', error);
@@ -228,6 +294,26 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
       editarFornecedor(row.IDFORNECEDOR);
     }
   };
+  const handleVisualizarFornecedorSap = async (IDFORNECEDOR, NORAZAOFORN, NUCNPJFORN) => {
+    try {
+      const cnpjFormatado = formatarCNPJ(NUCNPJFORN);
+      const response = await get(`/consulta-fornecedor-sap?byId=${IDFORNECEDOR}&descFornecedor=${NORAZAOFORN}&cnpjFornecedor=${cnpjFormatado}&cnpjFornecedorSemFormatar=${NUCNPJFORN}`);
+
+      if (response.data) {
+        setDadosFornecedorSap(response.data)
+   
+      }
+    } catch (error) {
+      console.error('Erro ao buscar detalhes da despesa: ', error);
+    }
+  };
+
+
+  const hanldeClickVisualizarFornecedorSap = (row) => {
+    if (row && row.IDFORNECEDOR && row.NORAZAOFORN && row.NUCNPJFORN) {
+      handleVisualizarFornecedorSap(row.IDFORNECEDOR, row.NORAZAOFORN, row.NUCNPJFORN);
+    }
+  };
 
   const editarVinculoFornecedorFabricante = async (IDFABRICANTEFORN) => {
     try {
@@ -236,7 +322,7 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
       if (response.data && response.data.length > 0) {
         setDadosDetalheFornecedorFabricante(response.data)
         setModalEditarVinculo(true);
-        
+
       }
     } catch (error) {
       console.error('Erro ao buscar detalhes da despesa: ', error);
@@ -249,98 +335,66 @@ export const ActionListaFornecedores = ({ dadosFornecedoresFabricantes }) => {
     }
   };
 
-  // const exportColumns = colunasFornecedores.map(coluna => ({ title: coluna.header, dataKey: coluna.field, body: coluna.body }));
-  // const exportCSV = (selectionOnly) => {
-  //   dt.current.exportCSV({ selectionOnly });
-  // };
 
-  // const exportPdf = () => {
-  //   import('jspdf').then((jsPDF) => {
-  //     import('jspdf-autotable').then(() => {
-  //       const doc = new jsPDF.default(0, 0);
 
-  //       doc.autoTable(exportColumns, dadosListaFornecedores);
-  //       doc.save('dadosListaFornecedores.pdf');
-  //     });
-  //   });
-  // };
-
-  // const exportExcel = () => {
-  //   import('xlsx').then((xlsx) => {
-  //     const worksheet = xlsx.utils.json_to_sheet(dadosListaFornecedores);
-  //     const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
-  //     const excelBuffer = xlsx.write(workbook, {
-  //       bookType: 'xlsx',
-  //       type: 'array'
-  //     });
-
-  //     saveAsExcelFile(excelBuffer, 'dadosListaFornecedores');
-  //   });
-  // };
-
-  // const saveAsExcelFile = (buffer, fileName) => {
-  //   import('file-saver').then((module) => {
-  //     if (module && module.default) {
-  //       let EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-  //       let EXCEL_EXTENSION = '.xlsx';
-  //       const data = new Blob([buffer], {
-  //         type: EXCEL_TYPE
-  //       });
-
-  //       module.default.saveAs(data, fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION);
-  //     }
-  //   });
-  // };
-
-  // const header = (
-  //   <div className="flex align-items-center justify-content-end gap-2">
-  //     <Button type="button" icon="pi pi-file" rounded onClick={() => exportCSV(false)} data-pr-tooltip="CSV" />
-  //     <Button type="button" icon="pi pi-file-excel" severity="success" rounded onClick={exportExcel} data-pr-tooltip="XLS" />
-  //     <Button type="button" icon="pi pi-file-pdf" severity="warning" rounded onClick={exportPdf} data-pr-tooltip="PDF" />
-  //   </div>
-  // );
 
   return (
     <Fragment>
-      <div className="card">
-        <DataTable
-          title="Vendas por Loja"
-          value={dadosListaFornecedoresFabricantes}
-          // header={header}
-          sortField="VRTOTALPAGO"
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50, 100]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
-        >
-          {colunasFornecedores.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
+      <div className="panel" style={{ marginTop: "5rem" }}>
+        <div className="panel-hdr">
+          <h2>Relatório Fornecedores </h2>
+        </div>
 
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
+        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <HeaderTable
+            globalFilterValue={globalFilterValue}
+            onGlobalFilterChange={onGlobalFilterChange}
+            handlePrint={handlePrint}
+            exportToExcel={exportToExcel}
+            exportToPDF={exportToPDF}
+          />
 
-            />
-          ))}
-        </DataTable>
+        </div>
+        <div className="card mb-4" ref={dataTableRef}>
+
+          <DataTable
+            title="Vendas por Loja"
+            value={dados}
+            globalFilter={globalFilterValue}
+            sortOrder={-1}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
+          >
+            {colunasFornecedores.map(coluna => (
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                header={coluna.header}
+
+                body={coluna.body}
+                footer={coluna.footer}
+                sortable={coluna.sortable}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '0.8rem' }}
+
+              />
+            ))}
+          </DataTable>
+        </div>
       </div>
 
-      <ActionVincularFabricanteFornecedorModal 
+      <ActionEditarVinculoFabricanteModal
         show={modalEditarVinculo}
         handleClose={() => setModalEditarVinculo(false)}
         dadosDetalheFornecedorFabricante={dadosDetalheFornecedorFabricante}
       />
 
-      <ActionEditarFornecedorModal 
+      <ActionEditarFornecedorModal
         show={modalEditarFornecedor}
         handleClose={() => setModalEditarFornecedor(false)}
         dadosDetalheFornecedor={dadosDetalheFornecedor}

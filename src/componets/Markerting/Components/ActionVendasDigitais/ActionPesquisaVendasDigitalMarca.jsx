@@ -29,7 +29,6 @@ export const ActionPesquisaVendasDigitalMarca = () => {
   const fetchListaVendas = async () => {
     try {
       
-      
       const urlApi = `/venda-digital-marca?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       

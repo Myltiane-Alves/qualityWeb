@@ -2,58 +2,22 @@ import { Fragment, useEffect, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { formatMoeda } from "../../../../utils/formatMoeda";
-import { dataFormatada } from "../../../../utils/dataFormatada";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
-import axios from 'axios';
-import Swal from "sweetalert2";
-import { post, put } from "../../../../api/funcRequest";
-import { useNavigate } from "react-router-dom";
 import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "primereact/row";
+import { useHandleDetalhar } from "./hooks/useHandleDetalhar";
 
-
-export const ActionListaVendasPIX = ({ dadosVendasPix }) => {
+export const ActionListaVendasPIX = ({ dadosVendasPix, optionsModulos, usuarioLogado,handleClickVendasPix }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
-  const dataTableRef = useRef();
-  const [selecionarVendas, setSelecionarVendas] = useState([]);
-  const [selectedVendas, setSelectedVendas] = useState([]);
-  const [selectAll, setSelectAll] = useState(false);
+  const [selectAll, setSelectAll] = useState(false); 
   const [selectedIds, setSelectedIds] = useState([]);
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [ipUsuario, setIpUsuario] = useState('');
-  const navigate = useNavigate();
- 
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
+  const dataTableRef = useRef();
+  const { handleDetalhar } = useHandleDetalhar({usuarioLogado, optionsModulos, usuarioLogado, handleClickVendasPix});
 
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    getIPUsuario();
-  }, [usuarioLogado]);
-
-  const getIPUsuario = async () => {
-    const response = await axios.get('http://ipwho.is/')
-    if(response.data) {
-      setIpUsuario(response.data.ip);
-    }
-    return response.data;
-  }
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -201,8 +165,7 @@ export const ActionListaVendasPIX = ({ dadosVendasPix }) => {
       ),
       sortable: false,
     }
-    
-    
+
   ]
 
   const footerGroup = (
@@ -234,52 +197,6 @@ export const ActionListaVendasPIX = ({ dadosVendasPix }) => {
   };
   
 
-  const handleDetalhar = async (IDVENDA) => {
-    try {
-      if (typeof IDVENDA === 'string') {
-        IDVENDA = [IDVENDA];
-      }
-
-      Swal.fire({
-        title: 'Informe a Data de Compensação',
-        html: '<input type="date" id="dtcompensacao" name="DTCompensacao" class="form-control" value="" >',
-        showConfirmButton: true,
-        showCancelButton: true,
-        confirmButtonText: 'Confirmar',
-        cancelButtonText: 'Cancelar'
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          const dtCompensacao = document.getElementById('dtcompensacao').value;
-
-          const dados = IDVENDA.map(id => ({
-            "IDVENDA": id,
-            "STCONFERIDO": 'True',
-            "DATA_COMPENSACAO": dtCompensacao
-          }));
-
-          await put("/venda-pix-status-conferido", dados);
-          console.log('Dados: ', dados);
-
-          const textdados = JSON.stringify(dados);
-          const textoFuncao = 'FINANCEIRO/CONFIRMADA CONFERENCIA DA VENDA';
-          const dadosConfirmaDep = [{
-            "IDFUNCIONARIO": usuarioLogado.IDFUNCIONARIO,
-            "PATHFUNCAO": textoFuncao,
-            "DADOS": textdados,
-            "IP": ipUsuario
-          }];
-
-          await post("/log-web", dadosConfirmaDep);
-          Swal.fire('Sucesso!', 'Venda detalhada com sucesso.', 'success');
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-          console.log('Ação cancelada pelo usuário.');
-        }
-      });
-    } catch (error) {
-      console.error('Erro ao buscar detalhes da venda: ', error);
-    }
-  };
-
   return (
 
     <Fragment>
@@ -309,10 +226,13 @@ export const ActionListaVendasPIX = ({ dadosVendasPix }) => {
                     title="Vendas por PIX"
                     value={dadosListaVendasPix}
                     globalFilter={globalFilterValue}
-                    size={size}
+                    size="small"
                     paginator={true}
                     rows={10}
                     rowsPerPageOptions={[10, 20, 50, 100, dadosListaVendasPix.length]}
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                    filterDisplay="menu"
                     footerColumnGroup={footerGroup}
                     showGridlines
                     stripedRows

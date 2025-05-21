@@ -7,7 +7,7 @@ import { ActionListaDetalheVendas } from "./actionListaDetalheVendas";
 import { FormularioAlteracaoPagamento } from "./formularioAlteracaoPagamento";
 
 
-export const ActionDetalheRecebimentoModal = ({ show, handleClose, dadosDetalheRecebimentos }) => {
+export const ActionDetalheRecebimentoModal = ({ show, handleClose, dadosDetalheRecebimentos, usuarioLogado, optionsModulos }) => {
 
   return (
     <Fragment>
@@ -29,7 +29,12 @@ export const ActionDetalheRecebimentoModal = ({ show, handleClose, dadosDetalheR
 
         <Modal.Body>
           <ActionListaDetalheVendas dadosDetalheRecebimentos={dadosDetalheRecebimentos} />
-          <FormularioAlteracaoPagamento  dadosDetalheRecebimentos={dadosDetalheRecebimentos} handleClose={handleClose} />
+          <FormularioAlteracaoPagamento  
+            dadosDetalheRecebimentos={dadosDetalheRecebimentos} 
+            handleClose={handleClose} 
+            usuarioLogado={usuarioLogado} 
+            optionsModulos={optionsModulos}
+          />
         </Modal.Body>
         <FooterModal
 

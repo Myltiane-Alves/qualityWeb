@@ -17,10 +17,13 @@ export const ActionPesquisaCaixaStatus = () => {
   const [tabelaCaixaStatus, setTabelaCaixaStatus] = useState(false);
   const [tabelaCaixaZerado, setTabelaCaixaZerado] = useState(false);
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
+  const [isQueryCaixaZerado, setIsQueryCaixaZerado] = useState(false);
+  const [isQueryCaixaStatus, setIsQueryCaixaStatus] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
   const [page, setPage] = useState(+1)
@@ -30,7 +33,6 @@ export const ActionPesquisaCaixaStatus = () => {
     const dataFinal = getDataAtual();
     setDataPesquisaInicio(dataInicial);
     setDataPesquisaFim(dataFinal);
-
   }, [])
 
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', '/marcasLista');
@@ -80,14 +82,14 @@ export const ActionPesquisaCaixaStatus = () => {
   const { data: dadosCaixaStatus = [], error: errorCaixaStatus, isLoading: isLoadingCaixaStatus, refetch: refetchCaixaStatus } = useQuery(
     ['lista-caixas-status', marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, page, pageSize],
     () => fetchCaixaStatus(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, page, pageSize),
-    { enabled: false, staleTime: 5 * 60 * 1000 }
+    { enabled: Boolean(isQueryCaixaStatus), staleTime: 5 * 60 * 1000 }
   );
 
 
   const fetchCaixaZerado = async () => {
     try {
 
-      const urlApi = `lista-caixas-zerados?idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/lista-caixas-zerados?idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -128,16 +130,13 @@ export const ActionPesquisaCaixaStatus = () => {
   const { data: dadosCaixaZerados = [], error: errorCaixaZerado, isLoading: isLoadingCaixaZerado, refetch: refetchCaixaZerado } = useQuery(
     ['lista-caixas-zerados', marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchCaixaZerado(marcaSelecionada, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    { enabled: false, staleTime: 5 * 60 * 1000 }
+    { enabled: Boolean(isQueryCaixaZerado), staleTime: 5 * 60 * 1000 }
   );
 
-
-
-  const handleSelectEmpresa = (e) => {
-    const selectId = e.value
-    if (selectId) {
-      setEmpresaSelecionada(selectId)
-    }
+  const handleChangeEmpresa = (e) => {
+    const empresa = optionsEmpresas.find((item) => item.IDEMPRESA === e.value);
+    setEmpresaSelecionada(e.value);
+    setEmpresaSelecionadaNome(empresa.NOFANTASIA);
   }
 
   const handleSelectMarca = (e) => {
@@ -152,7 +151,8 @@ export const ActionPesquisaCaixaStatus = () => {
       setTabelaCaixaStatus(true)
       setTabelaCaixaZerado(false)
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setIsQueryCaixaStatus(true)
+      setCurrentPage(prevPage => prevPage + 1);
       refetchCaixaStatus()
     } else {
       Swal.fire('Erro', 'Por favor, Verifique os Campos', 'error');
@@ -166,7 +166,8 @@ export const ActionPesquisaCaixaStatus = () => {
       setTabelaCaixaZerado(true)
       setTabelaCaixaStatus(false)
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setIsQueryCaixaZerado(true)
+      setCurrentPage(prevPage => prevPage + 1);
       refetchCaixaZerado()
 
     } else {
@@ -182,7 +183,7 @@ export const ActionPesquisaCaixaStatus = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Status Caixa por Loja e Período"]}
         title="Status Caixa por Loja e Período"
-        subTitle="Nome da Loja"
+        subTitle={empresaSelecionadaNome}
         InputFieldDTInicioComponent={InputField}
         valueInputFieldDTInicio={dataPesquisaInicio}
         labelInputFieldDTInicio={"Data Início"}
@@ -194,7 +195,7 @@ export const ActionPesquisaCaixaStatus = () => {
         onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
 
         InputSelectEmpresaComponent={InputSelectAction}
-        onChangeSelectEmpresa={handleSelectEmpresa}
+        onChangeSelectEmpresa={handleChangeEmpresa}
         valueSelectEmpresa={empresaSelecionada}
 
         optionsEmpresas={[
@@ -209,10 +210,9 @@ export const ActionPesquisaCaixaStatus = () => {
         InputSelectMarcasComponent={InputSelectAction}
         labelSelectMarcas={"Marca"}
         optionsMarcas={[
-          // { value: '', label: 'Selecione uma loja' },
           ...optionsMarcas.map((marca) => ({
             value: marca.IDGRUPOEMPRESARIAL,
-            label: marca.DSGRUPOEMPRESARIAL
+            label: marca.GRUPOEMPRESARIAL
           }))
         ]}
         valueSelectMarca={marcaSelecionada}

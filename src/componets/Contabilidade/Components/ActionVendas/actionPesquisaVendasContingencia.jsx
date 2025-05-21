@@ -113,7 +113,7 @@ export const ActionPesquisaVendasContingencia = () => {
           { value: "", label: "Selecione a Marca" }, 
           ...marcas.map((marca) => ({
             value: marca.IDGRUPOEMPRESARIAL,
-            label: marca.DSGRUPOEMPRESARIAL
+            label: marca.GRUPOEMPRESARIAL
           }))
         ]}
         labelSelectMarcas={"Marcas"}

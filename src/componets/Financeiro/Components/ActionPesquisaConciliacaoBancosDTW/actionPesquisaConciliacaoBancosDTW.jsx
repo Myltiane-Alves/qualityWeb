@@ -13,7 +13,7 @@ import { ActionListaCompensacaoBancoDTW } from "./actionListaCompensacaoBancoDTW
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento"
 import { useFetchData } from "../../../../hooks/useFetchData"
 
-export const ActionPesquisaConciliacaoBancosDTW = () => {
+export const ActionPesquisaConciliacaoBancosDTW = ({ usuarioLogado, ID }) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [tabelaVisivelConsolidado, setTabelaVisivelConsolidado] = useState(false);
   const [tabelaVisivelCompensacao, setTabelaVisivelCompensacao] = useState(false);
@@ -27,9 +27,20 @@ export const ActionPesquisaConciliacaoBancosDTW = () => {
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(500); 
+  const [isQueryConciliarBanco, setIsQueryConciliarBanco] = useState(false);
+  const [isQueryBancoConsolidado, setIsQueryBancoConsolidado] = useState(false);
 
   const { data: dadosContaBanco = [], error: errorContaBanco, isLoading: isLoadingContaBanco, } = useFetchData('contaBanco', '/contaBanco');
   
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
+
   useEffect(() => {
     if (errorContaBanco) {
       Swal.fire({
@@ -42,8 +53,8 @@ export const ActionPesquisaConciliacaoBancosDTW = () => {
 
 
   const fetchConciliarBanco = async () => {
-    try {
-      const urlApi = `/deposito-loja?idConta=${contaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&dataCompensacaoInicio=${dataPesquisaInicioB}&dataCompensacaoFim=${dataPesquisaFimB}&dataMovimentoInicio=${dataPesquisaInicioC}&dataMovimentoFim=${dataPesquisaFimC}`;
+    try {             
+      const urlApi = `/deposito-loja?idConta=${contaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&dataCompInicio=${dataPesquisaInicioB}&dataCompFim=${dataPesquisaFimB}&dataMovInicio=${dataPesquisaInicioC}&dataMovFim=${dataPesquisaFimC}`;
       const response = await get(urlApi);
   
       if (response.data.length && response.data.length === pageSize) {
@@ -83,13 +94,12 @@ export const ActionPesquisaConciliacaoBancosDTW = () => {
   const { data: dadosConciliarBanco = [], error: errorConciliarBanco, isLoading: isLoadingConciliarBanco, refetch: refetchConciliarBanco } = useQuery(
     ['deposito-loja',  contaSelecionada, dataPesquisaInicio, dataPesquisaFim, dataPesquisaInicioB, dataPesquisaFimB, dataPesquisaInicioC, dataPesquisaFimC, currentPage, pageSize],
     () => fetchConciliarBanco(contaSelecionada, dataPesquisaInicio, dataPesquisaFim, dataPesquisaInicioB, dataPesquisaFimB, dataPesquisaInicioC, dataPesquisaFimC, currentPage, pageSize),
-    { enabled: false, staleTime: 5 * 60 * 1000 }
+    { enabled: Boolean(isQueryConciliarBanco), staleTime: 5 * 60 * 1000 }
   )
-
 
   const fetchConciliarBancoConsolidado = async ( ) => {
     try {
-      const urlApi = `/depositoLojaConsolidado?idConta=${contaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&dataCompensacaoInicio=${dataPesquisaInicioB}&dataCompensacaoFim=${dataPesquisaFimB}&dataMovimentoInicio=${dataPesquisaInicioC}&dataMovimentoFim=${dataPesquisaFimC}`;
+      const urlApi = `/depositoLojaConsolidado?idConta=${contaSelecionada}&dataCompInicio=${dataPesquisaInicioB}&dataCompFim=${dataPesquisaFimB}&dataMovInicio=${dataPesquisaInicioC}&dataMovFim=${dataPesquisaFimC}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
   
       if (response.data.length && response.data.length === pageSize) {
@@ -127,14 +137,12 @@ export const ActionPesquisaConciliacaoBancosDTW = () => {
     
   };
 
-
   const { data: dadosConciliarBancoConsolidado = [], error: errorBancoConsolidado, isLoading: isLoadingBancoConsolidado, refetch: refetchBancoConsolidado } = useQuery(
     ['depositoLojaConsolidado',  contaSelecionada, dataPesquisaInicio, dataPesquisaFim, dataPesquisaInicioB, dataPesquisaFimB, dataPesquisaInicioC, dataPesquisaFimC, currentPage, pageSize],
     () => fetchConciliarBancoConsolidado(contaSelecionada, dataPesquisaInicio, dataPesquisaFim, dataPesquisaInicioB, dataPesquisaFimB, dataPesquisaInicioC, dataPesquisaFimC, currentPage, pageSize),
-    { enabled: false }
+    { enabled: Boolean(isQueryBancoConsolidado), staleTime: 5 * 60 * 1000 }
   )
 
-  
   const onChangeSelectConta = (e) => {
     setContaSelecionada(e.value)
   }
@@ -145,7 +153,9 @@ export const ActionPesquisaConciliacaoBancosDTW = () => {
       setTabelaVisivel(true)
       setTabelaVisivelConsolidado(false)
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1); 
+      setCurrentPage(prevPage => prevPage + 1); 
+      setTabelaVisivelCompensacao(false)
+      setIsQueryConciliarBanco(true)
       refetchConciliarBanco()
     } else {
       Swal.fire('Erro', 'Por favor, selecione uma Conta.', 'error');
@@ -159,7 +169,9 @@ export const ActionPesquisaConciliacaoBancosDTW = () => {
       setTabelaVisivelConsolidado(false)
       setTabelaVisivelCompensacao(true)
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1); 
+      setCurrentPage(prevPage => prevPage + 1); 
+      setIsQueryConciliarBanco(true)
+      setIsQueryBancoConsolidado(false)
       refetchConciliarBanco()
     } else {
       Swal.fire('Erro', 'Por favor, selecione uma Conta.', 'error');
@@ -172,9 +184,11 @@ export const ActionPesquisaConciliacaoBancosDTW = () => {
     if (contaSelecionada) {
       setTabelaVisivelConsolidado(true)
       setTabelaVisivel(false)
+      setTabelaVisivelCompensacao(false)
 
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setCurrentPage(prevPage => prevPage + 1);
+      setIsQueryBancoConsolidado(true)
       refetchBancoConsolidado()
     } else {
       Swal.fire('Erro', 'Por favor, selecione uma Conta.', 'error');
@@ -255,10 +269,22 @@ export const ActionPesquisaConciliacaoBancosDTW = () => {
       />
 
       {tabelaVisivel && (
-        <ActionListaConciliacaoBancoDTW dadosConciliarBanco={dadosConciliarBanco} contaSelecionada={contaSelecionada} />
+        <ActionListaConciliacaoBancoDTW 
+          dadosConciliarBanco={dadosConciliarBanco} 
+          contaSelecionada={contaSelecionada} 
+          optionsModulos={optionsModulos}  
+          usuarioLogado={usuarioLogado}
+          handleClick={handleClick}
+        />
       )}
       {tabelaVisivelCompensacao && (
-        <ActionListaCompensacaoBancoDTW dadosConciliarBanco={dadosConciliarBanco} contaSelecionada={contaSelecionada} />
+        <ActionListaCompensacaoBancoDTW 
+          dadosConciliarBanco={dadosConciliarBanco} 
+          contaSelecionada={contaSelecionada} 
+          optionsModulos={optionsModulos}  
+          usuarioLogado={usuarioLogado}
+          handleClickCompensacao={handleClickCompensacao}
+        />
       )}
    
       {tabelaVisivelConsolidado && (

@@ -7,6 +7,7 @@ export const ActionRelatorioBI = () => {
   const [dadosBI, setDadosBI] = useState([]);
   const navigate = useNavigate();
 
+
   useEffect(() => {
     const usuarioArmazenado = localStorage.getItem('usuario');
 
@@ -34,7 +35,7 @@ export const ActionRelatorioBI = () => {
   const getListaRelatorioBI = async () => {
     if (usuarioLogado && usuarioLogado.IDEMPRESA) {
       try {
-        const response = await get(`/relatorioBI?idEmpresaLogin=${usuarioLogado.IDEMPRESA}&idRelatorio=1`);
+        const response = await get(`/relatorioBI?idEmpresa=${usuarioLogado.IDEMPRESA}&idRelatorio=1`);
 
         if (response.data) {
           setDadosBI(response.data);

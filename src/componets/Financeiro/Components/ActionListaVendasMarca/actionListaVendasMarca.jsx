@@ -1,6 +1,5 @@
 import { Fragment, useRef, useState } from "react"
 import { formatMoeda } from "../../../../utils/formatMoeda";
-import { dataFormatada } from "../../../../utils/dataFormatada";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { toFloat } from "../../../../utils/toFloat";
@@ -10,10 +9,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
-export const ActionListaVendasMarca = ({
-  dadosListaVendasMarca,
-}) => {
-  const [size, setSize] = useState('small')
+export const ActionListaVendasMarca = ({dadosListaVendasMarca}) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
 
@@ -306,8 +302,8 @@ export const ActionListaVendasMarca = ({
     {
       field: 'NOFANTASIA IDEMPRESA',
       header: 'Loja',
-      body: row =><th style={{color: 'blue'}}>{ row.NOFANTASIA}</th>,
-      footer: <th style={{fontWeight: 600}}>Total</th>,
+      body: row =><p style={{color: 'blue', width: '200px', margin: '0px', fontWeight: 600}}>{ row.NOFANTASIA}</p>,
+      footer: <th style={{fontWeight: 600, fontSize: '1rem'}}>Total</th>,
       sortable: true,
     },
     {
@@ -452,12 +448,15 @@ export const ActionListaVendasMarca = ({
             title="Vendas por Marca"
             value={dadosVendasMarca}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator
             rows={10}
             rowsPerPageOptions={[10, 20, 30, 50, 100, dadosVendasMarca.length]}
             totalRecords={dadosVendasMarca.length}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

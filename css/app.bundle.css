@@ -731,8 +731,14 @@ input::-moz-focus-inner {
 html body {
   direction: ltr;
   text-rendering: optimizeLegibility;
-  background-color: #fff; }
+  background-color: #fff; 
+}
 
+.custom-inverted-colors html body .panel {
+  background-color: #181a1b !important;
+}
+
+  
 /* app header */
 .header-icon {
   color: #666666;
@@ -7086,6 +7092,29 @@ html:not(.root-text-sm):not(.root-text-lg):not(.root-text-xl) [data-class="root-
 
 /* #COLORS - we place this here so it can override other colors as needed
 ========================================================================== */
+
+/* ...existing code... */
+.custom-inverted-colors body,
+.custom-inverted-colors h1,
+.custom-inverted-colors h2,
+.custom-inverted-colors h3,
+.custom-inverted-colors h4,
+.custom-inverted-colors h5,
+.custom-inverted-colors h6,
+.custom-inverted-colors p,
+.custom-inverted-colors span,
+.custom-inverted-colors a,
+.custom-inverted-colors small,
+.custom-inverted-colors label,
+.custom-inverted-colors .subheader-title,
+.custom-inverted-colors .breadcrumb > li > a,
+.custom-inverted-colors .panel,
+.custom-inverted-colors .panel-container {
+  color: #cfcbc5 !important;
+  background-color: #252829 !important;
+}
+/* ...existing code... */
+
 .bg-primary-50 {
   background-color: #886ab5;
   color: rgba(0, 0, 0, 0.8); }

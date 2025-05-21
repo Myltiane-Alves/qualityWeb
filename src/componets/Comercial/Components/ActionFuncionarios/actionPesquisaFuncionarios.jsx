@@ -6,57 +6,79 @@ import { ButtonType } from "../../../Buttons/ButtonType";
 import { AiOutlineSearch } from "react-icons/ai";
 import { get } from "../../../../api/funcRequest";
 import { InputSelectAction } from "../../../Inputs/InputSelectAction";
+import { useFetchData } from "../../../../hooks/useFetchData";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
 
 export const ActionPesquisaFuncionario = () => {
-  const [dadosFuncionarios, setDadosFuncionarios] = useState([]);
-  const [optionsEmpresas, setOptionsEmpresas] = useState([]);
   const [tabelaVisivel, setTabelaVisivel] = useState(true);
-  const [contadorClickTabela, setContadorClickTabela] = useState(0);
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
   const [cpf, setCpf] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
 
-  useEffect(() => {
-    getListaEmpresas();
-    getListaFuncionarios();
-  }, []);
+  const { data: dadosEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas } = useFetchData('listaEmpresasIformatica', `/listaEmpresasIformatica`);
 
-  const getListaEmpresas = async () => {
-    try {
-      const response = await get(`/listaEmpresasIformatica`);
-      if (response.data) {
-        setOptionsEmpresas(response.data);
+  const fetchListaFuncionarios = async () => {
+      try {
+  
+        const urlApi = `/funcionarios-loja?idEmpresa=${empresaSelecionada}&descricaoNomeFuncao=${cpf}`;
+        const response = await get(urlApi);
+  
+        if (response.data && response.data.length === pageSize) {
+          let allData = [...response.data];
+          animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+          async function fetchNextPage(currentPage) {
+            try {
+              currentPage++;
+              const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+              if (responseNextPage.length) {
+                allData.push(...responseNextPage.data);
+                return fetchNextPage(currentPage);
+              } else {
+                return allData;
+              }
+            } catch (error) {
+              console.error('Erro ao buscar próxima página:', error);
+              throw error;
+            }
+          }
+  
+          await fetchNextPage(currentPage);
+          return allData;
+        } else {
+  
+          return response.data;
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error);
+        throw error;
+      } finally {
+        fecharAnimacaoCarregamento();
       }
-      return response.data;
-    } catch (error) {
+  };
+  
+  const { data: dadosFuncionarios = [], error: errorPrdoutos, isLoading: isLoadingProdutos, refetch: refetchListaFuncionarios } = useQuery(
+    ['funcionarios-loja', empresaSelecionada, currentPage, pageSize],
+    () => fetchListaFuncionarios(empresaSelecionada, currentPage, pageSize),
+    { enabled: true, staleTime: 5 * 60 * 1000 }
+  );
 
-    }
-  }
-
-  const getListaFuncionarios = async () => {
-    try {
-      const response = await get(`/funcionariosLoja?idEmpresa=${empresaSelecionada}&descricaoNomeFuncao=${cpf}`);
-      if (response.data && response.data.length > 0) {
-        setDadosFuncionarios(response.data);
-      }
-      return response.data;
-
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-
-  }
 
   const handlChangeEmpresaAction = (e) => {
+    const nomeEmpresa = dadosEmpresas.find((item) => item.IDEMPRESA === e.value);
+    setEmpresaSelecionadaNome(nomeEmpresa.NOFANTASIA);
     setEmpresaSelecionada(e.value); 
   }
 
   const handleTabelaVisivel = () => {
-    setContadorClickTabela(prevClickCount => prevClickCount + 1);
-    if (contadorClickTabela % 2 === 0) {
-      setTabelaVisivel(true);
-      getListaFuncionarios(empresaSelecionada);
-    } 
+    setCurrentPage(prevPage => prevPage + 1);
+    setTabelaVisivel(true);
+    refetchListaFuncionarios();
+   
   };
 
   return (
@@ -66,7 +88,7 @@ export const ActionPesquisaFuncionario = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Funcionários das Lojas"]}
         title="  Lista dos funcionários das Lojas"
-        subTitle="Nome da Loja"
+        subTitle={empresaSelecionadaNome}
 
         InputFieldVendaCPFCNPJComponent={InputField}
         labelInputFieldVendaCPFCNPJ={"Nome / CPF"}
@@ -76,7 +98,7 @@ export const ActionPesquisaFuncionario = () => {
         InputSelectEmpresaComponent={InputSelectAction}
         optionsEmpresas={[
           { value: '', label: 'Selecione a Empresa' },
-          ...optionsEmpresas.map((item) => ({
+          ...dadosEmpresas.map((item) => ({
             value: item.IDEMPRESA,
             label: item.NOFANTASIA
           }))
@@ -93,7 +115,7 @@ export const ActionPesquisaFuncionario = () => {
       />
 
       {tabelaVisivel &&
-        <ActionListaFuncionario dadosFuncionarios={dadosFuncionarios} optionsEmpresas={optionsEmpresas}/>
+        <ActionListaFuncionario dadosFuncionarios={dadosFuncionarios} dadosEmpresas={dadosEmpresas}/>
       }
     </Fragment>
   )

@@ -21,6 +21,7 @@ import { getDataAtual } from "../../../../utils/dataAtual";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"
 import { FaCheck } from "react-icons/fa6";
+import { ActionEditarFuncionario } from "./ActionEditar/actionEditarFuncionario";
 
 export const ActionListaFuncionarios = ({ dadosFuncionarios }) => {
   const [modalAlterarFuncionarioVisivel, setModalAlterarFuncionarioVisivel] = useState(false);
@@ -271,9 +272,11 @@ export const ActionListaFuncionarios = ({ dadosFuncionarios }) => {
                   titleButton={"Alterar"}
                   onClickButton={() => handleClickEdit(row)}
                   Icon={CiEdit}
-                  iconSize={18}
+                  iconSize={20}
                   iconColor={"#fff"}
                   cor={"primary"}
+                  width="30px"
+                  height="30px"
 
                 />
 
@@ -283,9 +286,11 @@ export const ActionListaFuncionarios = ({ dadosFuncionarios }) => {
                   titleButton={"Alterar Desconto Autorizado"}
                   onClickButton={() => handleClickDesconto(row)}
                   Icon={MdOutlineAttachMoney}
-                  iconSize={18}
+                  iconSize={20}
                   iconColor={"#fff"}
                   cor={"info"}
+                  width="30px"
+                  height="30px"
                 />
 
               </div>
@@ -294,9 +299,11 @@ export const ActionListaFuncionarios = ({ dadosFuncionarios }) => {
                   titleButton={"Inativar"}
                   onClickButton={() => handleAtivarFuncionario(row)}
                   Icon={FaUserAltSlash}
-                  iconSize={18}
+                  iconSize={20}
                   iconColor={"#fff"}
                   cor={"warning"}
+                  width="30px"
+                  height="30px"
                 />
 
               </div>
@@ -305,9 +312,11 @@ export const ActionListaFuncionarios = ({ dadosFuncionarios }) => {
                   titleButton={"Desligar"}
                   onClickButton={() => handleDesligarFuncionario(row)}
                   Icon={FaUserTimes}
-                  iconSize={18}
+                  iconSize={20}
                   iconColor={"#fff"}
                   cor={"danger"}
+                  width="30px"
+                  height="30px"
                 />
 
               </div>
@@ -520,6 +529,9 @@ export const ActionListaFuncionarios = ({ dadosFuncionarios }) => {
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
           >
@@ -544,19 +556,22 @@ export const ActionListaFuncionarios = ({ dadosFuncionarios }) => {
       </div>
 
 
-
-      <ActionUpdateFuncionarioModal
+      <ActionEditarFuncionario 
+         show={modalAlterarFuncionarioVisivel}
+         handleClose={() => setModalAlterarFuncionarioVisivel(false)}
+         dadosAtualizarFuncionarios={dadosAtualizarFuncionarios}
+      /> 
+      {/* <ActionUpdateFuncionarioModal
         show={modalAlterarFuncionarioVisivel}
         handleClose={() => setModalAlterarFuncionarioVisivel(false)}
         dadosAtualizarFuncionarios={dadosAtualizarFuncionarios}
-      />
+      /> */}
 
 
       <ActionUpdateDescontoFuncionarioModal
         show={modalDescontoVisivel}
         handleClose={() => setModalDescontoVisivel(false)}
         dadosDescontoFuncionarios={dadosDescontoFuncionarios}
-        
       />
 
     </Fragment>

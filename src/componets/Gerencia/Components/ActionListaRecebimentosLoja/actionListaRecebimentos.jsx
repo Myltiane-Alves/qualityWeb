@@ -10,10 +10,18 @@ import * as XLSX from 'xlsx';
 import { dataFormatada } from "../../../../utils/dataFormatada";
 import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "primereact/row";
+import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionListaRecebimentos = ({dadosRecebimentos }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
   const dataTableRef = useRef();
+    
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  }  
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -88,34 +96,43 @@ export const ActionListaRecebimentos = ({dadosRecebimentos }) => {
     }
   });
 
-  const calcularTotal = (field) => {
+  const calcularTotalPagina = (field) => {
     return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
   };
 
+  const calcularTotal = (field) => {
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dados.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + toFloat(item[field] || 0), 0);
+  };
+
   const calcularTotalDinheiro = () => {
-    const total = calcularTotal('VRRECDINHEIRO');
-    return total;
-  }
-
+    const totalPaginaDinheiro = calcularTotal('VRRECDINHEIRO');
+    const totalVendas = calcularTotalPagina('VRRECDINHEIRO' );
+    return `${formatMoeda(totalPaginaDinheiro)}   (${formatMoeda(totalVendas)} total)`;
+  };
   const calcularTotalCartao = () => {
-    const total = calcularTotal('VRRECCARTAO');
-    return total;
-  }
-
+    const totalPaginaDinheiro = calcularTotal('VRRECCARTAO');
+    const totalVendas = calcularTotalPagina('VRRECCARTAO' );
+    return `${formatMoeda(totalPaginaDinheiro)}   (${formatMoeda(totalVendas)} total)`;
+  };
+  
   const calcularTotalPos = () => {
-    const total = calcularTotal('VRRECPOS');
-    return total;
-  }
-
+    const totalPaginaDinheiro = calcularTotal('VRRECPOS');
+    const totalVendas = calcularTotalPagina('VRRECPOS' );
+    return `${formatMoeda(totalPaginaDinheiro)}   (${formatMoeda(totalVendas)} total)`;
+  };
   const calcularTotalVoucher = () => {
-    const total = calcularTotal('VRRECVOUCHER');
-    return total;
-  }
-
+    const totalPaginaDinheiro = calcularTotal('VRRECVOUCHER');
+    const totalVendas = calcularTotalPagina('VRRECVOUCHER' );
+    return `${formatMoeda(totalPaginaDinheiro)}   (${formatMoeda(totalVendas)} total)`;
+  };
   const calcularTotalConvenio = () => {
-    const total = calcularTotal('VRRECCONVENIO');
-    return total;
-  }
+    const totalPaginaDinheiro = calcularTotal('VRRECCONVENIO');
+    const totalVendas = calcularTotalPagina('VRRECCONVENIO' );
+    return `${formatMoeda(totalPaginaDinheiro)}   (${formatMoeda(totalVendas)} total)`;
+  };
 
 
   const colunasRecebimentos = [
@@ -203,11 +220,11 @@ export const ActionListaRecebimentos = ({dadosRecebimentos }) => {
 
       <Row> 
         <Column footer="Total " colSpan={3} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
-        <Column footer={formatMoeda(calcularTotalDinheiro())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularTotalCartao())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularTotalPos())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularTotalVoucher())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularTotalConvenio())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalDinheiro()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalCartao()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalPos()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalVoucher()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalConvenio()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
         <Column footer={""} colSpan={4}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
       </Row>
     </ColumnGroup>
@@ -236,10 +253,12 @@ export const ActionListaRecebimentos = ({dadosRecebimentos }) => {
             value={dados}
             globalFilter={globalFilterValue}
             footerColumnGroup={footerGroup}
-            sortField="VRTOTALPAGO"
+            size="small"
+            first={first}
+            rows={rows}
+            onPage={onPageChange}
             sortOrder={-1}
             paginator={true}
-            rows={10}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
             showGridlines
             stripedRows

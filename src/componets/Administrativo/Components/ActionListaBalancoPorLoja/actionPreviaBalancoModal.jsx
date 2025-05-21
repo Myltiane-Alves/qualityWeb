@@ -347,7 +347,7 @@ export const ActionPreviaBalancoModal = ({ show, handleClose, dadosPreviaBalanco
                 sortOrder={-1}
                 paginator={true}
                 rows={10}
-                rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+                // rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
                 showGridlines
                 stripedRows
                 emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

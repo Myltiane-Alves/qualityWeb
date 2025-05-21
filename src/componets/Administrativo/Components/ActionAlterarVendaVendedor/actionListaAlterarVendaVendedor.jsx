@@ -5,19 +5,19 @@ import { Column } from 'primereact/column';
 import { dataFormatada } from "../../../../utils/dataFormatada";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { get } from "../../../../api/funcRequest";
-import { ActionDetalheAlterarVendaModal } from "./actionDetalheAlterarVendaModal";
+import { ActionDetalheAlterarVendaModal } from "./ActionDetalharVendaVendedor/actionDetalheAlterarVendaModal";
 import { CiEdit } from "react-icons/ci";
 import HeaderTable from "../../../Tables/headerTable";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 import 'jspdf-autotable';
+import Swal from "sweetalert2";
 
-export const ActionListaAlterarVendaVendedor = ({dadosVendasAtivas, empresaSelecionada }) => {
+export const ActionListaAlterarVendaVendedor = ({dadosVendasAtivas, empresaSelecionada, optionsModulos, usuarioLogado }) => {
   const [dadosVendasDetalhada, setDadosVendasDetalhada] = useState([]); 
   const [modalVisivel,  setModalVisivel] = useState(false);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
 
@@ -167,7 +167,9 @@ export const ActionListaAlterarVendaVendedor = ({dadosVendasAtivas, empresaSelec
               onClickButton={() => handleClickEdit(row)} 
               cor={"primary"}
               Icon={CiEdit}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
             />
           </div>
         </div>
@@ -183,7 +185,6 @@ export const ActionListaAlterarVendaVendedor = ({dadosVendasAtivas, empresaSelec
         setDadosVendasDetalhada(response.data);
         setModalVisivel(true);
       }
-
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar detalhes da venda: ', error);
@@ -191,11 +192,19 @@ export const ActionListaAlterarVendaVendedor = ({dadosVendasAtivas, empresaSelec
   };
 
   const handleClickEdit = (row) => {
-
-    if (row && empresaSelecionada && row.IDVENDA) {
-      handleEdit(empresaSelecionada, row.IDVENDA);
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && empresaSelecionada && row.IDVENDA) {
+        handleEdit(empresaSelecionada, row.IDVENDA);
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para alterar a venda.',
+        confirmButtonText: 'OK',
+        timer: 3000,
+      });
     }
-
   };
 
 
@@ -221,11 +230,14 @@ export const ActionListaAlterarVendaVendedor = ({dadosVendasAtivas, empresaSelec
             title="Vendas por Loja"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -255,6 +267,8 @@ export const ActionListaAlterarVendaVendedor = ({dadosVendasAtivas, empresaSelec
         handleClose={() => setModalVisivel(false)}
         dadosVendasDetalhada={dadosVendasDetalhada}
         empresaSelecionada={empresaSelecionada}
+        optionsModulos={optionsModulos}
+        usuarioLogado={usuarioLogado}
       />
     </Fragment>
   )

@@ -5,16 +5,20 @@ import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
 import { HeaderMain } from "../componets/Header";
+import { useQuery } from "react-query";
+import { get } from "../api/funcRequest";
 const ActionPesquisaFaturamentoOT = lazy(() => import("../componets/Expedicao/Components/ActionFaturamentoOT/actionPesquisaFaturamentoOT").then(module => ({ default: module.ActionPesquisaFaturamentoOT })));
 const ActionPesquisaOrdemTransferencia = lazy(() => import("../componets/ConferenciaCega/Components/ActionOrdemTransferencia/actionPesquisaOrdemTransferencia").then(module => ({ default: module.ActionPesquisaOrdemTransferencia })));
 const ActionPesquisaStatusDivergencia = lazy(() => import("../componets/ConferenciaCega/Components/ActionStatusDivergencia/actionPesquisaStatusDivergencia").then(module => ({ default: module.ActionPesquisaStatusDivergencia })));
 const ActionPesquisaOrdemTransferenciaDeposito = lazy(() => import("../componets/ConferenciaCega/Components/ActionOrdemTransferenciaDeposito/actionPesquisaOrdemTransferenciaDeposito").then(module => ({ default: module.ActionPesquisaOrdemTransferenciaDeposito })));
 
-export const DashBoardConferenciaCega = ({ }) => {
+export const DashBoardConferenciaCega = () => {
   const [resumoVisivel, setResumoVisivel] = useState(true);
   const [componentToShow, setComponentToShow] = useState("");
   const [usuarioLogado, setUsuarioLogado] = useState(null)
-
+  const storedModule = localStorage.getItem('moduloselecionado');
+  const selectedModule = JSON.parse(storedModule);
+  
   function handleShowComponent(componentName) {
     setComponentToShow(componentName);
   }
@@ -41,6 +45,16 @@ export const DashBoardConferenciaCega = ({ }) => {
   useEffect(() => {
 
   }, [usuarioLogado]);
+
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
 
   let component = null;
 
@@ -74,7 +88,7 @@ export const DashBoardConferenciaCega = ({ }) => {
                 handleShowComponent={handleShowComponent}
               />
               <div className="page-content-wrapper">
-                <HeaderMain />
+                <HeaderMain optionsModulos={optionsModulos} />
 
                 <main id="js-page-content" role="main" className="page-content">
                   <div className="row">

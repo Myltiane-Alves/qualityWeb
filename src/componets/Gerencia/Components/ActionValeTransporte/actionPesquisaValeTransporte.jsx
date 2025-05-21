@@ -5,51 +5,58 @@ import { get } from "../../../../api/funcRequest"
 import { ActionListaValeTransporte } from "./actionListaValeTransporte"
 import { MdAdd } from "react-icons/md"
 import { useNavigate } from "react-router-dom";
-import { ActionCadastrarValeTransporte } from "./actionCadastrarValeTransporte"
+import { ActionCadastrarValeTransporte } from "./ActionCadastrarValeTransporte/actionCadastrarValeTransporte"
 import { getDataAtual } from "../../../../utils/dataAtual"
 import { useQuery } from "react-query"
+import Swal from "sweetalert2"
 
 
-export const ActionPesquisaValeTransporte = () => {
+export const ActionPesquisaValeTransporte = ({ usuarioLogado, ID }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
-  const navigate = useNavigate();
 
   useEffect(() => {
     const dataAtual = getDataAtual()
     setDataPesquisaInicio(dataAtual)
-    const usuarioArmazenado = localStorage.getItem('usuario');
+  }, [])
 
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
-  useEffect(() => {
-    const dataAtual = getDataAtual()
-    setDataPesquisaInicio(dataAtual)
-  }, [usuarioLogado && usuarioLogado.IDEMPRESA])
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
+
 
   const { data: dadosDespesasLoja = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch } = useQuery(
     'despesas-loja-empresa',
     async () => {
-      const response = await get(`/despesasEmpresas?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisa=${dataPesquisaInicio}`);
+      const response = await get(`/despesas-loja-empresa?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisa=${dataPesquisaInicio}`);
       return response.data;
     },
-    { enabled: Boolean((usuarioLogado?.IDEMPRESA)), staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+    { staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
   );
 
-  const handlShowModal = () => {
-    setModalVisivel(true)
-  }
+  const handleShowModal = () => {
+    if (optionsModulos[0]?.CRIAR == 'True') {
+      setModalVisivel(true);
+    } else {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Você não tem permissão para cadastrar!',
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 3000,
+      })
+      return;
+    }
+  };
 
   const handleCloseModal = () => {
     setModalVisivel(false);
@@ -68,16 +75,18 @@ export const ActionPesquisaValeTransporte = () => {
 
         ButtonTypeCadastro={ButtonType}
         linkNome="Cadastrar Vale Transporte"
-        onButtonClickCadastro={handlShowModal}
+        onButtonClickCadastro={handleShowModal}
         IconCadastro={MdAdd}
         corCadastro={"success"}
       />
 
       <ActionListaValeTransporte dadosDespesasLoja={dadosDespesasLoja} />
 
-      <ActionCadastrarValeTransporte 
+      <ActionCadastrarValeTransporte
         show={modalVisivel}
         handleClose={handleCloseModal}
+        usuarioLogado={usuarioLogado}
+        optionsModulos={optionsModulos}
       />
 
     </Fragment >

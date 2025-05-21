@@ -9,17 +9,18 @@ import * as XLSX from 'xlsx';
 import { useReactToPrint } from "react-to-print";
 import HeaderTable from "../../../Tables/headerTable";
 import { formatarPorcentagem } from "../../../../utils/formatarPorcentagem";
+import { ColumnGroup } from "primereact/columngroup";
+import { Row } from "primereact/row";
 
 export const ActionListaVendasEstrutura = ({ dadosVendasEstrutura }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
-  const dataTableRef = useRef();
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(10);
+  const dataTableRef = useRef();
 
   const onPageChange = (event) => {
-      setFirst(event.first);
-      setRows(event.rows);
+    setFirst(event.first);
+    setRows(event.rows);
   };
 
   const onGlobalFilterChange = (e) => {
@@ -35,7 +36,7 @@ export const ActionListaVendasEstrutura = ({ dadosVendasEstrutura }) => {
     const doc = new jsPDF();
     doc.autoTable({
       head: [['Nº', 'Loja', 'Grupo', 'Sub Grupo', 'Marca', 'Cód. Barras', 'Produto', 'Total Quantidade', 'Venda Bruta(R$)', 'Desconto(R$)', 'Desconto(%)', 'Venda Bruta (Desc)', 'Voucher(R$)', 'Venda Líquida(R$)']],
-      body: dadosEstruturaVendas.map(item => [
+      body: dados.map(item => [
         item.contador,
         item.NOFANTASIA,
         item.GRUPO,
@@ -110,104 +111,6 @@ export const ActionListaVendasEstrutura = ({ dadosVendasEstrutura }) => {
     return ((toFloat(item.vendaMarca?.TOTALDESCONTO) / (toFloat(item.vendaMarca?.TOTALBRUTO) + toFloat(item.vendaMarca?.TOTALDESCONTO))) * 100)
   }
 
-  const calcularTotalQuantidadeVendasEstrutura = () => {
-    return dadosEstruturaVendas.reduce((total, dados) => total + parseFloat(dados.QTD), 0);
-  }
-
-  const calcularTotalQuantidadeVendasEstruturaPorPagina = () => {
-    let total = 0;
-    const firstIndex = first * rows;
-    const lastIndex = firstIndex + rows;
-    for (let i = firstIndex; i < lastIndex && i < dadosVendasEstrutura.length; i++) {
-      if (dadosVendasEstrutura[i]) {
-        total += parseFloat(dadosVendasEstrutura[i].vendaMarca.QTD);
-      }
-    }
-    return total;
-  }
-
-  const calcularTotalVendaBrutaVendasEstrutura = () => {
-    return dadosEstruturaVendas.reduce((total, dados) => total + parseFloat(dados.TOTALBRUTO), 0);
-  }
-
-  const calcularTotalVendaBrutaVendasEstruturaPorPagina = () => {
-    let total = 0;
-    const firstIndex = first * rows;
-    const lastIndex = firstIndex + rows;
-    for (let i = firstIndex; i < lastIndex && i < dadosVendasEstrutura.length; i++) {
-      if (dadosVendasEstrutura[i]) {
-        total += parseFloat(dadosVendasEstrutura[i].vendaMarca.TOTALBRUTO);
-      }
-    }
-    return total;
-  }
-
-  const calcularTotalDescontoVendasEstrutura = () => {
-    return dadosEstruturaVendas.reduce((total, dados) => total + parseFloat(dados.TOTALDESCONTO), 0);
-  }
-
-  const calcularTotalDescontoVendasEstruturaPorPagina = () => {
-    let total = 0;
-    const firstIndex = first * rows;
-    const lastIndex = firstIndex + rows;
-    for (let i = firstIndex; i < lastIndex && i < dadosVendasEstrutura.length; i++) {
-      if (dadosVendasEstrutura[i]) {
-        total += parseFloat(dadosVendasEstrutura[i].vendaMarca.TOTALDESCONTO);
-      }
-    }
-    return total;
-  }
-
-  const calcularTotalVoucherVendasEstrutura = () => {
-    return dadosEstruturaVendas.reduce((total, dados) => total + parseFloat(dados.VLVOUCHER), 0);
-  }
-
-  const calcularTotalVoucherVendasEstruturaPorPagina = () => {
-    let total = 0;
-    const firstIndex = first * rows;
-    const lastIndex = firstIndex + rows;
-    for (let i = firstIndex; i < lastIndex && i < dadosVendasEstrutura.length; i++) {
-      if (dadosVendasEstrutura[i]) {
-        total += parseFloat(dadosVendasEstrutura[i].vendaMarca.VLVOUCHER);
-      }
-    }
-    return total;
-  }
-
-
-  const calcularTotalVendaBrutaDescontoPorPagina = () => {
-    let total = 0;
-    const firstIndex = first * rows;
-    const lastIndex = firstIndex + rows;
-    
-    for (let i = firstIndex; i < lastIndex && i < dadosVendasEstrutura.length; i++) {
-      if (dadosVendasEstrutura[i]) {
-        total += parseFloat(dadosVendasEstrutura[i].vendaMarca.VRTOTALLIQUIDO);
-      }
-    }
-    
-    return total;
-  };
-  
-  const calcularTotalVendaLiquidaEstrutura = () => {
-    return dadosEstruturaVendas.reduce((total, dados) => total + parseFloat(dados.valorTotalLiquido), 0);
-  }  
-
-  const calcularTotalVendaLiquidaEstruturaPorPagina = () => {
-    let total = 0;
-    const firstIndex = first * rows;
-    const lastIndex = firstIndex + rows;
-    for (let i = firstIndex; i < lastIndex && i < dadosEstruturaVendas.length; i++) {
-      if (dadosEstruturaVendas[i]) {
-        total += parseFloat(dadosEstruturaVendas[i].valorTotalLiquido);
-      }
-    }
-    return total;
-  }
-
-  const calcularTotalVendaBrutaDesconto = () => {
-    return dadosEstruturaVendas.reduce((total, dados) => total + parseFloat(dados.VRTOTALLIQUIDO), 0);
-  }
 
   const dadosExcell = dadosVendasEstrutura.map((item, index) => {
     let contador = index + 1;
@@ -232,7 +135,7 @@ export const ActionListaVendasEstrutura = ({ dadosVendasEstrutura }) => {
     }
   });
 
-  const dadosEstruturaVendas = dadosVendasEstrutura.map((item, index) => {
+  const dados = dadosVendasEstrutura.map((item, index) => {
     let contador = index + 1;
     const valorTotalLiquido = calcularValorTotalLiquidoProduto(item);
     const marckupProduto = calcularMarckup(item);
@@ -319,104 +222,106 @@ export const ActionListaVendasEstrutura = ({ dadosVendasEstrutura }) => {
     {
       field: 'QTD',
       header: 'Total Quantidade',
-      body: row => parseFloat(row.QTD),
-      footer: () => {
-        return (
-          <div>
-            <th style={{ fontWeight: 600, }}> {parseFloat(calcularTotalQuantidadeVendasEstruturaPorPagina())}</th>
-            <hr />
-            <th style={{ fontWeight: 600, }}>Total: {parseFloat(calcularTotalQuantidadeVendasEstrutura())}</th>
-          </div>
-        )
-        
-      },
-    
+      body: row => <th>{parseFloat(row.QTD)}</th>,
       sortable: true,
     },
     {
       field: 'TOTALBRUTO',
       header: 'Venda Bruta(R$)',
-      body: row => formatMoeda(row.TOTALBRUTO),
-      footer: () => {
-        return (
-          <div>
-            <th style={{ fontWeight: 600, }}>{formatMoeda(calcularTotalVendaBrutaVendasEstruturaPorPagina())}</th>
-            <hr />
-            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaBrutaVendasEstrutura())}</th>
-          </div>
-        )
-      },
+      body: row => <th>{formatMoeda(row.TOTALBRUTO)}</th>,
       sortable: true,
     },
     {
       field: 'TOTALDESCONTO',
       header: 'Desconto(R$)',
-      body: row => formatMoeda(row.TOTALDESCONTO),
-      footer: () => {
-        return (
-          <div>
-            <th style={{ fontWeight: 600, }}> {formatMoeda(calcularTotalDescontoVendasEstruturaPorPagina())}</th>
-            <hr />
-            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalDescontoVendasEstrutura())}</th>
-          </div>
-        )
-      },
-
+      body: row => <th>{formatMoeda(row.TOTALDESCONTO)}</th>,
       sortable: true,
     },
     {
       field: 'percentualDescontoProduto',
       header: 'Desconto(%)',
-      body: row => formatarPorcentagem(row.percentualDescontoProduto),
+      body: row => <th>{formatarPorcentagem(row.percentualDescontoProduto)}</th>,
       sortable: true,
     },
     {
       field: 'VRTOTALLIQUIDO',
       header: 'Venda Bruta (Desc)',
-      body: row => formatMoeda(row.VRTOTALLIQUIDO),
-      footer: () => {
-        return (
-          <div>
-            <th style={{ fontWeight: 600, }}>{formatMoeda(calcularTotalVendaBrutaDescontoPorPagina())}</th>
-            <hr />
-            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaBrutaDesconto())}</th>
-          </div>
-        )
-      },
+      body: row => <th>{formatMoeda(row.VRTOTALLIQUIDO)}</th>,
       sortable: true,
     },
     {
       field: 'VLVOUCHER',
       header: 'Voucher(R$)',
-      body: row => formatMoeda(row.VLVOUCHER),
-      footer: () => {
-        return (
-          <div>
-            <th style={{ fontWeight: 600, }}> {formatMoeda(calcularTotalVoucherVendasEstruturaPorPagina())}</th>
-            <hr />
-            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVoucherVendasEstrutura())}</th>
-          </div>
-        )
-      },
+      body: row => <th>{formatMoeda(row.VLVOUCHER)}</th>,
       sortable: true,
     },
     {
       field: 'valorTotalLiquido',
       header: 'Venda Líquida(R$)',
-      body: row => formatMoeda(row.valorTotalLiquido),
-      footer: () => {
-        return (
-          <div>
-            <th style={{ fontWeight: 600, }}>{formatMoeda(calcularTotalVendaLiquidaEstruturaPorPagina())}</th>
-            <hr />
-            <th style={{ fontWeight: 600, }}>Total: {formatMoeda(calcularTotalVendaLiquidaEstrutura())} </th>
-          </div>
-        )
-      },
+      body: row => <th>{formatMoeda(row.valorTotalLiquido)}</th>,
       sortable: true,
     },
 
   ]
+
+  const calcularTotalPagina = (field) => {
+    return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
+  };
+
+  const calcularTotal = (field) => {
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dados.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + toFloat(item[field] || 0), 0);
+  };
+
+  const calcularTotalVendaLiquidaEstrutura = () => {
+    const totalPagina = calcularTotal('valorTotalLiquido');
+    const total = calcularTotalPagina('valorTotalLiquido' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
+  const calcularTotalVendaBrutaDesconto  = () => {
+    const totalPagina = calcularTotal('VRTOTALLIQUIDO');
+    const total = calcularTotalPagina('VRTOTALLIQUIDO' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
+  const calcularTotalVoucherVendasEstrutura  = () => {
+    const totalPagina = calcularTotal('VLVOUCHER');
+    const total = calcularTotalPagina('VLVOUCHER' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
+  const calcularTotalDescontoVendasEstrutura  = () => {
+    const totalPagina = calcularTotal('TOTALDESCONTO');
+    const total = calcularTotalPagina('TOTALDESCONTO' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
+  const calcularTotalVendaBrutaVendasEstrutura  = () => {
+    const totalPagina = calcularTotal('TOTALBRUTO');
+    const total = calcularTotalPagina('TOTALBRUTO' );
+    return `${formatMoeda(totalPagina)}   (${formatMoeda(total)} total)`;
+  };
+  const calcularTotalQuantidadeVendasEstrutura  = () => {
+    const totalPagina = calcularTotal('QTD');
+    const total = calcularTotalPagina('QTD' );
+    return `${parseFloat(totalPagina)}   (${parseFloat(total)} total)`;
+  };
+
+  const footerGroup = (
+    <ColumnGroup>
+
+      <Row> 
+        <Column footer="Total " colSpan={7} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
+        <Column footer={calcularTotalQuantidadeVendasEstrutura()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalVendaBrutaVendasEstrutura()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalDescontoVendasEstrutura()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={''} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalVendaBrutaDesconto()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalVoucherVendasEstrutura()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalVendaLiquidaEstrutura()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={""} colSpan={''}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+      </Row>
+    </ColumnGroup>
+  )
 
   return (
 
@@ -439,16 +344,17 @@ export const ActionListaVendasEstrutura = ({ dadosVendasEstrutura }) => {
           
           <DataTable
             title="Vendas por Estrutura"
-            value={dadosEstruturaVendas}
+            value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            footerColumnGroup={footerGroup}
+            size="small"
             sortOrder={-1}
             paginator={true}
             onPage={onPageChange}
             first={first}
             rows={rows}
-            rowsPerPageOptions={[10, 20, 50, 100, dadosEstruturaVendas.length]}
-            totalRecords={dadosEstruturaVendas.length}
+            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            totalRecords={dados.length}
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

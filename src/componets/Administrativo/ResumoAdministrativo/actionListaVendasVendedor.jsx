@@ -11,15 +11,15 @@ export const ActionListaVendasVendedor = ({ dadosVendasVendedor }) => {
 
   const dadosVendedorVendas = dadosVendasVendedor.map((item, index) => {
     let contador = index + 1;
-    const totalVendido = parseFloat(item.totalVendido[0].TOTALVENDIDOVENDEDOR) || 0;
-    const vouchers = parseFloat(item.Vouchers) || 0;
+    const totalVendido = toFloat(item.totalVendido[0]?.TOTALVENDIDOVENDEDOR);
+    const vouchers = toFloat(item.Vouchers);
 
     let vrVendidoVendedor = totalVendido - vouchers;
     return {
       VENDEDOR_MATRICULA: item.vendedor.VENDEDOR_MATRICULA,
       VENDEDOR_NOME: item.vendedor.VENDEDOR_NOME,
-      QTDVENDIDOVENDEDOR: item.totalVendido[0].QTDVENDIDOVENDEDOR,
-      TOTALVENDIDOVENDEDOR: parseFloat(item.totalVendido[0].TOTALVENDIDOVENDEDOR),
+      QTDVENDIDOVENDEDOR: item.totalVendido[0]?.QTDVENDIDOVENDEDOR,
+      TOTALVENDIDOVENDEDOR: parseFloat(item.totalVendido[0]?.TOTALVENDIDOVENDEDOR),
       Vouchers: parseFloat(item.Vouchers),
       vrVendidoVendedor
     };
@@ -28,7 +28,7 @@ export const ActionListaVendasVendedor = ({ dadosVendasVendedor }) => {
   const calcularTotalVendido = () => {
     let total = 0;
     for (let dados of dadosVendedorVendas) {
-      total += parseFloat(dados.TOTALVENDIDOVENDEDOR);
+      total += parseFloat(dados?.TOTALVENDIDOVENDEDOR);
     }
     return total;
   }

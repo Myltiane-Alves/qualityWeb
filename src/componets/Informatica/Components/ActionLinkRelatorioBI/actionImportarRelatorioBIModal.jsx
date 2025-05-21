@@ -67,7 +67,7 @@ export const ActionImportarRelatorioBIModal = ({ show, handleClose, relatorioSel
       STATIVO: 'True',
 
     }
-    // relatorioInformaticaBI/:id
+
     const response = await put('/atualizarRelatorio', postData)
 
       .then(response => {

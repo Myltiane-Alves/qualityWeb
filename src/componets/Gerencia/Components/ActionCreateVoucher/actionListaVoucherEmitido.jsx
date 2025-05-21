@@ -20,7 +20,7 @@ import { ActionImprimirVoucherModal } from './actionImprimirVoucherModal';
 import Swal from 'sweetalert2';
 
 
-export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
+export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado, optionsModulos }) => {
   const storedModule = localStorage.getItem('moduloselecionado');
   const selectedModule = JSON.parse(storedModule);
   const [dadosDetalheVoucher, setDadosDetalheVoucher] = useState([]);
@@ -129,25 +129,25 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
     {
       field: 'EMPORIGEM',
       header: 'Loja Emissor',
-      body: row => <th style={{color: 'blue'}}>{row.EMPORIGEM}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, fontWeight: 600, width: '200px'}}>{row.EMPORIGEM}</p>,
       sortable: true,
     },
     {
       field: 'DSCAIXAORIGEM',
       header: 'Caixa Emissor',
-      body: row => <th style={{color: 'blue'}}>{row.DSCAIXAORIGEM ? 'CAIXA WEB' : 'CAIXA WEB'}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, fontWeight: 600, width: '100px'}}>{row.DSCAIXAORIGEM ? 'CAIXA WEB' : 'CAIXA WEB'}</p>,
       sortable: true,
     },
     {
       field: 'NOFUNCIONARIOLIBERACAOCRIACAO',
       header: 'Aut. Criação',
-      body: row => <th style={{color: 'blue'}}>{row.NOFUNCIONARIOLIBERACAOCRIACAO}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, fontWeight: 600, width: '250px'}}>{row.NOFUNCIONARIOLIBERACAOCRIACAO}</p>,
       sortable: true,
     },
     {
       field: 'DTINVOUCHER',
       header: 'Data Emissão',
-      body: row => <th style={{color: 'blue'}}>{row.DTINVOUCHER}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, fontWeight: 600, width: '200px'}}>{row.DTINVOUCHER}</p>,
       sortable: true,
     },
     {
@@ -159,7 +159,7 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
     {
       field: 'EMPDESTINO',
       header: 'Loja Recebido',
-      body: row => <th style={{color: 'blue'}}>{row.EMPDESTINO}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, fontWeight: 600, width: '200px'}}>{row.EMPDESTINO}</p>,
       sortable: true,
     },
     {
@@ -171,13 +171,13 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
     {
       field: 'NOFUNCIONARIOLIBERACAOCONSUMO',
       header: 'Aut. Consumo',
-      body: row => <th style={{color: 'blue'}}>{row.NOFUNCIONARIOLIBERACAOCONSUMO}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, fontWeight: 600, width: '300px'}}>{row.NOFUNCIONARIOLIBERACAOCONSUMO}</p>,
       sortable: true,
     },
     {
       field: 'DTOUTVOUCHER',
       header: 'Data Recebido',
-      body: row => <th style={{color: 'blue'}}>{row.DTOUTVOUCHER}</th>,
+      body: row => <p style={{color: 'blue', margin: 0, fontWeight: 600, width: '200px'}}>{row.DTOUTVOUCHER}</p>,
       sortable: true,
     },
     {
@@ -211,36 +211,42 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
       header: 'Opções',
       body: (row) => (
         <div style={{ display: "flex", justifyContent: "space-around", width: '7rem' }}>
-          <div>
+          <div className='p-1'>
 
             <ButtonTable
               titleButton={"Visualizar Detalhes"}
               onClickButton={() => handleClickDetalhar(row)}
               Icon={GrFormView}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               iconColor={"#fff"}
               cor={"success"}
             />
           </div>
 
-          <div>
+          <div className='p-1'>
             <ButtonTable
               titleButton={"Editar Situação"}
               onClickButton={() => handleClickEditar(row)}
               Icon={CiEdit}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               iconColor={"#fff"}
               cor={"primary"}
             />
           </div>
 
-          <div>
+          <div className='p-1'>
 
             <ButtonTable
               titleButton={"Imprimir"}
               onClickButton={() => handleClickImprimir(row)}
               Icon={MdOutlineLocalPrintshop}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               iconColor={"#fff"}
               cor={"warning"}
             />
@@ -251,6 +257,8 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
     }
 
   ]
+
+
 
   const openSwal = async (callback, row) => {
     const { value: formValues } = await Swal.fire({
@@ -398,9 +406,18 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
   };
 
   const handleClickEditar = async (row) => {
-    if (row.IDVOUCHER) {
-      openSwal(() =>  handleEdit(row.IDVOUCHER), row)
-    }
+    if(optionsModulos[0]?.ALTERAR == 'True'){
+      if (row.IDVOUCHER) {
+        openSwal(() =>  handleEdit(row.IDVOUCHER), row)
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para editar o voucher.',
+        timer: 3000,
+      });
+    }  
   }
 
   const handleImprimir = async (IDVOUCHER) => {
@@ -416,9 +433,18 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
   };
 
   const handleClickImprimir = async (row) => {
-    if (row.IDVOUCHER) {
-      openSwalImprimir(() => handleImprimir(row.IDVOUCHER), row)
-    }
+    if(optionsModulos[0]?.ALTERAR == 'True'){
+      if (row.IDVOUCHER) {
+        openSwalImprimir(() => handleImprimir(row.IDVOUCHER), row)
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para editar o voucher.',
+        timer: 3000,
+      });
+    }  
   }
 
 
@@ -449,6 +475,9 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
@@ -462,9 +491,9 @@ export const ActionListaVoucherEmitido = ({ dadosVoucher, usuarioLogado }) => {
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

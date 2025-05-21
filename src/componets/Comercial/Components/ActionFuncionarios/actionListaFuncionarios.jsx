@@ -1,58 +1,102 @@
-import React, { Fragment, useEffect, useState } from "react"
+import React, { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { CiEdit } from "react-icons/ci";
-
-import { get, put } from "../../../../api/funcRequest";
+import { get } from "../../../../api/funcRequest";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { dataFormatada } from "../../../../utils/dataFormatada";
-import { ActionUpdateFuncionarioModal } from "./actionUpdateFuncionarioModal";
+import { ActionUpdateFuncionarioModal } from "./ActionEditarFuncionario/actionUpdateFuncionarioModal";
+import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
+import * as XLSX from 'xlsx';
+import 'jspdf-autotable';
+import HeaderTable from "../../../Tables/headerTable";
 
-export const ActionListaFuncionario = ({dadosFuncionarios, optionsEmpresas}) => {
+export const ActionListaFuncionario = ({ dadosFuncionarios, optionsEmpresas }) => {
   const [dadosAtualizarFuncionarios, setDadosAtualizarFuncionarios] = useState([]);
   const [modalAlterarFuncionarioVisivel, setModalAlterarFuncionarioVisivel] = useState(false);
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const dataTableRef = useRef();
 
-  const dadosListaFuncionarios = dadosFuncionarios.map((item, index) => {
-    let contador = index + 1;
+  const onGlobalFilterChange = (e) => {
+    setGlobalFilterValue(e.target.value);
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => dataTableRef.current,
+    documentTitle: 'Lista de Funcionários',
+  });
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Funcionário', 'Login', 'Função', 'Tipo', 'Desc %', 'Situação', 'DT Desl.']],
+      body: dados.map(item => [
+        item.NOFUNCIONARIO,
+        item.NOLOGIN,
+        item.DSFUNCAO,
+        item.DSTIPO,
+        item.PERC,
+        item.STATIVO,
+        item.DTDEMISSAO,
+      ]),
+      horizontalPageBreak: true,
+      horizontalPageBreakBehaviour: 'immediately'
+    });
+    doc.save('lista_funcionarios.pdf');
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(dados);
+    const workbook = XLSX.utils.book_new();
+    const header = ['Funcionário', 'Login', 'Função', 'Tipo', 'Desc %', 'Situação', 'DT Desligamento.'];
+    worksheet['!cols'] = [
+      { wpx: 200, caption: 'Funcionário' },
+      { wpx: 100, caption: 'Login' },
+      { wpx: 100, caption: 'Função' },
+      { wpx: 200, caption: 'Tipo' },
+      { wpx: 100, caption: 'Desc %' },
+      { wpx: 100, caption: 'Situação' },
+      { wpx: 100, caption: 'DT Desligamento' },
+    ];
+    XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Lista Funcionários');
+    XLSX.writeFile(workbook, 'lista_funcionarios.xlsx');
+  };
+
+  const dados = dadosFuncionarios.map((item, index) => {
 
     return {
-      ID: item.ID,
       NOFUNCIONARIO: item.NOFUNCIONARIO,
-      IDFUNCIONARIO: item.IDFUNCIONARIO,
       NOLOGIN: item.NOLOGIN,
       DSFUNCAO: item.DSFUNCAO,
-      DTDEMISSAO: item.DTDEMISSAO,
-      STATIVO: item.STATIVO,
       DSTIPO: item.DSTIPO,
       PERC: item.PERC,
-      NUCPF: item.NUCPF,
-      VSSISTEMA: item.VSSISTEMA,
-      STLOJA: item.STLOJA,
-      STCONVENIO: item.STCONVENIO,
-      contador
+      STATIVO: item.STATIVO,
+      DTDEMISSAO: item.DTDEMISSAO,
+      IDFUNCIONARIO: item.IDFUNCIONARIO,
     };
   });
 
   const colunasFuncionarios = [
-
     {
       field: 'NOFUNCIONARIO',
       header: 'Funcionário',
-      body: row => row.NOFUNCIONARIO,
+      body: row => <th>{row.NOFUNCIONARIO}</th>,
       sortable: true,
 
     },
     {
       field: 'NOLOGIN',
       header: 'Login',
-      body: row => row.NOLOGIN,
+      body: row => <th>{row.NOLOGIN}</th>,
       sortable: true,
 
     },
     {
       field: 'DSFUNCAO',
       header: 'Função',
-      body: row => row.DSFUNCAO,
+      body: row => <th>{row.DSFUNCAO}</th>,
       sortable: true,
 
     },
@@ -60,21 +104,21 @@ export const ActionListaFuncionario = ({dadosFuncionarios, optionsEmpresas}) => 
       field: 'DSTIPO',
       header: 'Tipo',
       body: (row) => (
-        <div >
+        <th >
           {row.DSTIPO == 'PN' ? 'PARCEIRO DE NEGÓCIOS' : 'FUNCIÓNARIO'}
-        </div>
+        </th>
       ),
       sortable: true,
     },
     {
       field: 'PERC',
-      header: 'Desc %',
+      header: 'Desconto %',
       body: (
         (row) => (
-          <div style={{ color: row.PERC == 'False' ? 'red' : 'blue' }}>
+          <th style={{ color: row.PERC == 'False' ? 'red' : 'blue' }}>
             {parseFloat(row.PERC).toFixed(2)}
 
-          </div>
+          </th>
         )
       ),
       sortable: true,
@@ -84,23 +128,23 @@ export const ActionListaFuncionario = ({dadosFuncionarios, optionsEmpresas}) => 
       header: 'Situação',
       body: (
         (row) => (
-          <div style={{ color: row.STATIVO == 'True' ? 'blue' : 'red' }}>
+          <th style={{ color: row.STATIVO == 'True' ? 'blue' : 'red' }}>
             {row.STATIVO == 'True' ? 'Ativo' : 'Inativo'}
 
-          </div>
+          </th>
         )
       ),
       sortable: true,
     },
     {
       field: 'DTDEMISSAO',
-      header: 'DT Desl.',
-      body: row => dataFormatada(row.DTDEMISSAO),
+      header: 'Data Desligamento',
+      body: row => <th>{dataFormatada(row.DTDEMISSAO)}</th>,
       sortable: true,
     },
 
     {
-      field: 'STCONFERIDO',
+      field: 'IDFUNCIONARIO',
       header: 'Opções',
       body: (
         (row) => (
@@ -113,12 +157,8 @@ export const ActionListaFuncionario = ({dadosFuncionarios, optionsEmpresas}) => 
                 iconSize={18}
                 iconColor={"#fff"}
                 cor={"success"}
-
               />
-
             </div>
-
-
           </div>
         )
       ),
@@ -148,33 +188,51 @@ export const ActionListaFuncionario = ({dadosFuncionarios, optionsEmpresas}) => 
   return (
 
     <Fragment>
-      <div className="card">
-        <DataTable
-          value={dadosListaFuncionarios}
-          sortField="VRTOTALPAGO"
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-        >
-          {colunasFuncionarios.map(coluna => (
+      <div className="panel" style={{ marginTop: "8rem" }}>
+        <div className="panel-hdr">
+          <h2>Lista de Funcionários</h2>
+        </div>
+        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <HeaderTable
+            globalFilterValue={globalFilterValue}
+            onGlobalFilterChange={onGlobalFilterChange}
+            handlePrint={handlePrint}
+            exportToExcel={exportToExcel}
+            exportToPDF={exportToPDF}
+          />
 
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc',fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
-            />
-          ))}
-        </DataTable>
+        </div>
+        <div className="card" ref={dataTableRef}>
+
+          <DataTable
+            title="Lista de Funcionários"
+            value={dados}
+            size="small"
+            globalFilter={globalFilterValue}
+            sortOrder={-1}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+          >
+            {colunasFuncionarios.map(coluna => (
+
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                header={coluna.header}
+                body={coluna.body}
+                footer={coluna.footer}
+                sortable={coluna.sortable}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
+              />
+            ))}
+          </DataTable>
+        </div>
       </div>
 
       <ActionUpdateFuncionarioModal

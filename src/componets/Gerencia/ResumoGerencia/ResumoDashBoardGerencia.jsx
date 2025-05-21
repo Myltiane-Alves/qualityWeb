@@ -21,22 +21,17 @@ import { MdOutlinePayment } from "react-icons/md";
 import { toFloat } from "../../../utils/toFloat";
 import { ActionTabelaMainExtrato } from "./Components/ActionExtrato/actionTabelaMainExtrato";
 import { useQuery } from "react-query";
+import Swal from "sweetalert2";
+import { InputSelectAction } from "../../Inputs/InputSelectAction";
 import { useFetchData } from "../../../hooks/useFetchData";
 
 
-export const ResumoDashBoardGerencia = ({ }) => {
+export const ResumoDashBoardGerencia = ({usuarioLogado, ID, ADMINISTRADOR}) => {
   const [actionVisivel, setActionVisivel] = useState(true);
   const [resumoVisivel, setResumoVisivel] = useState(false);
   const [dataPesquisa, setDataPesquisa] = useState('');
-  // const [dadosResumoVendas, setDadosResumoVendas] = useState([]);
-  const [dadosListaCaixa, setDadosListaCaixa] = useState([]);
-  const [dadosVendasPCJ, setDadosVendasPCJ] = useState([])
-  const [dadosVendasVendedor, setDadosVendasVendedor] = useState([])
-  const [dadosVendasAtivas, setDadosVendasAtivas] = useState([])
-  const [dadosVendasCanceladas, setDadosVendasCanceladas] = useState([])
-  const [dadosVendasConvenioDescontoFuncionario, setDadosVendasConvenioDescontoFuncionario] = useState([])
-  const [dadosVendasConvenioDesconto, setDadosVendasConvenioDesconto] = useState([])
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  // const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [dadosVendas, setDadosVendas] = useState([]);
   const [dadosDespesaLoja, setDadosDespesaLoja] = useState([]);
   const [dadosExtratoQuebra, setDadosExtratoQuebra] = useState([]);
@@ -46,101 +41,151 @@ export const ResumoDashBoardGerencia = ({ }) => {
   const [dadosTotalAdiantamentos, setDadosTotalAdiantamentos] = useState([]);
   const [dadosAjusteExtrato, setDadosAjusteExtrato] = useState([]);
   const [dadosExtratoLoja, setDadosExtratoLoja] = useState([]);
+  const [inputVisivel, setInputVisivel] = useState(false)
+  const [pageSize, setPageSize] = useState(500)
   
   const navigate = useNavigate();
   const storedModule = localStorage.getItem('moduloselecionado');
   const selectedModule = JSON.parse(storedModule);
+
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
+
+
   
   useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-    
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-  
-  useEffect(() => {
-    
     const dataInicio = getDataAtual();
     setDataPesquisa(dataInicio);
-    
-    
   }, [usuarioLogado]);
+
   const empresa = usuarioLogado && usuarioLogado.IDEMPRESA;
+
+  const { data: optionsEmpresas = [] } = useFetchData('empresas', '/empresas');
+
+  const { data: dadosCaixasNaoConferidos = [], error: errorCaixasNaoConferidos, isLoading: isLoadingCaixasNaoConferidos, refetch: refetchCaixasNaoConferidos } = useQuery(
+    'lista-caixas-fechados-nao-conferidos',
+    async () => {
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
+
+        const response = await get(`/lista-caixas-fechados-nao-conferidos?idEmpresa=${idEmpresa}`);
+   
+        return response.data;
+      }
+      return [];
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000 }
+  );
+
+  const retornoListaCaixaFechadosNaoConferidos = () => {
+    if (dadosCaixasNaoConferidos.length >= 1) {
+      let htmlCaixasNaoConferidos = `<ul>`;
+      htmlCaixasNaoConferidos += `<li>&nbsp&nbsp&nbsp&nbsp  Nº do Movimento &nbsp&nbsp&nbsp&nbsp   - &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Caixa - Data Abertura - Falta(m)</li>`;
+      htmlCaixasNaoConferidos += `<br>`;
+
+      dadosCaixasNaoConferidos.forEach((caixa) => {
+        const dataAbertura = new Date(caixa.DTABERTURA);
+        const dataFechamento = new Date(caixa.DTFECHAMENTO);
+        const hoje = new Date();
+
+        // Calcula a diferença em dias
+        const diffTime = Math.abs(hoje - dataAbertura);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        htmlCaixasNaoConferidos += `<li>${caixa.ID} &nbsp&nbsp - ${caixa.DSCAIXA} - ${caixa.DTABERTURA} - ${diffDays} dia(s)</li>`;
+      });
+
+      htmlCaixasNaoConferidos += `</ul>`;
+
+      Swal.fire({
+        icon: 'warning',
+        title: 'Caixas Fechados e não Conferidos',
+        html: htmlCaixasNaoConferidos,
+        showConfirmButton: true,
+        timer: 15000
+      }).then((isConfirm) => {
+        if (isConfirm) {
+          Swal.fire({
+            title: 'Bloqueio de Dados',
+            text: 'Seus Dados serão bloqueados até que o(s) CAIXA(S) seja(am) CONFIRMADO(S)!',
+            icon: 'success',
+            timer: 15000
+          });
+        }
+      });
+    }
+  };
+
+  // Monitora quando os dados dos caixas não conferidos são carregados
+  useEffect(() => {
+    if (dadosCaixasNaoConferidos.length > 0 && !isLoadingCaixasNaoConferidos) {
+      retornoListaCaixaFechadosNaoConferidos();
+    }
+  }, [dadosCaixasNaoConferidos, isLoadingCaixasNaoConferidos]);
 
   const { data: dadosDespesas = [], error: errorDespesas, isLoading: isLoadingDespesas, refetch: refetchDespesas } = useQuery(
     'despesa-lojas-dash',
     async () => {
-      if(usuarioLogado) {
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
 
-        const response = await get(`/despesa-lojas-dash?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisa=${dataPesquisa}`);
+        const response = await get(`/despesa-lojas-dash?idEmpresa=${idEmpresa}&dataPesquisa=${dataPesquisa}`);
         return response.data;
       }
       return [];
     },
-    { enabled: !!usuarioLogado, staleTime: 5 * 60 * 1000 }
+    { enabled: false, staleTime: 5 * 60 * 1000 }
   );
-  
   
   const { data: dadosAdiantamento = [], error: errorAdiantamento, isLoading: isLoadingAdiantamento, refetch: refetchAdiantamento } = useQuery(
     'adiantamentos-salarial',
     async () => {
-      if (usuarioLogado) {
-        const response = await get(`/adiantamentos-salarial?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisa=${dataPesquisa}`);
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if (idEmpresa) {
+        const response = await get(`/adiantamentos-salarial?idEmpresa=${idEmpresa}&dataPesquisa=${dataPesquisa}`);
         return response.data;
       }
       return [];
     },
-    { enabled: !!usuarioLogado, staleTime: 5 * 60 * 1000 }
+    { enabled: false, staleTime: 5 * 60 * 1000 }
   );
+
   const { data: dadosQuebraCaixa = [], error: errorQuebraCaixa, isLoading: isLoadingQuebraCaixa, refetch: refetchQuebraCaixa } = useQuery(
     'quebra-caixa-loja-resumo',
     async () => {
-      if(usuarioLogado) {
-        const response = await get(`/quebra-caixa-loja-resumo?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisa=${dataPesquisa}`);
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
+      const response = await get(`/quebra-caixa-loja-resumo?idEmpresa=${idEmpresa}&dataPesquisa=${dataPesquisa}`);
+      return response.data;
+      }
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000 }
+  );
+
+ 
+  const { data: dadosResumoVendas = [], error: errorResumo, isLoading: isLoadingResumo, refetch: refetchResumoVendas } = useQuery(
+    'resumoVendaGerencia',
+    async () => {
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
+        const response = await get(`/resumoVendaGerencia?idEmpresa=${idEmpresa}&dataFechamento=${dataPesquisa}`);
         return response.data;
 
       }
       return [];
     },
-    { enabled: !!usuarioLogado, staleTime: 5 * 60 * 1000 }
+    { enabled: false, staleTime: 5 * 60 * 1000 }
   );
-  const { data: dadosResumoVendas = [], error: errorResumo, isLoading: isLoadingResumo, refetch: refetchResumoVendas } = useFetchData('quebra-caixa-loja-resumo', `/quebra-caixa-loja-resumo?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisa=${dataPesquisa}`);
-  // const { data: dadosResumoVendas = [], error: errorResumo, isLoading: isLoadingResumo, refetch: refetchResumoVendas } = useQuery(
-  //   'quebra-caixa-loja-resumo',
-  //   async () => {
-  //     if(usuarioLogado) {
-  //       const response = await get(`/quebra-caixa-loja-resumo?idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisa=${dataPesquisa}`);
-  //       return response.data;
 
-  //     }
-  //     return [];
-  //   },
-  //   { enabled: !!usuarioLogado, staleTime: 5 * 60 * 1000 }
-  // );
-
-  const getResumoVendas = async () => {
-    try {
-      const response = await get(`/resumoVendaGerencia?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisa=${dataPesquisa}`);
-
-      if (response.data && response.data.length > 0) {
-        setDadosResumoVendas(response.data);
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar resumo das vendas: ', error);
-    }
-  };
 
   const dados = dadosResumoVendas.map((item, index) => {
-    // const totalVenda = 0;
     const totalVenda = toFloat(item.VRRECDINHEIRO) + toFloat(item.VRRECCARTAO) + toFloat(item.VRRECCONVENIO) + toFloat(item.VRRECPOS) + toFloat(item.VRRECCHEQUE);
 
     return {
@@ -155,138 +200,139 @@ export const ResumoDashBoardGerencia = ({ }) => {
     }
   })
 
-  // const getListaDespesasLoja = async () => {
-  //   try {
-  //     const response = await get(`/despesasLojaADM?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisa=${dataPesquisa}`);
-  //     if (response.data) {
-  //       setDadosDespesaLoja(response.data);
-  //     }
-  //     return response.data;
-  //   } catch (error) {
-  //     console.log('Erro ao buscar resumo das vendas: ', error);
-  //   }
-  // };
 
-  // const dadosDespesas = dadosDespesaLoja.map((item, index) => {
-  //   return {
-  //     VRDESPESA: toFloat(item.VRDESPESA),
-  //   }
-  // })
-
-  const getListaCaixaMovimento = async () => {
-    try {
-      const response = await get(`/lista-caixas-movimento-gerencia?idEmpresa=${usuarioLogado.IDEMPRESA}&dataFechamento=${dataPesquisa}`);
-      if (response && response.data) {
-        setDadosListaCaixa(response.data)
-        setDadosVendasPCJ(response.data)
+  const {  data: dadosListaCaixa = [], error: errorCaixaMovimento, isLoading: isLoadingCaixaMovimento, refetch: refetchCaixaMovimento } = useQuery(
+    'lista-caixas-movimento-gerencia',
+    async () => {
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
+        const response = await get(`/lista-caixas-movimento-gerencia?idEmpresa=${idEmpresa}&dataFechamento=${dataPesquisa}`);
+        return response.data;
       }
-      return response.data;
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, listaCaixasFechados")
-    }
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000 }
+  );
 
-  }
-
-  const getListaVendasVendedor = async () => {
-    try {
-      const response = await get(`/vendaVendedorGerencia?idEmpresa=${usuarioLogado.IDEMPRESA}&dataFechamento=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosVendasVendedor(response.data);
+  const { data: dadosVendasPCJ = [], error: errorVendasPCJ, isLoading: isLoadingPCJ, refetch: refetchPCJ } = useQuery(
+    'lista-caixas-movimento-gerencia',
+    async () => {
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
+        const response = await get(`/lista-caixas-movimento-gerencia?idEmpresa=${idEmpresa}&dataFechamento=${dataPesquisa}`);
+        return response.data;
       }
-      return response.data;
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000 }
+  );
 
-  }
-
-  const getListaVendasAtivas = async () => {
-    try {
-      const response = await get(`/vendasAtivasResumoGerencia?idEmpresa=${usuarioLogado.IDEMPRESA}&dataFechamento=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosVendasAtivas(response.data);
+  const { data: dadosVendasVendedor = [], error: errorVendasVendedor, isLoading: isLoadingVendasVendedor, refetch: refetchVendasVendedor } = useQuery(
+    'venda-vendedor',
+    async () => {
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
+        const response = await get(`/venda-vendedor?idEmpresa=${idEmpresa}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`);
+        return response.data;
       }
-      return response.data;
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-  }
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000 }
+  );
 
-  const getListaVendasCanceladas = async () => {
-    try {
-      const response = await get(`/vendaCanceladaResumo?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosVendasCanceladas(response.data);
+  const { data: dadosVendasAtivas = [], error: errorVendasAtivas, isLoading: isLoadingVendasAtivas, refetch: refetchVendasAtivas } = useQuery(
+    'resumo-venda-caixa',
+    async () => {
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
+        const response = await get(`/resumo-venda-caixa?idEmpresa=${idEmpresa}&dataFechamento=${dataPesquisa}&statusCancelado=False`);
+        return response.data;
       }
-      return response.data;
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-  }
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000 }
+  );
 
-  const getVendasConvenioDesconto = async () => {
-    try {
-      const response = await get(`/resumoVendaConvenioDesc?idEmpresa=${usuarioLogado.IDEMPRESA}&dataInicio=${dataPesquisa}&dataFechamento=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosVendasConvenioDesconto(response.data);
+  const { data: dadosVendasCanceladas = [], error: errorVendasCanceladas, isLoading: isLoadingVendasCanceladas, refetch: refetchVendasCanceladas } = useQuery(
+    'resumo-venda-caixa',
+    async () => {
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
+        const response = await get(`/resumo-venda-caixa?idEmpresa=${idEmpresa}&dataFechamento=${dataPesquisa}&statusCancelado=True`);
+        return response.data;
       }
-      return response.data;
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-  }
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000 }
+  );
 
-  const getVendasConvenioFuncionario = async () => {
-    try {
-      const response = await get(`/resumoVendaConvenioDesc?idEmpresa=${usuarioLogado.IDEMPRESA}&dataInicio=${dataPesquisa}&dataFechamento=${dataPesquisa}`);
-      if (response.data && response.data.length > 0) {
-        setDadosVendasConvenioDescontoFuncionario(response.data);
+  const { data: dadosVendasConvenioDesconto = [], error: errorVendasConvenioDesconto, isLoading: isLoadingVendasConvenioDesconto, refetch: refetchVendasConvenioDesconto } = useQuery(
+    'resumo-venda-convenio',
+    async () => {
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
+        const response = await get(`/resumo-venda-convenio?idEmpresa=${idEmpresa}&dataFechamento=${dataPesquisa}`);
+        return response.data;
       }
-      return response.data;
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000 }
+  );
 
-    } catch (error) {
-      console.log(error, "não foi possível carregar os dados da tabela, lista Vendas vendedor");
-    }
-  }
+  const { data: dadosVendasConvenioDescontoFuncionario = [], error: errorVendasConvenioDescontoFuncionario, isLoading: isLoadingVendasConvenioDescontoFuncionario, refetch: refetchVendasConvenioDescontoFuncionario } = useQuery(
+    'resumoVendaConvenioDesc',
+    async () => {
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if(idEmpresa) {
+        const response = await get(`/resumoVendaConvenioDesc?statusCancelado=False&idEmpresa=${usuarioLogado?.IDEMPRESA}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`);
+        return response.data;
+      }
+    },
+    { enabled: false, staleTime: 5 * 60 * 1000 }
+  );
+
+
 
   const getListaSaldoExtratoLoja = async () => {
     try {
-      const response = await get(`/extratoLojaPeriodo?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`)
-      if (response.data && response.data.length > 0) {
-        setDadosExtratoLoja(response.data)
-        setDadosVendas(response.data)
-        setDadosExtratoQuebra(response.data[0].quebracaixa)
-        setDadosTotalDepositos(response.data[0].totalDepositos)
-        setDadosTotalFaturas(response.data[0].totalFaturas)
-        setDadosTotalDespesas(response.data[0].despesas)
-        setDadosTotalAdiantamentos(response.data[0].adiantamentos)
-        setDadosAjusteExtrato(response.data[0].ajusteextrato)
-
+      const idEmpresa = ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      if (idEmpresa) {
+      
+        const response = await get(`/extratoLojaPeriodoGerencia?idEmpresa=${idEmpresa}&dataPesquisaInicio=${dataPesquisa}&dataPesquisaFim=${dataPesquisa}`)
+        
+        if (response.data && response.data.length > 0) {
+          setDadosExtratoLoja(response.data)
+          setDadosVendas(response.data)
+          setDadosExtratoQuebra(response.data[0].quebracaixa)
+          setDadosTotalDepositos(response.data[0].totalDepositos)
+          setDadosTotalFaturas(response.data[0].totalFaturas)
+          setDadosTotalDespesas(response.data[0].despesas)
+          setDadosTotalAdiantamentos(response.data[0].adiantamentos)
+          setDadosAjusteExtrato(response.data[0].ajusteextrato)
+        }
+        return response.data;
       }
-      return response.data;
     } catch (error) {
       console.log('Erro ao buscar marcas: ', error)
     }
   }
 
+  
   const handleClick = async () => {
-    if (usuarioLogado && usuarioLogado.IDEMPRESA && dataPesquisa) {
-      getListaCaixaMovimento();
-      setResumoVisivel(true)
-      // getResumoVendas();
-      refetchResumoVendas()
-      getListaVendasVendedor();
-      getListaVendasAtivas();
-      getListaVendasCanceladas();
-      getVendasConvenioDesconto();
-      getVendasConvenioFuncionario();
-      getListaSaldoExtratoLoja();
-    
-      refetchQuebraCaixa()
-      refetchAdiantamento()
-      refetchDespesas()
-    }
+    // if (usuarioLogado && usuarioLogado?.IDEMPRESA && dataPesquisa) {
+      
+    // }
+    refetchCaixaMovimento()
+    refetchPCJ()
+    setResumoVisivel(true)
+    refetchResumoVendas()
+    refetchVendasVendedor()
+    refetchVendasAtivas()
+    refetchVendasCanceladas()
+    refetchVendasConvenioDesconto()
+    refetchVendasConvenioDescontoFuncionario()
+    refetchQuebraCaixa()
+    refetchAdiantamento()
+    refetchDespesas()
+
+    // getVendasConvenioFuncionario();
+    getListaSaldoExtratoLoja();
   }
+  console.log(optionsModulos[0]?.ADMINISTRADOR, 'admin')
 
   return (
     <Fragment>
@@ -298,10 +344,27 @@ export const ResumoDashBoardGerencia = ({ }) => {
           linkComponentAnterior={["Home"]}
           linkComponent={["Tela Principal"]}
 
-          InputFieldDTConsultaComponent={InputField}
-          labelInputFieldDTConsulta="Data Consulta"
-          valueDTCosulta={dataPesquisa}
-          onChangeInputFieldDTConsulta={(e) => setDataPesquisa(e.target.value)}
+          InputSelectPendenciaComponent={InputSelectAction}
+          labelSelectPendencia="Selecione a Empresa"
+          optionsPendencia={[
+            { value: '', label: 'Todas' },
+            ...optionsEmpresas.map((empresa) => ({
+              value: empresa.IDEMPRESA,
+              label: empresa.NOFANTASIA,
+            }))
+          ]}
+          onChangeSelectPendencia={(e) => setEmpresaSelecionada(e.value)}
+          valueSelectPendencia={empresaSelecionada}
+          stylePendencia={optionsModulos[0]?.ADMINISTRADOR === "True"}
+          // isVisible={optionsModulos[0]?.ADMINISTRADOR == "True"}
+
+   
+
+
+          InputFieldDTInicioAComponent={InputField}
+          labelInputDTInicioA="Data Consulta"
+          valueInputFieldDTInicioA={dataPesquisa}
+          onChangeInputFieldDTInicioA={(e) => setDataPesquisa(e.target.value)}
 
           ButtonSearchComponent={ButtonType}
           linkNomeSearch={"Pesquisar"}
@@ -383,4 +446,3 @@ export const ResumoDashBoardGerencia = ({ }) => {
   )
 }
 
-//  2620 linhas antes de refatorar

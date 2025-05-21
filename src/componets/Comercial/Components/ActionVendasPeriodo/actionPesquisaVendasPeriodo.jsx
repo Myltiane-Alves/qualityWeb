@@ -9,14 +9,17 @@ import { InputField } from "../../../Buttons/Input";
 import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 import { MultSelectAction } from "../../../Select/MultSelectAction";
 import { ButtonType } from "../../../Buttons/ButtonType";
-
+import { useFetchData } from "../../../../hooks/useFetchData";
+import { get } from "../../../../api/funcRequest";
+import { getDataAtual } from "../../../../utils/dataAtual";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { useQuery } from "react-query";
 
 
 export const ActionPesquisaVendasPeriodo = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [tabelaConsolidadaVisivel, setTabelaConsolidadaVisivel] = useState(false);
   const [tabelaSaldoVisivel, setTabelaSaldoVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
   const [marcaSelecionada, setMarcaSelecionada] = useState(null)
   const [grupoSelecionado, setGrupoSelecionado] = useState([])
@@ -24,128 +27,165 @@ export const ActionPesquisaVendasPeriodo = () => {
   const [fornecedorSelecionado, setFornecedorSelecionado] = useState([])
   const [ufSelecionado, setUFSelecionado] = useState('')
   const [produtoPesquisado, setProdutoPesquisado] = useState('')
-  const [optionsEmpresas, setOptionsEmpresas] = useState([])
-  const [optionsMarcas, setOptionsMarcas] = useState([])
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [dadosFornecedor, setDadosFornecedor] = useState([])
-  const [dadosGrupos, setDadosGrupos] = useState([])
-  const [dadoGrade, setDadosGrade] = useState([])
-  const [dadosVendasPeriodo, setDadosVendasPeriodo] = useState([])
-  const [dadosVendasConsolidadas, setDadosVendasConsolidadas] = useState([])
-  const [dadosVendasSaldo, setDadosVendasSaldo] = useState([])
-
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(1000)
   const animatedComponents = makeAnimated();
 
   useEffect(() => {
-    if(getGrupoEmpresas) {
+    const dataAtual = getDataAtual();
+    setDataPesquisaInicio(dataAtual);
+    setDataPesquisaFim(dataAtual);
+  }, [])
 
-      getListaEmpresas(marcaSelecionada);
-    }
-    getGrupoEmpresas();
-    getListaFornecedor();
-    getListaGrupo();
-    getListaGrade(grupoSelecionado)
-  }, [grupoSelecionado, marcaSelecionada]);
-
-  const getListaEmpresas = async () => {
-    if(marcaSelecionada) {
-
-      try {
-        const response = await get(`/listaEmpresaComercial?idMarca=${marcaSelecionada}`);
-        if (response.data && response.data.length > 0) {
-          setOptionsEmpresas(response.data);
-        }
-        return response.data;
-      } catch (error) {
-  
-      }
-    }
-  }
-  const getGrupoEmpresas = async () => {
+  const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEerrorEmpresas } = useFetchData('listaEmpresasComercial', `/listaEmpresaComercial?idMarca=${marcaSelecionada}`);
+  const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('listaGrupoEmpresas', '/listaGrupoEmpresas');
+  const { data: dadosFornecedor = [], error: errorFornecedor, isLoading: isLoadingFornecedor } = useFetchData('parceiro-negocio', '/parceiro-negocio');
+  const { data: dadosGrupos = [], error: errorGrupos, isLoading: isLoadingGrupos } = useFetchData('grupo', '/grupo');
+  const { data: dadosGrade = [], error: errorGrade, isLoading: isLoadingGrade } = useFetchData('listaGrade', `/listaGrade?idGrupo=${grupoSelecionado}`);
+ 
+  const fetchVendasPeriodo = async () => {
     try {
-      const response = await get(`/listaGrupoEmpresas`,)
-      if (response.data) {
-        setOptionsMarcas(response.data)
-      }
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
-  }
-
-  const getListaFornecedor = async () => {
-    try {
-      const response = await get(`/listaFornecedorProduto?idMarca=`)
-      if (response.data) { 
-        setDadosFornecedor(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
-    }
     
-  }
-
-  const getListaGrupo = async () => {  
-    try {
-      const response = await get(`/listaGrupoProduto`)
-      if (response.data) { 
-        setDadosGrupos(response.data)
+      const urlApi = `/vendas-produtos?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&descProduto=${produtoPesquisado}&uf=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupoGrade=${grupoSelecionado}&idGrade=${gradeSelecionado}`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+        
+        return response.data;
       }
-      return response.data;
+  
     } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
+  };
+    
+  const { data: dadosVendasPeriodo = [], error: errorVendasPeriodo, isLoading: isLoadingVendasPeriodo, refetch: refetchVendasPeriodo } = useQuery(
+    ['vendas-produtos',  dataPesquisaInicio, dataPesquisaFim, marcaSelecionada, empresaSelecionada, produtoPesquisado, ufSelecionado, fornecedorSelecionado, grupoSelecionado, gradeSelecionado, currentPage, pageSize],
+    () => fetchVendasPeriodo(dataPesquisaInicio, dataPesquisaFim, marcaSelecionada, empresaSelecionada, produtoPesquisado, ufSelecionado, fornecedorSelecionado, grupoSelecionado, gradeSelecionado, currentPage, pageSize),
+    { enabled: Boolean(empresaSelecionada), }
+  );
 
-  const getListaGrade = async () => {
-    try {
-      const response = await get(`/listaGrade?idGrupo=${grupoSelecionado}`)
-      if (response.data) { 
-        setDadosGrade(response.data)
+  const fetchVendasConsolidadas = async () => {
+    try {   
+      
+      const urlApi = `/vendas-produtos-consolidado?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&descProduto=${produtoPesquisado}&uf=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupoGrade=${grupoSelecionado}&idGrade=${gradeSelecionado}`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+        
+        return response.data;
       }
-      return response.data;
-
+  
     } catch (error) {
-      console.log('Erro ao buscar empresas: ', error)
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
+  };
+    
+  const { data: dadosVendasConsolidadas = [], error: errorVendasConsolidadas, isLoading: isLoadingVendasConsolidadas, refetch: refetchVendasConsolidadas } = useQuery(
+    ['vendas-produtos-consolidado',  dataPesquisaInicio, dataPesquisaFim, marcaSelecionada, empresaSelecionada, produtoPesquisado, ufSelecionado, fornecedorSelecionado, grupoSelecionado, gradeSelecionado, currentPage, pageSize],
+    () => fetchVendasConsolidadas(dataPesquisaInicio, dataPesquisaFim, marcaSelecionada, empresaSelecionada, produtoPesquisado, ufSelecionado, fornecedorSelecionado, grupoSelecionado, gradeSelecionado, currentPage, pageSize),
+    { enabled: Boolean(empresaSelecionada), }
+  );
 
-  const getListaVendasPeriodo = async () => {
+
+  const fetchVendasSaldo = async () => {
     try {
-      const response = await get(`vendasProdutos?page=1&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idGrupoEmpresarial=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&produtoPesquisado=${produtoPesquisado}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupoGrade=${grupoSelecionado}&idGrade=${gradeSelecionado}`)
-      if(response.data) {
-        setDadosVendasPeriodo(response.data)
+    
+      const urlApi = `/movimentacao-saldo?dataInicio=${dataPesquisaInicio}&dataFim=${dataPesquisaFim}&idGrupoEmpresarial=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&produtoPesquisado=${produtoPesquisado}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupoGrade=${grupoSelecionado}&idGrade=${gradeSelecionado}`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+        
+        return response.data;
       }
-      return response.data;
+  
     } catch (error) {
-      console.log('Erro ao buscar dados da venda por período: ', error)
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
-
-  const getListaVendasConsolidadas = async () => {
-    try {
-      const response = await get(`vendasProdutosConsolidado?dataInicio=${dataPesquisaInicio}&dataFim=${dataPesquisaFim}&idGrupoEmpresarial=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&produtoPesquisado=${produtoPesquisado}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupoGrade=${grupoSelecionado}&idGrade=${gradeSelecionado}`)
-      if(response.data) {
-        setDadosVendasConsolidadas(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar dados das vendas consolidadas: ', error)
-    }
-  }
-
-  const getListaVendasSaldo = async () => {
-    try {
-      const response = await get(`movimentacaoSaldo?dataInicio=${dataPesquisaInicio}&dataFim=${dataPesquisaFim}&idGrupoEmpresarial=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&produtoPesquisado=${produtoPesquisado}&ufPesquisa=${ufSelecionado}&idFornecedor=${fornecedorSelecionado}&idGrupoGrade=${grupoSelecionado}&idGrade=${gradeSelecionado}`)
-      if(response.data) {
-        setDadosVendasSaldo(response.data)
-      }
-      return response.data;
-    } catch (error) {
-      console.log('Erro ao buscar dados das vendas saldo: ', error)
-    }
-  }
+  };
+    
+  const { data: dadosVendasSaldo = [], error: errorVendasSaldo, isLoading: isLoadingVendasSaldo, refetch: refetchVendasSaldo } = useQuery(
+    ['movimentacao-saldo',  dataPesquisaInicio, dataPesquisaFim, marcaSelecionada, empresaSelecionada, produtoPesquisado, ufSelecionado, fornecedorSelecionado, grupoSelecionado, gradeSelecionado, currentPage, pageSize],
+    () => fetchVendasSaldo(dataPesquisaInicio, dataPesquisaFim, marcaSelecionada, empresaSelecionada, produtoPesquisado, ufSelecionado, fornecedorSelecionado, grupoSelecionado, gradeSelecionado, currentPage, pageSize),
+    { enabled: Boolean(marcaSelecionada), }
+  );
 
 
   const handleEmpresaChange = (selectedOptions) => {
@@ -189,36 +229,27 @@ export const ActionPesquisaVendasPeriodo = () => {
   }
 
   const handleClick = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      setTabelaConsolidadaVisivel(false)
-      setTabelaSaldoVisivel(false)
-      getListaVendasPeriodo(dataPesquisaInicio, dataPesquisaFim, marcaSelecionada, empresaSelecionada)
-    }
+    setCurrentPage(prevPage => prevPage + 1);   
+    setTabelaVisivel(true)
+    setTabelaConsolidadaVisivel(false)
+    setTabelaSaldoVisivel(false)
+    refetchVendasPeriodo()
   }
 
   const handleClickConsolidado = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaConsolidadaVisivel(true)
-      setTabelaVisivel(false)
-      setTabelaSaldoVisivel(false)
-      getListaVendasConsolidadas()
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    setTabelaConsolidadaVisivel(true)
+    setTabelaVisivel(false)
+    setTabelaSaldoVisivel(false)
+    refetchVendasConsolidadas()
   }
 
   const handleClickSaldo = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaSaldoVisivel(true)
-      setTabelaVisivel(false)
-      setTabelaConsolidadaVisivel(false)
-      getListaVendasSaldo()
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    setTabelaSaldoVisivel(true)
+    setTabelaVisivel(false)
+    setTabelaConsolidadaVisivel(false)
+    refetchVendasSaldo()
   }
 
 
@@ -261,7 +292,7 @@ export const ActionPesquisaVendasPeriodo = () => {
         InputSelectGradeComponent={InputSelectAction}
         optionsGrades={[
           {value: '', label: 'Selecione uma Grade'},
-          ...dadoGrade.map((grade) => ({
+          ...dadosGrade.map((grade) => ({
           value: grade.NOMEGRUPO,
           label: grade.NOMEGRUPO,
           }))
@@ -274,8 +305,8 @@ export const ActionPesquisaVendasPeriodo = () => {
         optionsFornecedores={[
           {value: '', label: 'Selecione um Fornecedor'},
           ...dadosFornecedor.map((fornecedor) => ({
-          value: fornecedor.ID_FORNECEDOR,
-          label: `${fornecedor.ID_FORNECEDOR} ${fornecedor.FORNECEDOR}`,
+          value: fornecedor.IDPN,
+          label: `${fornecedor.PN}`,
           }))
         ]}
         labelSelectFornecedor={"Por Fornecedor"}
@@ -361,4 +392,3 @@ export const ActionPesquisaVendasPeriodo = () => {
     </Fragment >
   )
 }
-

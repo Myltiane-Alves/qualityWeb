@@ -4,7 +4,6 @@ import { formatMoeda } from "../../../../utils/formatMoeda"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable"
-import { GrAdd, GrFormView } from "react-icons/gr"
 import { HeaderModal } from "../../../Modais/HeaderModal/HeaderModal"
 import HeaderTable from "../../../Tables/headerTable"
 import { useReactToPrint } from "react-to-print";
@@ -12,6 +11,7 @@ import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 import 'jspdf-autotable';
 import { get, post, put } from "../../../../api/funcRequest";
+import { GrAdd, GrFormView } from "react-icons/gr"
 import { InputNumber } from 'primereact/inputnumber';
 import { FaCheck, FaMinus } from "react-icons/fa";
 import { BsTrash3 } from "react-icons/bs";
@@ -29,7 +29,6 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosColetorBalan
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [globalFilterValueDetalhe, setGlobalFilterValueDetalhe] = useState('');
   const [detalhesBalanco, setDetalhesBalanco] = useState([]);
-  const [modalDetalhesBalanco, setModalDetalhesBalanco] = useState(false);
   const [size, setSize] = useState('small');
   const [tabelaDetalhe, setTabelaDetalhe] = useState(false);
   const [tabelaColetor, setTabelaColetor] = useState(true);
@@ -399,6 +398,18 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosColetorBalan
 
       return responsePost.data;
     } catch (error) {
+      let textoFuncao = 'ADMNISTRATIVO/ERRO AO ALTERAR QUANTIDADE DE PRODUTO NO BALANÇO';
+  
+  
+      const postData = {
+        IDFUNCIONARIO: usuarioLogado.id,
+        PATHFUNCAO: textoFuncao,
+        DADOS: 'ERRO AO ALTERAR QUANTIDADE DE PRODUTO NO BALANÇO',
+        IP: ipUsuario
+      }
+  
+      const responsePost = await post('/log-web', postData)
+
       Swal.fire({
         title: 'Atualizado com Sucesso!',
         text: 'Atualizado com Sucesso',
@@ -408,7 +419,8 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosColetorBalan
           container: 'custom-swal', 
         }
       })
-
+      
+      return responsePost.data;
     }    
   }
 
@@ -425,7 +437,7 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosColetorBalan
         role="dialog"
         aria-hidden="true"
       >
-          <HeaderModal
+        <HeaderModal
           title={"Resumo do Balanço"}
           subTitle={"Relação dos Coletores"}
           handleClose={() => { handleClose(), setTabelaDetalhe(false); setTabelaColetor(true) }}
@@ -464,6 +476,9 @@ export const ActionColetorBalancoModal = ({ show, handleClose, dadosColetorBalan
                           paginator={true}
                           rows={10}
                           // rowsPerPageOptions={[10, 20, 50, dadosColetorModal.length]}
+                          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                          filterDisplay="menu"
                           showGridlines
                           stripedRows
                           emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

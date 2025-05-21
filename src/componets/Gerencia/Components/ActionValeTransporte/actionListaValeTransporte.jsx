@@ -23,7 +23,6 @@ export const ActionListaValeTransporte = ({ dadosDespesasLoja }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
   const [dataHoje, setDataHoje] = useState('');
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [ipUsuario, setIpUsuario] = useState('');
@@ -367,7 +366,7 @@ export const ActionListaValeTransporte = ({ dadosDespesasLoja }) => {
           <DataTable
             title="Vendas por Loja"
             value={dados}
-            size={size}
+            size='small'
             globalFilter={globalFilterValue}
             sortOrder={-1}
             paginator={true}

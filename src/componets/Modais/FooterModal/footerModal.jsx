@@ -6,16 +6,27 @@ export const FooterModal = ({
   textButtonConfirmar,
   onClickButtonConfirmar,
   corConfirmar,
+  iconConfirmar,
 
   ButtonTypeFechar,
   onClickButtonFechar,
   textButtonFechar,
   corFechar,
+  iconFechar,
 
   ButtonTypeCadastrar,
   onClickButtonCadastrar,
   textButtonCadastrar,
   corCadastrar,
+  iconCadastrar,
+  iconSizeCadastrar,
+
+  ButtonTypeCancelar,
+  onClickButtonCancelar,
+  textButtonCancelar,
+  corCancelar,
+  iconCancelar,
+  iconSizeCancelar,
 
   handleClose,
   handleClick, 
@@ -35,6 +46,8 @@ export const FooterModal = ({
             cor={corCadastrar}
             tipo="submit"
             disabled={disabled}
+            Icon={iconCadastrar}
+            iconSize={iconSizeCadastrar}
           />
 
         )}
@@ -44,6 +57,7 @@ export const FooterModal = ({
             onClickButtonType={onClickButtonFechar}
             cor={corFechar}
             tipo="button"
+            iconFechar={iconFechar}
           />
 
         )}
@@ -53,8 +67,20 @@ export const FooterModal = ({
             onClickButtonType={onClickButtonConfirmar}
             cor={corConfirmar}
             tipo="button"
+            iconConfirmar={iconConfirmar}
           />
 
+        )}
+
+        {ButtonTypeCancelar && (
+          <ButtonTypeCancelar
+            textButton={textButtonCancelar}
+            onClickButtonType={onClickButtonCancelar}
+            cor={corCancelar}
+            tipo="button"
+            iconCancelar={iconCancelar}
+            iconSize={iconSizeCancelar}
+          />
         )}
         {/* <ButtonTypeModal
           textButton={"Cadastrar "}

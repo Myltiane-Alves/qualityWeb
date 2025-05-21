@@ -139,7 +139,7 @@ export const ActionListaVendasRecebidoEletronico = ({ dadosTotalRecebidoEletroni
 
 
   const dados = Array.isArray(dadosTotalRecebidoEletronico) ? dadosTotalRecebidoEletronico.map((item, index) => {
-    console.log(item, 'item')
+    
     if (item.DSTIPOPAGAMENTO != 'VALE FUNCIONÁRIO') {     
       return {
         NOTEF: item.NOTEF,
@@ -209,44 +209,44 @@ export const ActionListaVendasRecebidoEletronico = ({ dadosTotalRecebidoEletroni
     <ColumnGroup>
 
       <Row>
-        <Column footer="Total das Vendas:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer="Total das Vendas:" colSpan={4} style={{ textAlign: 'right' }} />
         <Column footer={formatMoeda(calculoValorTotalRecebidoMapaVenda)} />
-        <Column footer="" />
+        
       </Row>
       <Row>
-        <Column footer="Recebimento Cartões:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer="Recebimento Cartões:" colSpan={4} style={{ textAlign: 'right' }} />
         <Column footer={formatMoeda(calcularTotalValorRecebido())} />
-        <Column footer="" />
+        
       </Row>
       <Row>
-        <Column footer="Recebimento Convênio:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer="Recebimento Convênio:" colSpan={4} style={{ textAlign: 'right' }} />
         <Column footer={formatMoeda(calcularTotalConvenio())} />
-        <Column footer="" />
+        
       </Row>
       <Row>
-        <Column footer="Recebimento Dinheiro:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer="Recebimento Dinheiro:" colSpan={4} style={{ textAlign: 'right' }} />
         <Column footer={formatMoeda(calcularTotalDinheiro())} />
-        <Column footer="" />
+        
       </Row>
       <Row>
-        <Column footer="Pagamento das Despesas:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer="Pagamento das Despesas:" colSpan={4} style={{ textAlign: 'right' }} />
         <Column footer={formatMoeda(dadosPeriodo[0]?.valorTotalPagamentoMapaDespesas)} />
-        <Column footer="" />
+        
       </Row>
       <Row>
-        <Column footer="Total Dispónivel em Dinheiro:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer="Total Dispónivel em Dinheiro:" colSpan={4} style={{ textAlign: 'right' }} />
         <Column footer={formatMoeda(dadosPeriodo[0]?.valorTotalDisponivelMapaDinheiro)} />
-        <Column footer="" />
+        
       </Row>
       <Row>
-        <Column footer="Recebimento Faturas:" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer="Recebimento Faturas:" colSpan={4} style={{ textAlign: 'right' }} />
         <Column footer={formatMoeda(calcularTotalFatura())} />
-        <Column footer="" />
+        
       </Row>
       <Row>
-        <Column footer="Total Dispónivel (Dinheiro + Fatura):" colSpan={3} style={{ textAlign: 'right' }} />
+        <Column footer="Total Dispónivel (Dinheiro + Fatura):" colSpan={4} style={{ textAlign: 'right' }} />
         <Column footer={formatMoeda(dadosPeriodo[0]?.valorTotalDisponivelMapaDinheiroFatura)} />
-        <Column footer="" />
+       
       </Row>
     </ColumnGroup>
   )
@@ -262,22 +262,22 @@ export const ActionListaVendasRecebidoEletronico = ({ dadosTotalRecebidoEletroni
   const colunasEmpresas = [
     {
       field: 'NOTEF',
-      body: row => <p>{row.NOTEF} - {row.DSTIPOPAGAMENTO}</p>,
+      body: row => <th>{row.NOTEF} - {row.DSTIPOPAGAMENTO}</th>,
 
     },
     {
       field: 'NPARCELAS',
-      body: row => <p > {row.NPARCELAS}  </p>,
+      body: row => <th > {row.NPARCELAS}  </th>,
 
     },
     {
       field: 'QTDPGTOS',
-      body: row => <p > {row.QTDPGTOS}  </p>,
+      body: row => <th > {row.QTDPGTOS}  </th>,
       footer: 'Total'
     },
     {
       field: 'VALORRECEBIDO',
-      body: row => <p > {formatMoeda(row.VALORRECEBIDO)}  </p>,
+      body: row => <th > {formatMoeda(row.VALORRECEBIDO)}  </th>,
       footer: formatMoeda(calcularTotalValorRecebido()),
       sortable: true,
     },
@@ -303,7 +303,9 @@ export const ActionListaVendasRecebidoEletronico = ({ dadosTotalRecebidoEletroni
                 titleButton={"Detalhar Vendas"}
                 onClickButton={() => handleClickEditar(row)}
                 Icon={GrView}
-                iconSize={18}
+                iconSize={25}
+                width="35px"
+                height="35px"
                 iconColor={"#fff"}
                 cor={"success"}
               />
@@ -319,7 +321,7 @@ export const ActionListaVendasRecebidoEletronico = ({ dadosTotalRecebidoEletroni
 
   const handleEditar = async (NOTEF, NOAUTORIZADOR, NPARCELAS) => {
     try {
-      const response = await get(`/vendaDetalheRecebimentoEletronico?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&nomeTef=${NOTEF}&nomeAutorizador=${NOAUTORIZADOR}&numeroParcelas=${NPARCELAS}`);
+      const response = await get(`/venda-detalhe-recebimento-eletronico?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&nomeTef=${NOTEF}&nomeAutorizador=${NOAUTORIZADOR}&numeroParcelas=${NPARCELAS}`);
 
       if (response.data) {
         setDadosDetalheRecebimentosEletronico(response.data)
@@ -369,7 +371,7 @@ export const ActionListaVendasRecebidoEletronico = ({ dadosTotalRecebidoEletroni
             title="Recebimentos "
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortField="VRTOTALPAGO"
             sortOrder={-1}
             headerColumnGroup={headerGroup}
@@ -377,6 +379,9 @@ export const ActionListaVendasRecebidoEletronico = ({ dadosTotalRecebidoEletroni
             paginator={true}
             rows={10}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

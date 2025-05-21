@@ -16,17 +16,15 @@ import { useNavigate } from "react-router-dom";
 import { FaCheck, FaRegTrashAlt } from "react-icons/fa";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 
-export const ActionListaQuebraCaixaLojaNegativa = ({ dadosQuebraDeCaixaNegativa, handleClick }) => {
+export const ActionListaQuebraCaixaLojaNegativa = ({ dadosQuebraDeCaixaNegativa, handleClick, optionsModulos, usuarioLogado }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
   const [dadosQuebraCaixasModal, setDadosQuebraCaixasModal] = useState([])
   const handleCloseModal = () => setModalVisivel(false);
   const { register, handleSubmit, errors } = useForm();
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
+
   const [ipUsuario, setIpUsuario] = useState('');
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
-  const navigate = useNavigate();
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
   };
@@ -363,11 +361,14 @@ export const ActionListaQuebraCaixaLojaNegativa = ({ dadosQuebraDeCaixaNegativa,
             title="Quebra Negativas de Caixa das Lojas"
             value={dadosNegativo}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50]}
+            rowsPerPageOptions={[10, 20, 50, 100, dadosNegativo.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado negativa</div>}

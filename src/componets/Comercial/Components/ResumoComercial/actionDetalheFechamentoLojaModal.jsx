@@ -1,4 +1,4 @@
-import { Fragment } from "react"
+import { Fragment, useRef, useState } from "react"
 import Modal from 'react-bootstrap/Modal';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -7,10 +7,73 @@ import { formatMoeda } from "../../../../utils/formatMoeda";
 import { FooterModal } from "../../../Modais/FooterModal/footerModal";
 import { ButtonTypeModal } from "../../../Buttons/ButtonTypeModal";
 import { toFloat } from "../../../../utils/toFloat";
+import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import HeaderTable from "../../../Tables/headerTable";
 
 
 export const ActionDetalheFechamentoLojaModal = ({ show, handleClose, dadosDetalheFechamento }) => {
-  
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const dataTableRef = useRef();
+
+  const onGlobalFilterChange = (e) => {
+    setGlobalFilterValue(e.target.value);
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => dataTableRef.current,
+    documentTitle: 'Detalhe Fechamento',
+  });
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Caixa', 'Operador', 'Receb. DIN', 'Receb. CART', 'Receb. POS', 'Receb. FAT', 'Inf. DIN', 'Inf. CART', 'Inf. POS', 'Inf. FAT', 'Quebra']],
+      body: dadosFechamento.map(item => [
+         item.DSCAIXA,
+          item.NOFUNCIONARIO,
+          formatMoeda(item.VALORTOTALDINHEIRO),
+          formatMoeda(item.VALORTOTALCARTAO),
+          formatMoeda(item.VALORTOTALPOS),
+          formatMoeda(item.VALORTOTALFATURA),
+          formatMoeda(item.totalDinheiroInformado),
+          formatMoeda(item.CARTAO),
+          formatMoeda(item.POS),
+          formatMoeda(item.FATURA),
+          item.totalQuebraCaixa
+
+      ]),
+      horizontalPageBreak: true,
+      horizontalPageBreakBehaviour: 'immediately'
+    });
+    doc.save('detalhe_fechamneto.pdf');
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(dadosExcel);
+    const workbook = XLSX.utils.book_new();
+    const header = ['Caixa', 'Operador', 'Receb. DIN', 'Receb. CART', 'Receb. POS', 'Receb. FAT', 'Inf. DIN', 'Inf. CART', 'Inf. POS', 'Inf. FAT', 'Quebra'];
+    worksheet['!cols'] = [
+      { wpx: 100, caption: 'Caixa' },
+      { wpx: 100, caption: 'Operador' },
+      { wpx: 100, caption: 'Receb. DIN' },
+      { wpx: 100, caption: 'Receb. CART' },
+      { wpx: 100, caption: 'Receb. POS' },
+      { wpx: 100, caption: 'Receb. FAT' },
+      { wpx: 100, caption: 'Inf. DIN' },
+      { wpx: 100, caption: 'Inf. CART' },
+      { wpx: 100, caption: 'Inf. POS' },
+      { wpx: 100, caption: 'Inf. FAT' },
+      { wpx: 100, caption: 'Quebra' }
+
+    ];
+    XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Detalhe Fechamento');
+    XLSX.writeFile(workbook, 'detalhe_fechamento.xlsx');
+  };
+
   const calcularTotalDisponivel = (item) => {
 
     return (
@@ -36,14 +99,44 @@ export const ActionDetalheFechamentoLojaModal = ({ show, handleClose, dadosDetal
     )
   }
 
+  const dadosExcel = dadosDetalheFechamento.map((item, index) => {
+    let totalDinheiroInformado = 0;
+    if (item.VALORINFORMADO.DINHEIROAJUSTE > 0) {
+      totalDinheiroInformado = item.VALORINFORMADO.DINHEIROAJUSTE;
+    } else {
+      totalDinheiroInformado = item.VALORINFORMADO.DINHEIRO;
+    }
+    const totalQuebraCaixa = totalDinheiroInformado - item.VALORTOTALDINHEIRO;
+
+    return {
+      DSCAIXA: item.DSCAIXA,
+      NOFUNCIONARIO: item.NOFUNCIONARIO,
+      VALORTOTALDINHEIRO: item.VALORTOTALDINHEIRO,
+      VALORTOTALCARTAO: item.VALORTOTALCARTAO,
+      VALORTOTALPOS: item.VALORTOTALPOS,
+      VALORTOTALFATURA: item.VALORTOTALFATURA,
+      totalDinheiroInformado: totalDinheiroInformado,
+      CARTAO: item.VALORINFORMADO.CARTAO,
+      POS: item.VALORINFORMADO.POS,
+      FATURA: item.VALORINFORMADO.FATURA,
+      totalQuebraCaixa: parseFloat(totalQuebraCaixa).toFixed(2),
+      DINHEIRO: item.VALORINFORMADO.DINHEIRO,
+      DINHEIROAJUSTE: item.VALORINFORMADO.DINHEIROAJUSTE,
+
+    }
+  });
 
   const dadosFechamento = dadosDetalheFechamento.map((item, index) => {
-    // const totalDinheiroInformado = calcularTotalDinheiroInformado(item);
     const totalQuebraCaixa = calcularTotalQuebraCaixa(item);
-    // const quebraCaixa = totalDinheiroInformado - item.VALORTOTALDINHEIRO;
     const quebraCaixa = item.VALORTOTALDINHEIRO;
     const totalDespesasAdiantamento = calcularTotalDespesasAdiantamento(item);
     const totalDisponivel = calcularTotalDisponivel(item);
+    let totalDinheiroInformado = 0;
+    if (item.VALORINFORMADO.DINHEIROAJUSTE > 0) {
+      totalDinheiroInformado = item.VALORINFORMADO.DINHEIROAJUSTE;
+    } else {
+      totalDinheiroInformado = item.VALORINFORMADO.DINHEIRO;
+    }
 
     return {
 
@@ -69,7 +162,7 @@ export const ActionDetalheFechamentoLojaModal = ({ show, handleClose, dadosDetal
       VALORTOTALVOUCHER: item.VALORTOTALVOUCHER,
       totalQuebraCaixa: parseFloat(totalQuebraCaixa).toFixed(2),
       quebraCaixa: parseFloat(quebraCaixa).toFixed(2),
-      // totalDinheiroInformado: totalDinheiroInformado,
+      totalDinheiroInformado: totalDinheiroInformado,
 
       VRDEPOSITO: item.DEPOSITOS[0]?.VRDEPOSITO,
       NUDOCDEPOSITO: item.DEPOSITOS[0]?.NUDOCDEPOSITO,
@@ -109,13 +202,13 @@ export const ActionDetalheFechamentoLojaModal = ({ show, handleClose, dadosDetal
     return total;
   }
  
-  // const calcularTotalDinheiroInformado = () => {
-  //   let total = 0;
-  //   for (let venda of dadosFechamento ? dadosFechamento : []) {
-  //     total += parseFloat(venda?.totalDinheiroInformado);
-  //   }
-  //   return total;
-  // }
+  const calcularTotalDinheiroInformado = () => {
+    let total = 0;
+    for (let venda of dadosFechamento ? dadosFechamento : []) {
+      total += parseFloat(venda?.totalDinheiroInformado);
+    }
+    return total;
+  }
 
   const calcularTotalCartao = () => {
     let total = 0;
@@ -150,88 +243,95 @@ export const ActionDetalheFechamentoLojaModal = ({ show, handleClose, dadosDetal
     {
       field: 'DSCAIXA',
       header: 'Caixa',
-      body: (row) => row.DSCAIXA,
+      body: (row) => <th >{row.DSCAIXA}</th>,
       sortable: true
     },
     {
       field: 'NOFUNCIONARIO',
       header: 'Operador',
-      body: (row) => row.NOFUNCIONARIO,
+      body: (row) => <th >{row.NOFUNCIONARIO}</th>,
       sortable: true,
-      'footer': 'Total'
+      footer: <th style={{ fontSize: '1.2rem' }}>Total</th>
     },
     {
       field: 'VALORTOTALDINHEIRO',
       header: 'Receb. DIN',
-      body: (row) => formatMoeda(row.VALORTOTALDINHEIRO),
+      body: (row) => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALDINHEIRO)}</th>,
       sortable: true,
-      footer: formatMoeda(calcularTotalDinheiroColuna())
+      footer: <th style={{ color: 'blue' }}>{formatMoeda(calcularTotalDinheiroColuna())}</th>
     },
     {
       field: 'VALORTOTALCARTAO',
       header: 'Receb. CART',
-      body: (row) => formatMoeda(row.VALORTOTALCARTAO),
+      body: (row) => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALCARTAO)}</th>,
       sortable: true,
-      footer: formatMoeda(calcularTotalCartaoColuna())
+      footer: <th style={{ color: 'blue' }}>{formatMoeda(calcularTotalCartaoColuna())}</th>
     },
     {
       field: 'VALORTOTALPOS',
       header: 'Receb. POS',
-      body: (row) => formatMoeda(row.VALORTOTALPOS),
+      body: (row) => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALPOS)}</th>,
       sortable: true,
-      footer: formatMoeda(calcularTotalPosColuna())
+      footer: <th style={{ color: 'blue' }}>{formatMoeda(calcularTotalPosColuna())}</th>
     },
     {
       field: 'VALORTOTALFATURA',
       header: 'Receb. FAT',
-      body: (row) => formatMoeda(row.VALORTOTALFATURA),
+      body: (row) => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALFATURA)}</th>,
       sortable: true,
-      footer: formatMoeda(calcularTotalFaturaColuna())
+      footer: <th style={{ color: 'blue' }}>{formatMoeda(calcularTotalFaturaColuna())}</th>
     },
-    // {
-    //   field: 'totalDinheiroInformado',
-    //   header: 'Inf. DIN',
-    //   body: (row) => formatMoeda(row.totalDinheiroInformado),
-    //   sortable: true,
-    //   footer: formatMoeda(calcularTotalDinheiroInformado())
-    // },
+    {
+      field: 'totalDinheiroInformado',
+      header: 'Inf. DIN',
+      body: (row) => <th style={{ color: 'green' }}>{formatMoeda(row.totalDinheiroInformado)}</th>,
+      sortable: true,
+      footer: <th style={{ color: 'green' }}>{formatMoeda(calcularTotalDinheiroInformado())}</th>
+    },
     {
       field: 'CARTAO',
       header: 'Inf. CART',
-      body: (row) => formatMoeda(row.CARTAO),
+      body: (row) => <th style={{ color: 'green' }}>{formatMoeda(row.CARTAO)}</th>,
       sortable: true,
-      footer: formatMoeda(calcularTotalCartao())
+      footer: <th style={{ color: 'green' }}>{formatMoeda(calcularTotalCartao())}</th>
     },
     {
       field: 'POS',
       header: 'Inf. POS',
-      body: (row) => formatMoeda(row.POS),
+      body: (row) => <th style={{ color: 'green' }}>{formatMoeda(row.POS)}</th>,
       sortable: true,
-      footer: formatMoeda(calcularTotalPos())
+      footer: <th style={{ color: 'green' }}>{formatMoeda(calcularTotalPos())}</th>
     },
     {
       field: 'FATURA',
       header: 'Inf. FAT',
-      body: (row) => formatMoeda(row.FATURA),
+      body: (row) => <th style={{ color: 'green' }}>{formatMoeda(row.FATURA)}</th>,
       sortable: true,
-      footer: formatMoeda(calcularTotalFatura())
+      footer: <th style={{ color: 'green' }}>{formatMoeda(calcularTotalFatura())}</th>
     },
     {
-      field: 'quebraCaixa',
+      field: 'totalQuebraCaixa',
       header: 'Quebra',
       body: (row) => {
+        const sinal = parseFloat(row.totalQuebraCaixa) > 0 ? ' + ' : ' - ';
         return (
-          <div style={{color: row.quebraCaixa > 0 ? 'blue' : 'red' }}>
-            {`${row.quebraCaixa > 0 ? ' + ' : ' - '}${row.quebraCaixa}`}
-          </div>
+          <th style={{ color: row.totalQuebraCaixa > 0 ? 'blue' : 'red' }}>
+            {`${sinal}${row.totalQuebraCaixa}`}
+          </th>
         )
       },
       sortable: true,
-      footer: formatMoeda(calcularTotalQuebra())
+      footer: (row) => {
+        const sinal = parseFloat(row.calcularTotalQuebra) > 0 ? ' + ' : ' - ';
+        return (
+          <th style={{ color: row.totalQuebraCaixa > 0 ? 'red' : 'blue' }}>
+            {` ${formatMoeda(calcularTotalQuebra())}`}
+          </th>
+        )
+      },
     },
- 
-  ]
 
+  ]
   return (
 
     <Fragment>
@@ -256,15 +356,29 @@ export const ActionDetalheFechamentoLojaModal = ({ show, handleClose, dadosDetal
 
           <Modal.Body>
             <Fragment>
-              <div className="card">
+            <div className="panel">
+              <div className="panel-hdr">
+                <h2>Lista de Vendas</h2>
+              </div>
+              <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+                <HeaderTable
+                  globalFilterValue={globalFilterValue}
+                  onGlobalFilterChange={onGlobalFilterChange}
+                  handlePrint={handlePrint}
+                  exportToExcel={exportToExcel}
+                  exportToPDF={exportToPDF}
+                />
+              </div>
+              <div className="card" ref={dataTableRef}>
                 <DataTable
-                  title="Vendas por Loja"
+                  title="Detalhe Fechamento"
                   value={dadosFechamento}
-                  sortField="VRTOTALPAGO"
+                  size="small"
+                  globalFilter={globalFilterValue}
                   sortOrder={-1}
                   // paginator={true}
-                  rows={50}
-                  // rowsPerPageOptions={[5, 10, 20, 50]}
+                  rows={10}
+               
                   showGridlines
                   stripedRows
                   emptyMessage="Sem Registros para Exibir"
@@ -286,6 +400,7 @@ export const ActionDetalheFechamentoLojaModal = ({ show, handleClose, dadosDetal
                   ))}
                 </DataTable>
               </div>
+            </div>
             </Fragment>
 
             {dadosFechamento.length > 0 && (

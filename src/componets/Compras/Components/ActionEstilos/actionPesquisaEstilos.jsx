@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react"
+import { Fragment, useState } from "react"
 import { ButtonType } from "../../../Buttons/ButtonType";
 import { InputField } from "../../../Buttons/Input";
 import { InputSelectAction } from "../../../Inputs/InputSelectAction";
@@ -6,60 +6,76 @@ import { ActionMain } from "../../../Actions/actionMain";
 import { get } from "../../../../api/funcRequest";
 import { AiOutlineSearch } from "react-icons/ai";
 import { ActionListaEstilos } from "./actionListaEstilos";
+import { useQuery } from "react-query";
+import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { MdAdd } from "react-icons/md";
+import { ActionCadastrarEstilosModal } from "./ActionCadastrarEstilos/actionCadastrarEstilosModal";
 
 
 export const ActionPesquisaEstilos = () => {
-  const [dadosEstilos, setDadosEstilos] = useState([])
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [modalVisivel, setModalVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [descricao, setDescricao] = useState("")
   const [estiloSelecionado, setEstiloSelecionado] = useState("")
-
-  useEffect(() => {
-    getListaEstilos()
-  }, [])
-
-  const getListaEstilos = async () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(1000);
+  
+   
+  const fetchListaEstilos = async () => {
     try {
-      const response = await get(`/listaEstilos?idEstilo=${estiloSelecionado}&descricao=${descricao}`)
-      if (response.data) {
-        setDadosEstilos(response.data)
+      const urlApi = `/listaEstilos?idEstilo=${estiloSelecionado}&descricao=${descricao}`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+        
+        return response.data;
       }
+  
     } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
     }
-  }
-
+  };
+  
+  const { data: dadosEstilos = [], error: errorAdiantamento, isLoading: isLoadingAdiantamento, refetch: refetchListaEstilos } = useQuery(
+    ['tipo-tecido', estiloSelecionado, descricao, currentPage, pageSize],
+    () => fetchListaEstilos(estiloSelecionado, descricao,  currentPage, pageSize),
+    { enabled: true  }
+  )
 
   const handleChangeEstilo = (e) => {
     setEstiloSelecionado(e.value)
   }
 
   const handlePesquisar = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      getListaEstilos()
-    }
-
+    setCurrentPage(prevPage => prevPage + 1)
+    refetchListaEstilos()
+    setTabelaVisivel(true)
   }
-
-  const handleModal = () => {
-    setModalVisivel(true)
-  }
-
-  const handleClose = () => {
-    setModalVisivel(false)
-  }
-
-
-  const optionsF = [
-    { value: '1', label: 'Ativo' },
-    { value: '2', label: 'Inativo' }
-  ]
-
 
   return (
 
@@ -69,7 +85,6 @@ export const ActionPesquisaEstilos = () => {
         subTitle=""
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista de Estilos"]}
-
 
         InputFieldComponent={InputField}
         labelInputField={"Descrição"}
@@ -90,20 +105,27 @@ export const ActionPesquisaEstilos = () => {
         valueSelectSubGrupo={estiloSelecionado}
         onChangeSelectSubGrupo={handleChangeEstilo}
 
-
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar Estilos"}
         onButtonClickSearch={handlePesquisar}
         IconSearch={AiOutlineSearch}
         corSearch={"primary"}
 
-
+        ButtonTypeCadastro={ButtonType}
+        onButtonClickCadastro={() => setModalVisivel(true)}
+        linkNome={"Cadastrar Estilos"}
+        corCadastro={"success"}
+        IconCadastro={MdAdd}
       />
 
       {tabelaVisivel && (
         <ActionListaEstilos dadosEstilos={dadosEstilos} />
       )}
 
+      <ActionCadastrarEstilosModal 
+        show={modalVisivel} 
+        handleClose={(e) => setModalVisivel(false)} 
+      />
     </Fragment>
   )
 }

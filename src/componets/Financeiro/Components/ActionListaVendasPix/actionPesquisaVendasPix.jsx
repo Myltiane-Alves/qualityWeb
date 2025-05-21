@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useState } from "react"
 import { ActionMain } from "../../../Actions/actionMain"
 import { InputField } from "../../../Buttons/Input"
-import { ButtonSearch } from "../../../Buttons/ButtonSearch"
 import { ButtonType } from "../../../Buttons/ButtonType"
 import { get } from "../../../../api/funcRequest"
 import { MultSelectAction } from "../../../Select/MultSelectAction"
@@ -22,7 +21,8 @@ import { useFetchData, useFetchEmpresas } from "../../../../hooks/useFetchData"
 
 export const ActionPesquisaVendasPix = () => {
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
-  const [empresaSelecionada, setEmpresaSelecionada] = useState([]);
+  const [empresaSelecionada, setEmpresaSelecionada] = useState([]); 
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState(''); 
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [empresaLivre, setEmpresaLivre] = useState('');
@@ -191,7 +191,7 @@ export const ActionPesquisaVendasPix = () => {
   const fetchVendasPixConsolidadoMarca = async () => {
     try {
       
-      const urlApi = `/venda-pix-consolidado?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLoja=${empresaSelecionada}&listaEmpresas=${empresaLivre}`;
+      const urlApi = `/venda-pix-consolidado?idMarca=${marcaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
   
       if (response.data.length && response.data.length === pageSize) {
@@ -324,20 +324,16 @@ export const ActionPesquisaVendasPix = () => {
   );
   
 
-
-
   const handleSelectMarca = (e) => {
     const selectedId = e.value;
- 
     setMarcaSelecionada(selectedId);
-    
   };
 
-  const handleEmpresaChange = (selectedOptions) => {
-    const values = selectedOptions.map((option) => option.value);
-    setEmpresaSelecionada(values);
+  const handleChangeEmpresa = (selectedOptions) => {
+    const selectedValues = selectedOptions.map(option => option.value);
+    setEmpresaSelecionada(selectedValues);
+    
   }
-
 
   const handleClickVendasPix = () => {
    
@@ -350,12 +346,13 @@ export const ActionPesquisaVendasPix = () => {
       setTabelaFaturaPixConsolidadoLoja(false)
       
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1); 
+      setCurrentPage(prevPage => prevPage + 1); 
       refetchVendasPix()
     }  else {
       Swal.fire('Erro', 'Por favor, selecione uma Marca e datas válidas.', 'error');
     }
   }
+
   useEffect(() => {
     if (isLoadingPesquisa && isLoadingVendasPix) {
       Swal.fire({
@@ -388,7 +385,7 @@ export const ActionPesquisaVendasPix = () => {
     setTabelaFaturaPixConsolidadoLoja(false)
 
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1); 
+    setCurrentPage(prevPage => prevPage + 1); 
     refetchVendasPixConsolidadoMarca()    
   }
 
@@ -425,7 +422,7 @@ export const ActionPesquisaVendasPix = () => {
     setTabelaFaturaPixConsolidadoLoja(false)
 
     setIsLoadingPesquisa(true);
-    setCurrentPage(+1); 
+    setCurrentPage(prevPage => prevPage + 1); 
     refetchVendasPixConsolidado()
     
   }
@@ -464,7 +461,7 @@ export const ActionPesquisaVendasPix = () => {
       setTabelaFaturaPixConsolidadoLoja(false)
     
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setCurrentPage(prevPage => prevPage + 1);
       refetchVendasFaturaPix()  
     } else {
         Swal.fire('Erro', 'Por favor, selecione uma Marca e datas válidas.', 'error')
@@ -504,7 +501,7 @@ export const ActionPesquisaVendasPix = () => {
  
   
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setCurrentPage(prevPage => prevPage + 1);
       refetchVendasFaturasPixConsolidadoPeriodo()
 
     } else {
@@ -546,7 +543,7 @@ export const ActionPesquisaVendasPix = () => {
   
 
       setIsLoadingPesquisa(true);
-      setCurrentPage(+1);
+      setCurrentPage(prevPage => prevPage + 1);
       refetchFaturasPixConsolidadoLoja()
       
     } else {
@@ -578,6 +575,7 @@ export const ActionPesquisaVendasPix = () => {
   
 
 
+
   return (
 
     <Fragment>
@@ -586,7 +584,7 @@ export const ActionPesquisaVendasPix = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista de Vendas e Faturas PIX"]}
         title="Vendas / Faturas PIX por Período"
-        subTitle="Nome da Loja"
+        subTitle={empresaSelecionadaNome}
 
         InputFieldDTInicioComponent={InputField}
         labelInputFieldDTInicio={"Data Início"}
@@ -621,8 +619,8 @@ export const ActionPesquisaVendasPix = () => {
           }))
         ]}
         labelMultSelectEmpresa={"Empresa"}
-        valueMultSelectEmpresa={[empresaSelecionada[0]]}
-        onChangeMultSelectEmpresa={handleEmpresaChange}
+        valueMultSelectEmpresa={[empresaSelecionada]}
+        onChangeMultSelectEmpresa={handleChangeEmpresa}
 
         InputFieldComponent={InputField}
         labelInputField={"Empresas  Livre"}
@@ -670,7 +668,6 @@ export const ActionPesquisaVendasPix = () => {
 
 
       {tabelaVendasPixVisivel && (
-        // <></>
         <ActionListaVendasPIX dadosVendasPix={dadosVendasPix}/>
       )}
 

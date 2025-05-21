@@ -9,7 +9,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
-import { ActionEditarClienteModal } from "./actionEditarClienteModal";
+import { ActionEditarClienteModal } from "./ActionEditarCliente/actionEditarClienteModal";
 
 export const ActionListaCliente = ({ dadosListaCampanhaCliente,  }) => {
   const [dadosCampanhaCliente, setDadosCampanhaCliente] = useState([])
@@ -87,27 +87,27 @@ export const ActionListaCliente = ({ dadosListaCampanhaCliente,  }) => {
   const colunasListaCamapanhaCliente = [
     {
       header: 'ID',
-      body: row => row.ID,
+      body: row =><th>{row.ID}</th>,
       sortable: true,
     },
     {
       header: 'CPF',
-      body: row => row.NUCPFCNPJ,
+      body: row => <th>{row.NUCPFCNPJ}</th>,
       sortable: true,
     },
     {
       header: 'Telefone',
-      body: row => row.NUTELEFONE,
+      body: row => <th>{row.NUTELEFONE}</th>,
       sortable: true,
     },
     {
       header: 'Nome',
-      body: row => row.NOME,
+      body: row => <th>{row.NOME}</th>,
       sortable: true,
     },
     {
       header: 'Campanha',
-      body: row => row.DSCAMPANHA,
+      body: row => <th>{row.DSCAMPANHA}</th>,
       sortable: true,
     },
     {
@@ -123,8 +123,12 @@ export const ActionListaCliente = ({ dadosListaCampanhaCliente,  }) => {
               titleButton={"Editar"}
               cor={"primary"}
               Icon={CiEdit}
-              iconSize={18}
+              iconSize={22}
               onClickButton={() => handleClickEdit(row)}
+              width="40px"
+              height="40px"
+              size="small"
+              
             />
           </div>
         </div>
@@ -161,11 +165,9 @@ export const ActionListaCliente = ({ dadosListaCampanhaCliente,  }) => {
       <div className="panel">
 
         <div className="panel-hdr mb-4">
-          <h2>
-            Lista de Produtos
-
-          </h2>
+          <h2> Lista de Produtos </h2>
         </div>
+        
         <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
           <HeaderTable
             globalFilterValue={globalFilterValue}
@@ -185,6 +187,9 @@ export const ActionListaCliente = ({ dadosListaCampanhaCliente,  }) => {
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -198,9 +203,9 @@ export const ActionListaCliente = ({ dadosListaCampanhaCliente,  }) => {
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
                 footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

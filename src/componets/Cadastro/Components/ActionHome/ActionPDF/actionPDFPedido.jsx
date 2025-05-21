@@ -1,17 +1,20 @@
-import { Fragment } from "react"
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
+import { Fragment, useRef } from "react"
 import { Modal } from "react-bootstrap"
 import { HeaderModal } from "../../../../Modais/HeaderModal/HeaderModal";
 import { ButtonTypeModal } from "../../../../Buttons/ButtonTypeModal";
 import { FooterModal } from "../../../../Modais/FooterModal/footerModal";
 import { ActionNotaPDF } from "./actionNotaPDF";
-import { ActionListaDetalhe } from "./actionListaDetalhe";
+import { useReactToPrint } from "react-to-print";
 
+export const ActionPDFPedido = ({ show, handleClose, dadosPedido, dadosDetalhePedido}) => {
 
-export const ActionPDFPedido = ({ show, handleClose, dadosPedido, dadosDetalhePedido }) => {
+  const dataTableRef = useRef(null);
 
-  // console.log(dadosPedido, 'dadosPedido');
+   const handlePrint = useReactToPrint({
+     content: () => dataTableRef.current,
+     documentTitle: 'Nota Fiscal de Pedido',
+   });
+
   return (
     <Fragment>
       <Modal
@@ -23,16 +26,46 @@ export const ActionPDFPedido = ({ show, handleClose, dadosPedido, dadosDetalhePe
       >
 
         <HeaderModal
-          title={"Transportador"}
-          subTitle={"Inclusão"}
+          title={"Impressão Pedido"}
+          subTitle={""}
           handleClose={handleClose}
         />
 
 
         <Modal.Body>
+          {/* <div>
 
-          <ActionNotaPDF dadosPedido={dadosPedido} />
-          <ActionListaDetalhe dadosDetalhePedido={dadosDetalhePedido} />
+            <ButtonTypeModal
+              onClickButtonType={() => handlePrint()}
+              textButton={"Imprimir"}
+              cor={"info"}
+            />
+          </div> */}
+          <div ref={dataTableRef} style={{ marginTop: "1rem" }}>
+
+            <ActionNotaPDF dadosPedido={dadosPedido}  dadosDetalhePedido={dadosDetalhePedido} />
+           
+            <div className="row" style={{ 
+                marginTop: "3.1rem", 
+              
+                textAlign: "center", 
+                width: '100%',
+                justifyContent: "center", 
+                display: "flex",
+            }} >
+
+              <div style={{  width: '50%'}} >
+                <hr size="1" style={{border: "1px dashed black", width: "300px"}} />
+                <p style={{ fontSize: "14px" }}> Assinatura Vendedor  </p> 
+              </div>
+              <div style={{  width: '50%' }} >
+                <hr size="1" style={{border: "1px dashed black", width: "300px"}} />
+                <p style={{ fontSize: "14px" }}> Assinatura Comprador </p>
+              </div>
+
+            </div>
+          </div>
+
         </Modal.Body>
         <FooterModal
           ButtonTypeFechar={ButtonTypeModal}
@@ -41,9 +74,9 @@ export const ActionPDFPedido = ({ show, handleClose, dadosPedido, dadosDetalhePe
           corFechar={"secondary"}
 
           ButtonTypeCadastrar={ButtonTypeModal}
-          onClickButtonCadastrar
-          textButtonCadastrar={"Salvar"}
-          corCadastrar={"success"}
+          onClickButtonCadastrar={() => handlePrint()}
+          textButtonCadastrar={"Imprimir"}
+          corCadastrar={"info"}
         />
       </Modal>
 

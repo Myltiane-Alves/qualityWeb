@@ -12,8 +12,6 @@ import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionListaConvenioDescontoFuncionario = ({ dadosVendasConvenioFuncionario }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
-  const [dadosQuebraCaixasModal, setDadosQuebraCaixasModal] = useState([])
-  const handleCloseModal = () => setModalVisivel(false);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
 
@@ -203,13 +201,13 @@ export const ActionListaConvenioDescontoFuncionario = ({ dadosVendasConvenioFunc
     {
       field: 'NumeroVenda',
       header: 'Nº Venda',
-      body: row => <th style={{ color: 'blue' }}> {row.NumeroVenda}</th>,
+      body: row => <p style={{ color: 'blue', width: '100px', margin: '0px' }}> {row.NumeroVenda}</p>,
       sortable: true,
     },
     {
       field: 'NOFANTASIA',
       header: 'Empresa',
-      body: row => <th style={{ color: 'blue' }}> {row.NOFANTASIA}</th>,
+      body: row => <p style={{ color: 'blue', width: '200px', margin: '0px' }}> {row.NOFANTASIA}</p>,
       sortable: true,
     },
     {
@@ -227,7 +225,7 @@ export const ActionListaConvenioDescontoFuncionario = ({ dadosVendasConvenioFunc
     {
       field: 'NOFUNCIONARIO',
       header: 'Funcionário',
-      body: row => <th style={{ color: 'blue' }}> {row.NOFUNCIONARIO}</th>,
+      body: row => <p style={{ color: 'blue', width: '250px', margin: '0px' }}> {row.NOFUNCIONARIO}</p>,
       footer: 'Total Valores',
       sortable: true,
     },
@@ -315,7 +313,7 @@ export const ActionListaConvenioDescontoFuncionario = ({ dadosVendasConvenioFunc
 
     <Fragment>
 
-      <div id="panel-1" className="panel">
+      <div className="panel">
         <div className="panel-hdr">
           <h2 >
             Lista Vendas Desconto Funcionários
@@ -339,11 +337,15 @@ export const ActionListaConvenioDescontoFuncionario = ({ dadosVendasConvenioFunc
             title="Vendas por Loja"
             value={dadosListaConvenio}
             globalFilter={globalFilterValue}
+            size="small"
             sortField="VRTOTALPAGO"
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50]}
+            rowsPerPageOptions={[10, 20, 50, 100, dadosListaConvenio.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -358,7 +360,7 @@ export const ActionListaConvenioDescontoFuncionario = ({ dadosVendasConvenioFunc
                 footer={coluna.footer}
                 sortable={coluna.sortable}
                 headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
                 bodyStyle={{ fontSize: '0.8rem' }}
 
               />

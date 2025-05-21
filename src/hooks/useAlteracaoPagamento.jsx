@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { toFloat } from "../utils/toFloat";
 
 
-export const usePagamento = (dadosDetalheRecebimentos) => {
+export const usePagamento = ({dadosDetalheRecebimentos, optionsModulos, usuarioLogado}) => {
   const [incluirCartao2, setIncluirCartao2] = useState(false);
   const [incluirCartao3, setIncluirCartao3] = useState(false);
   const [incluirPos2, setIncluirPos2] = useState(false);
@@ -50,23 +50,23 @@ export const usePagamento = (dadosDetalheRecebimentos) => {
   const [pagamentos, setPagamentos] = useState(false);
   const [itemAtual, setItemAtual] = useState(0);
 
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
+  // const [usuarioLogado, setUsuarioLogado] = useState(null)
 
-  const navigate = useNavigate();
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
+  // const navigate = useNavigate();
+  // useEffect(() => {
+  //   const usuarioArmazenado = localStorage.getItem('usuario');
 
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
+  //   if (usuarioArmazenado) {
+  //     try {
+  //       const parsedUsuario = JSON.parse(usuarioArmazenado);
+  //       setUsuarioLogado(parsedUsuario);;
+  //     } catch (error) {
+  //       console.error('Erro ao parsear o usuário do localStorage:', error);
+  //     }
+  //   } else {
+  //     navigate('/');
+  //   }
+  // }, [navigate]);
 
   useEffect(() => {
     const dataAtual = getDataAtual();
@@ -78,9 +78,9 @@ export const usePagamento = (dadosDetalheRecebimentos) => {
   useEffect(() => {
     setValorDistribuir(parseFloat(dadosDetalheRecebimentos[0]?.venda.VRTOTALVENDA));
     setItemAtual(dadosDetalheRecebimentos[0]?.vendaPagamento[0]?.pag.NITEM);
-    // console.log('itemAtual', dadosDetalheRecebimentos[0]);
+    
   }, [dadosDetalheRecebimentos]);
-  console.log('itemAtual fora da function', itemAtual);
+
   useEffect(() => {
     const dinheiro = toFloat(valorDinheiro);
     const pix = toFloat(valorPix);
@@ -98,6 +98,20 @@ export const usePagamento = (dadosDetalheRecebimentos) => {
   
 
   const enviarPagamento = async () => {
+    if(optionsModulos[0]?.ALTERAR == 'False') {
+      Swal.fire({
+        position: 'top-center',
+        icon: 'error',
+        title: 'Usuário não tem permissão para alterar o pagamento!',
+        showConfirmButton: false,
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        }
+      });
+      return false;
+    }
+
     let valorDinheiroPagamento = 0;
     let valorPixPagamento = 0;
     let valorCartaoPagamento = 0;

@@ -1,6 +1,5 @@
 import React, { Fragment, useRef, useState } from "react";
 import { formatMoeda } from "../../../../utils/formatMoeda";
-
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { toFloat } from "../../../../utils/toFloat";
@@ -9,12 +8,10 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
-import { dataFormatada } from "../../../../utils/dataFormatada";
 import { formatarPorcentagem } from "../../../../utils/formatarPorcentagem";
 
 export const ActionListaVendasPCJ = ({ dadosVendasPCJ }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -186,10 +183,13 @@ export const ActionListaVendasPCJ = ({ dadosVendasPCJ }) => {
             title="Lista de Vendas Por Período - PCJ Por Marca"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size={"small"}
             paginator
             rows={10}
             rowsPerPageOptions={[10, 20, 30, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             totalRecords={dados.length}
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
             showGridlines

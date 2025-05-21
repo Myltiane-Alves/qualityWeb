@@ -1,82 +1,77 @@
 import { Fragment, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom";
-import { AiOutlineSearch } from "react-icons/ai";
-import { get } from "../../../../api/funcRequest";
-import { InputField } from "../../../Buttons/Input";
 import { ActionMain } from "../../../Actions/actionMain";
+import { InputField } from "../../../Buttons/Input";
 import { ButtonType } from "../../../Buttons/ButtonType";
-import Swal from "sweetalert2";
-import { getDataAtual } from "../../../../utils/dataAtual";
-import { MdAdd } from "react-icons/md";
-import { ActionListaOrdemTransferencia } from "./actionListaOrdemTransferencia";
 import { InputSelectAction } from "../../../Inputs/InputSelectAction";
+import { AiOutlineSearch } from "react-icons/ai";
+import { MdAdd } from "react-icons/md";
+import { get } from "../../../../api/funcRequest";
+import { ActionListaOrdemTransferencia } from "./ActionListaOrdemTransferencia";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { ActionIncluirOTModal } from "./ActionIncluirModalOT/actionIncluirOTModal";
+import Swal from "sweetalert2";
 
 
-export const ActionPesquisaOT = () => {
+export const ActionPesquisaOT = ({usuarioLogado, ID, optionsEmpresas}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
-  // const [dadosConferencia, setDadosConferencia] = useState([]);
+  const [modalVisivel, setModalVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
+  const [dataInicioEntrega, setDataInicioEntrega] = useState('')
+  const [dataFimEntrega, setDataFimEntrega] = useState('')
   const [dataPesquisaFim, setDataPesquisaFim] = useState('')
-  const [empresaSelecionadaOrigem, setEmpresaSelecionadaOrigem] = useState('')
-  const [empresaSelecionadaDestino, setEmpresaSelecionadaDestino] = useState('')
-  const [empresas, setEmpresas] = useState([])
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('')
+  const [valueLojaOrigem, setValueLojaOrigem] = useState('')
+  const [ajusteQuantidade, setAjusteQuantidade] = useState(0)
+  const [rotinaSelecionada, setRotinaSelecionada] = useState('')
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
 
-  const navigate = useNavigate();
+
 
   useEffect(() => {
-    const dataInicio = getDataAtual()
-    const dataFim = getDataAtual()
-    setDataPesquisaInicio(dataInicio)
-    setDataPesquisaFim(dataFim)
-    getListaEmpresas()
-  
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
+    const timer = setTimeout(() => {
+      if (usuarioLogado && usuarioLogado.NOFANTASIA) {
+        setValueLojaOrigem(usuarioLogado.NOFANTASIA);
       }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
+    }, 3000);
 
-  useEffect(() => {
+    return () => clearTimeout(timer);
   }, [usuarioLogado]);
 
-  const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas } = useQuery(
-    'listaEmpresasIformatica',
+
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
     async () => {
-      const response = await get(`/listaEmpresasControleTransferencia`);
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
       return response.data;
     },
-    { staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
   );
 
-  const getListaEmpresas = async () => {
-    try {
-      const response = await get(`/listaEmpresasControleTransferencia`)
-      if (response.data) {
-        setEmpresas(response.data)
-      }
-    } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
-    }
-  }
+  const { data: dadosEmpresa = [], error: errorMarcas, isLoading: isLoadingMarcas } = useQuery(
+    'empresas',
+    async () => {
+      const response = await get(`/empresas`);
+      return response.data;
+    },
+    { staleTime: 5 * 60 * 1000 }
+  );
+  const { data: dadosMovimentacao = [], error: errorMovimentacao, isLoading: isLoadingMovimentacao } = useQuery(
+    'rotinaMovimentacao',
+    async () => {
+      const response = await get(`/rotinaMovimentacao`);
+      return response.data;
+    },
+    { staleTime: 5 * 60 * 1000 }
+  );
 
-  const fetchListaOT = async () => {
+  const fetchListaConferencia = async () => {
     try {
       
-      const urlApi = `/resumo-ordem-transferencia?idEmpresaDestino=${empresaSelecionadaDestino}&idEmpresaOrigem=${usuarioLogado.IDEMPRESA}&idTipoFiltro=2&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/resumo-ordem-transferencia?idTipoFiltro=2&idEmpresaOrigem=${usuarioLogado.IDEMPRESA}&idEmpresaDestino=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -113,63 +108,41 @@ export const ActionPesquisaOT = () => {
       fecharAnimacaoCarregamento();
     }
   };
-
-  const { data: dadosConferencia = [], error: erroQuality, isLoading: isLoadingQuality, refetch: refetchListaOT } = useQuery(
-    'resumo-ordem-transferencia',
-    () => fetchListaOT(usuarioLogado.IDEMPRESA, empresaSelecionadaDestino, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
-    { enabled: Boolean(empresaSelecionadaDestino), staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
+   
+  const { data: dadosConferencia = [], error: errorVouchers, isLoading: isLoadingVouchers, refetch: refetchListaConferencia } = useQuery(
+    ['resumo-ordem-transferencia', usuarioLogado?.IDEMPRESA, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, rotinaSelecionada, dataInicioEntrega, dataFimEntrega, currentPage, pageSize],
+    () => fetchListaConferencia(usuarioLogado?.IDEMPRESA, empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, rotinaSelecionada, dataInicioEntrega, dataFimEntrega, currentPage, pageSize),
+    {
+      enabled: Boolean(usuarioLogado?.IDEMPRESA), 
+    }
   );
 
-  // const getListaConferencia = async () => {
-  //   if(usuarioLogado && usuarioLogado.IDEMPRESA) {
-  //     try {
-        
-  //       const response = await get(`/resumoOrdemTransferenciaGerencia?idEmpresaDestino=${empresaSelecionadaDestino}&idEmpresaOrigem=${usuarioLogado.IDEMPRESA}&idTipoFiltro=&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`)
-  //       if (response.data) {
-  //         setDadosConferencia(response.data)
-  //         console.log(response.data, 'dados da tabela')
-  //       }
-  //     } catch (error) {
-  //       console.log(error, "não foi possivel pegar os dados da tabela ")
-  //     }
-  //   }
-  // }
-  // const getListaConferenciaSelecionada = async () => {
-  //   if(usuarioLogado && usuarioLogado.IDEMPRESA) {
-  //     try {
-  //       const response = await get(`/resumoOrdemTransferenciaGerencia?idTipoFiltro=2&idEmpresaLogin=${usuarioLogado.IDEMPRESA}&idLojaDestino=${empresaSelecionadaDestino}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`)
-  //       if (response.data) {
-  //         setDadosConferencia(response.data)
-  //         console.log(response.data, 'dados da tabela')
-  //       }
-  //     } catch (error) {
-  //       console.log(error, "não foi possivel pegar os dados da tabela ")
-  //     }
-  //   }
-  // }
 
-
-  const handleSelectEmpresaOrigem = (e) => {
-    setEmpresaSelecionadaOrigem(e.value);
-  }
-
-  const handleSelectEmpresaDestino = (e) => {
-    setEmpresaSelecionadaDestino(e.value);
+  const handleSelectEmpresa = (e) => {
+    setEmpresaSelecionada(e.value);
   }
 
   const handleClick = () => {
-  
     setCurrentPage(prevPage => prevPage + 1);
-    refetchListaOT()
-      setTabelaVisivel(true);
-
-      // Swal.fire({
-      //   icon: 'info',
-      //   title: 'Aviso',
-      //   text: 'Verifique os Campos de Pesquisa!',
-      // })
-    
+    refetchListaConferencia()
+    setTabelaVisivel(true);
+  
   }
+
+  const showModal = () => {
+    if(optionsModulos[0]?.CRIAR == 'False') {
+
+      setModalVisivel(true)
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para criar uma nova Ordem de Transferência.',
+        timer: 3000,
+      });
+    }
+  }
+
 
   return (
     <Fragment>
@@ -177,49 +150,67 @@ export const ActionPesquisaOT = () => {
       <ActionMain
         linkComponentAnterior={["Home"]}
         linkComponent={["Ordem de Transferência"]}
-        title="Controle de Transferência"
-        subTitle={usuarioLogado?.NOFANTASIA}
+        title="Controle de Ordem de Transferência"
+        subTitle="Nome da Loja"
+
         InputFieldDTInicioComponent={InputField}
-        labelInputFieldDTInicio={"Data Início"}
+        labelInputFieldDTInicio={"Data Inicio"}
         valueInputFieldDTInicio={dataPesquisaInicio}
         onChangeInputFieldDTInicio={e => setDataPesquisaInicio(e.target.value)}
 
         InputFieldDTFimComponent={InputField}
         labelInputFieldDTFim={"Data Fim"}
         valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
+        onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}       
+        
+        InputFieldLojaOrigemComponent={InputField}
+        labelInputFieldLojaOrigem={"Loja Origem"}
+        optionsFieldLojaOrigemComponent
+        valueInputFieldLojaOrigem={usuarioLogado && usuarioLogado.NOFANTASIA}
+        onChangeInputFieldLojaOrigem
+
+        InputSelectEmpresaComponent={InputSelectAction}
+        optionsEmpresas={dadosEmpresa.map((empresa) => ({
+          value: empresa.IDEMPRESA,
+          label: empresa.NOFANTASIA,
+        }))}
+        labelSelectEmpresa={"Loja Destino"}
+        onChangeSelectEmpresa={handleSelectEmpresa}
+        valueSelectEmpresa={empresaSelecionada}
 
         InputSelectGrupoComponent={InputSelectAction}
-        labelSelectGrupo={"Loja Destino"}
+        labelSelectGrupo={"Rotina"}    
         optionsGrupos={[
-          { value: '0', label: 'Selecione a Loja Destino'},
-          ...empresas.map((empresa) => ({
-            value: empresa.IDEMPRESA,
-            label: empresa.NOFANTASIA,
-        }))]}
-
-        valueSelectGrupo={empresaSelecionadaDestino}
-        onChangeSelectGrupo={handleSelectEmpresaDestino}
-
-        InputSelectEmpresaComponent={InputField}
-        labelSelectEmpresa={"Loja Origem"}
-        valueSelectEmpresa={usuarioLogado?.NOFANTASIA}
-        onChangeSelectEmpresa={handleSelectEmpresaOrigem}
+          {value: '', label: 'Selecione a Rotina'},
+          ...dadosMovimentacao.map((item) => {
+            return {
+              value: item.IDROTINA,
+              label: item.DESCROTINA
+            }
+          })
+        ]}
+        valueSelectGrupo={rotinaSelecionada}
+        onChangeSelectGrupo={e => setRotinaSelecionada(e.value)}
 
         ButtonSearchComponent={ButtonType}
         onButtonClickSearch={handleClick}
         linkNomeSearch={"Pesquisar"}
-        IconSearch={AiOutlineSearch}
         corSearch={"primary"}
+        IconSearch={AiOutlineSearch}
 
         ButtonTypeCadastro={"Nova OT"}
         linkNome={"Nova OT"}
-        onButtonClickCadastro={""}
+        onButtonClickCadastro={showModal}
         corCadastro={"success"}
         IconCadastro={MdAdd}
       />
+     
+      <ActionListaOrdemTransferencia dadosConferencia={dadosConferencia} empresaSelecionada={empresaSelecionada}/>
 
-      <ActionListaOrdemTransferencia dadosConferencia={dadosConferencia} usuarioLogado={usuarioLogado} empresaSelecionadaOrigem={empresaSelecionadaOrigem}/>
+      <ActionIncluirOTModal
+        show={modalVisivel}
+        handleClose={() => setModalVisivel(false)}
+      />
 
     </Fragment>
   )

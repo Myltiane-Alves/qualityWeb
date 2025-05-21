@@ -52,8 +52,8 @@ export const ActionListaSaldoLoja = ({ dadosSaldoExtratos }) => {
       { wpx: 200, caption: 'Empresa' },
       { wpx: 100, caption: 'Saldo' },
       { wpx: 100, caption: 'Conta Banco' },
-      
-    ]; 
+
+    ];
     XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A1' });
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Saldo Conta Correntes');
@@ -64,8 +64,7 @@ export const ActionListaSaldoLoja = ({ dadosSaldoExtratos }) => {
     const saldoPositivo = parseFloat(item.VALORTOTALDINHEIRO) + parseFloat(item.VALORTOTALFATURA)
     const saldoNegativo = parseFloat(item.VALORTOTALDESPESA) + parseFloat(item.VALORTOTALDEPOSITO) + parseFloat(item.VALORTOTALADINAT)
     const ajuste = parseFloat(item.VALORTOTALDEBITO) - parseFloat(item.VALORTOTALCREDITO);
-
-    const saldoAtualizado = saldoPositivo - saldoNegativo + ajuste - parseFloat(item.TOTALQUEBRA);
+    const saldoAtualizado = saldoPositivo - saldoNegativo + ajuste - toFloat(item.TOTALQUEBRA);
 
     return {
       IDEMPRESA: item.IDEMPRESA,
@@ -120,7 +119,7 @@ export const ActionListaSaldoLoja = ({ dadosSaldoExtratos }) => {
     <Fragment>
       <div>
 
-        <table  className="table table-bordered table-hover table-responsive-lg table-striped w-100" >
+        <table className="table table-bordered table-hover table-responsive-lg table-striped w-100" >
           <thead >
             <tr>
               <th>Informativo</th>
@@ -151,14 +150,14 @@ export const ActionListaSaldoLoja = ({ dadosSaldoExtratos }) => {
             <h2>Saldo de Contas Correntes das Lojas</h2>
           </div>
           <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-          <HeaderTable
-            globalFilterValue={globalFilterValue}
-            onGlobalFilterChange={onGlobalFilterChange}
-            handlePrint={handlePrint}
-            exportToExcel={exportToExcel}
-            exportToPDF={exportToPDF}
-          />
-        </div>
+            <HeaderTable
+              globalFilterValue={globalFilterValue}
+              onGlobalFilterChange={onGlobalFilterChange}
+              handlePrint={handlePrint}
+              exportToExcel={exportToExcel}
+              exportToPDF={exportToPDF}
+            />
+          </div>
           <div className="card" ref={dataTableRef}>
 
             <DataTable

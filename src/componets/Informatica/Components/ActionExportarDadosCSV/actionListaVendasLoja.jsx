@@ -8,7 +8,7 @@ import { ButtonTable } from "../../../ButtonsTabela/ButtonTable"
 import { GrView } from "react-icons/gr"
 import { FaCashRegister } from "react-icons/fa";
 import { ActionDetalheVendaModal } from "../Modal/actionDetalheVendaModal";
-import { ActionRelacaoRecebimentosModal } from "../Modal/actionRelacaoRecebimentosModal";
+import { ActionRelacaoRecebimentosModal } from "../Modal/ActionRecebimento/actionRelacaoRecebimentosModal";
 import HeaderTable from "../../../Tables/headerTable";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -206,6 +206,8 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
                 iconSize={18}
                 iconColor={"#fff"}
                 cor={"primary"}
+                width="30px"
+                height="30px"
 
               />
 
@@ -218,6 +220,8 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
                 iconSize={18}
                 iconColor={"#fff"}
                 cor={"info"}
+                width="30px"
+                height="30px"
               />
 
             </div>
@@ -294,6 +298,9 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
           >
             {colunasVendas.map(coluna => (
@@ -311,7 +318,7 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
         </div>
       </div>
 
-      <ActionDetalheVendaModal
+       <ActionDetalheVendaModal
         show={modalDetalheVendasVisivel}
         handleClose={() => setModalDetalheVendasVisivel(false)}
         dadosVendas={dadosVendas}
@@ -321,7 +328,7 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
         show={modalPagamentoVisivel}
         handleClose={() => setModalPagamentoVisivel(false)}
         dadosPagamentoModal={dadosPagamentoModal}
-      />
+      /> 
     </Fragment>
   )
 }

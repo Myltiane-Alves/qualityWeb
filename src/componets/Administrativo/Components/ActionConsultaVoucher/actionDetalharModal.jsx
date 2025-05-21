@@ -25,25 +25,25 @@ export const ActionDetalharModal = ({ show, handleClose, dadosDetalheVoucher }) 
     {
       field: 'NUCODBARRAS',
       header: 'Cod. Barras',
-      body: row => <p style={{color: 'blue'}}>{row.NUCODBARRAS}</p>,
+      body: row => <th style={{color: 'blue'}}>{row.NUCODBARRAS}</th>,
       sortable: true,
     },
     {
       field: 'DSPRODUTO',
       header: 'Produto',
-      body: row => <p style={{color: 'blue'}}>{row.DSPRODUTO}</p>,
+      body: row => <th style={{color: 'blue'}}>{row.DSPRODUTO}</th>,
       sortable: true,
     },
     {
       field: 'QTD',
       header: 'Quantidade',
-      body: row => <p style={{color: 'blue'}}>{row.QTD}</p>,
+      body: row => <th style={{color: 'blue'}}>{row.QTD}</th>,
       sortable: true,
     },
     {
       field: 'VRTOTALLIQUIDO',
       header: 'Valor',
-      body: row => <p style={{color: 'blue'}}>{formatMoeda(row.VRTOTALLIQUIDO)}</p>,
+      body: row => <th style={{color: 'blue'}}>{formatMoeda(row.VRTOTALLIQUIDO)}</th>,
       sortable: true,
     },
     

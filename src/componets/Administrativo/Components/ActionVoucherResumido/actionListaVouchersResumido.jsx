@@ -6,7 +6,7 @@ import { MdOutlineLocalPrintshop } from "react-icons/md";
 import { CiEdit } from "react-icons/ci";
 import { GrFormView } from "react-icons/gr";
 import { get } from "../../../../api/funcRequest";
-import { dataFormatada } from "../../../../utils/dataFormatada";
+import { dataFormatada, dataHoraFormatada } from "../../../../utils/dataFormatada";
 import { formatMoeda } from "../../../../utils/formatMoeda";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import HeaderTable from "../../../Tables/headerTable";
@@ -131,7 +131,7 @@ export const ActionListaVouchersResumido = ({dadosVoucher}) => {
     {
       field: 'DTINVOUCHER',
       header: 'Data Emissão',
-      body: row => <th>{dataFormatada(row.DTINVOUCHER)}</th>,
+      body: row => <th>{row.DTINVOUCHER}</th>,
       sortable: true,
     },
     {
@@ -155,7 +155,7 @@ export const ActionListaVouchersResumido = ({dadosVoucher}) => {
     {
       field: 'DTOUTVOUCHER',
       header: 'Data Recebida',
-      body: row => <th>{dataFormatada(row.DTOUTVOUCHER)}</th>,
+      body: row => <th>{row.DTOUTVOUCHER}</th>,
       sortable: true,
     },
     {
@@ -247,6 +247,9 @@ export const ActionListaVouchersResumido = ({dadosVoucher}) => {
             paginator={true}
             rows={10}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

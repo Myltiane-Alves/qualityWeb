@@ -75,6 +75,7 @@ export const ActionPDFPedido = ({ show, handleClose, dadosPedido }) => {
       TPARQUIVO: item.TPARQUIVO,
       FABRICANTE: item.FABRICANTE,
     }
+    
   })
   const colunasPedidos = [
     {

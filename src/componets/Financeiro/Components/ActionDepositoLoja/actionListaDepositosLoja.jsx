@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { formatMoeda } from "../../../../utils/formatMoeda";
@@ -7,11 +7,12 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
+import { ColumnGroup } from "primereact/columngroup";
+import { Row } from "primereact/row";
 
 
 export const ActionListaDepositosLoja = ({ dadosListaDepositosLoja }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size] = useState('small')
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -141,10 +142,22 @@ export const ActionListaDepositosLoja = ({ dadosListaDepositosLoja }) => {
     }
   ]
 
+  const footerGroup = (
+    <ColumnGroup>
+
+      <Row> 
+        <Column footer="Total de Depósitos" colSpan={3} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
+        <Column footer={formatMoeda(calcularTotalDeposito())} colSpan={3} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+       
+        <Column footer={""} colSpan={4}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+      </Row>
+    </ColumnGroup>
+  )
+
   return (
 
     <Fragment>
-      <div className="penel">
+      <div className="panel" >
         <div className="panel-hdr">
           <h2>Depósitos por Loja</h2>
         </div>
@@ -163,11 +176,15 @@ export const ActionListaDepositosLoja = ({ dadosListaDepositosLoja }) => {
             title="Depósitos apor Loja"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator={true}
+            footerColumnGroup={footerGroup}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

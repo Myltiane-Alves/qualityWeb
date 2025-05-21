@@ -15,11 +15,10 @@ import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../ut
 import { useQuery } from "react-query";
 
 
-export const ActionPesquisaVendasEstrutura = () => {
+export const ActionPesquisaVendasEstrutura = ({usuarioLogado, ID, optionsEmpresas }) => {
   const [tabelaProdutosMaisVendidos, setTabelaProdutosMaisVendidos] = useState(false);
   const [tabelaVendasPorVendedor, setTabelaVendasPorVendedor] = useState(false);
   const [tabelaVendasPorEstrutura, setTabelaVendasPorEstrutura] = useState(false);
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [grupoSelecionado, setGrupoSelecionado] = useState('');
@@ -29,32 +28,16 @@ export const ActionPesquisaVendasEstrutura = () => {
   const [codProduto, setCodProduto] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
-
-
-  const navigate = useNavigate();
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
   const animatedComponents = makeAnimated();
 
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
 
   useEffect(() => {
     const dataInicial = getDataAtual()
     const dataFinal = getDataAtual()
     setDataPesquisaInicio(dataInicial)
     setDataPesquisaFim(dataFinal)
-  }, [usuarioLogado]);
+  }, []);
 
   const { data: dadosFornecedores = [], error: errorFornecedor, isLoading: isLoadingFornecedor } = useQuery(
     'lista-fornecedor-produto',
@@ -92,9 +75,19 @@ export const ActionPesquisaVendasEstrutura = () => {
     { staleTime: 5 * 60 * 1000, cacheTime: 10 * 60 * 1000 }
   );
 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
+
   const fetchVendasEstrutura = async () => {
     try {
-      
+      const idEmpresa = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
       const urlApi = `/vendas-por-estrutura?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idEmpresa=${usuarioLogado.IDEMPRESA}&descricaoProduto=${codProduto}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idSubGrupo=${subGrupoSelecionado}&idMarcaProduto=${marcaSelecionada}`;
       const response = await get(urlApi);
       
@@ -142,7 +135,7 @@ export const ActionPesquisaVendasEstrutura = () => {
   const fetchProdutosMaisVendidos = async () => {
     try {
       
-      const urlApi = `/produtos-mais-vendidos?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idLojaPesquisaVenda=${usuarioLogado.IDEMPRESA}&descricaoProduto=${codProduto}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}&idMarca=${marcaSelecionada}`;
+      const urlApi = `/produtos-mais-vendidos?dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&idEmpresa=${usuarioLogado.IDEMPRESA}&descricaoProduto=${codProduto}&idFornecedor=${fornecedorSelecionado}&idGrupo=${grupoSelecionado}&idGrade=${subGrupoSelecionado}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -182,7 +175,7 @@ export const ActionPesquisaVendasEstrutura = () => {
 
   const { data: dadosProdutosMaisVendidos = [], error: erroProdutosMaisVendidos , isLoading: isLoadingProdutosMaisVendidos, refetch: refetchProdutosMaisVendidos } = useQuery(
     'produtos-mais-vendidos',
-    () => fetchProdutosMaisVendidos(usuarioLogado.IDEMPRESA, dataPesquisaInicio, dataPesquisaFim, codProduto, fornecedorSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, currentPage, pageSize),
+    () => fetchProdutosMaisVendidos(usuarioLogado.IDEMPRESA, dataPesquisaInicio, dataPesquisaFim, codProduto, fornecedorSelecionado, grupoSelecionado, subGrupoSelecionado, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
   );
 
@@ -236,18 +229,15 @@ export const ActionPesquisaVendasEstrutura = () => {
 
   const handleChangeGrupos = (selectedOptions) => {
     const values = selectedOptions.map(option => option.value);
-
     setGrupoSelecionado(values);
   };
   const handleChangeSubGrupos = (selectedOptions) => {
     const values = selectedOptions.map(option => option.value);
-
     setSubGrupoSelecionado(values);
   };
   
   const handleChangeFornecedor = (selectedOptions) => {
     const values = selectedOptions.map(option => option.value);
-
     setFornecedorSelecionado(values);
   };
   const handleChangeMarca = (selectedOptions) => {
@@ -376,7 +366,6 @@ export const ActionPesquisaVendasEstrutura = () => {
         onButtonClickCancelar={handleClickProdutosVendidos}
         corCancelar={"warning"}
         IconCancelar={AiOutlineSearch}
-
 
       />
 

@@ -3,31 +3,30 @@ import { formatMoeda } from "../../../../utils/formatMoeda";
 import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionListaAjusteExtratos = ({dadosExtratoLojaPeriodo, dados}) => {
-  const dadosExtrato = dadosExtratoLojaPeriodo.flatMap((item) => 
-    item.ajusteextrato.map((ajusteextrato) => {
+  const dadosExtrato = dadosExtratoLojaPeriodo.map((item) => {
     // let saldoAnterior = toFloat(dados[0].saldoAnteriorDepositos) 
-    let saldoAnterior = toFloat(dados[0]?.totalSaldoAnteriorExtrato) 
+    let saldoAnterior = toFloat(dados[0].totalSaldoAnteriorExtrato) 
 
-    // if(ajusteextrato.STCANCELADO == 'False')  {
-    //   if (ajusteextrato.VRCREDITO > 0) {
-    //     saldoAnterior - toFloat(ajusteextrato.VRCREDITO)
-    //   } else {
-    //     saldoAnterior + toFloat(ajusteextrato.VRDEBITO)
-    //   }
-    //   return saldoAnterior
-    // }
+    if(item.ajusteextrato[0]?.STCANCELADO == 'False')  {
+      if (item.ajusteextrato[0]?.VRCREDITO > 0) {
+        saldoAnterior - toFloat(item.ajusteextrato[0]?.VRCREDITO)
+      } else {
+        saldoAnterior + toFloat(item.ajusteextrato[0]?.VRDEBITO)
+      }
+      return saldoAnterior
+    }
 
     return {
-      IDAJUSTEEXTRATO: ajusteextrato.IDAJUSTEEXTRATO,
-      DTCADASTROFORMATADA: ajusteextrato.DTCADASTROFORMATADA,
-      VRDEBITO: toFloat(ajusteextrato.VRDEBITO),
-      VRCREDITO: toFloat(ajusteextrato.VRCREDITO),
-      HISTORICO: ajusteextrato.HISTORICO,
-      STCANCELADO: ajusteextrato.STCANCELADO,
+      IDAJUSTEEXTRATO: item.ajusteextrato[0]?.IDAJUSTEEXTRATO,
+      DTCADASTROFORMATADA: item.ajusteextrato[0]?.DTCADASTROFORMATADA,
+      VRDEBITO: toFloat(item.ajusteextrato[0]?.VRDEBITO),
+      VRCREDITO: toFloat(item.ajusteextrato[0]?.VRCREDITO),
+      HISTORICO: item.ajusteextrato[0]?.HISTORICO,
+      STCANCELADO: item.ajusteextrato[0]?.STCANCELADO,
       saldoAnterior: toFloat(saldoAnterior),
     }
   })
-)
+
 
   return (
     <Fragment>

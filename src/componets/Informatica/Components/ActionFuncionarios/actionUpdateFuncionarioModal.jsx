@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 
+
 export const ActionUpdateFuncionarioModal = ({ show, handleClose, dadosAtualizarFuncionarios }) => {
   const { register, handleSubmit, errors } = useForm();
   const storedModule = localStorage.getItem('moduloselecionado');

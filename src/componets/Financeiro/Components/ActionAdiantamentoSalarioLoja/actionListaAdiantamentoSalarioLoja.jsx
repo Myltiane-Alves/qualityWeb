@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable"
 import { formatMoeda } from "../../../../utils/formatMoeda"
 import { dataFormatada } from "../../../../utils/dataFormatada"
@@ -11,20 +11,20 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { post, put } from "../../../../api/funcRequest"
 import { BsTrash3 } from "react-icons/bs"
+import { ColumnGroup } from "primereact/columngroup";
+import { Row } from "primereact/row";
+import { useAtivarCancelar } from "./hooks/useAtivarCancelar";
 
 
 
-export const ActionListaAdiantamentoSalarioLoja = ({ dadosAdiantamentoFuncionarios }) => {
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [ipUsuario, setIpUsuario] = useState('');
+export const ActionListaAdiantamentoSalarioLoja = ({ dadosAdiantamentoFuncionarios, optionsModulos, usuarioLogado, handleClick }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small')
   const dataTableRef = useRef();
-  const navigate = useNavigate();
+  const {
+    handleAtivar,
+    handleCancelar,
+  } = useAtivarCancelar({ usuarioLogado, optionsModulos, handleClick });
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -89,9 +89,8 @@ export const ActionListaAdiantamentoSalarioLoja = ({ dadosAdiantamentoFuncionari
     }
   }) : [];
 
-  const dadosAdiantamentos = Array.isArray(dadosAdiantamentoFuncionarios) ? dadosAdiantamentoFuncionarios.map((item, index) => {
+  const dadosAdiantamentos = dadosAdiantamentoFuncionarios.map((item, index) => {
     let contador = index + 1;
-  
     return {
       contador,
       NOFANTASIA: item.NOFANTASIA,
@@ -102,8 +101,9 @@ export const ActionListaAdiantamentoSalarioLoja = ({ dadosAdiantamentoFuncionari
       STATIVO: item.STATIVO,
       IDADIANTAMENTOSALARIO: item.IDADIANTAMENTOSALARIO,
     }
-  }) : [];
+  });
 
+  console.log(dadosAdiantamentoFuncionarios)
   const calcularTotal = (field, condition = null) => {
     return dadosAdiantamentos.reduce((total, item) => {
       if (condition && !condition(item)) {
@@ -123,41 +123,41 @@ export const ActionListaAdiantamentoSalarioLoja = ({ dadosAdiantamentoFuncionari
     {
       field: 'contador',
       header: 'Nº',
-      body: row => <p style={{ color: 'blue' }}>{row.contador}</p>,
+      body: row => <th style={{ color: 'blue' }}>{row.contador}</th>,
       sortable: true,
       width: "10%"
     },
     {
       field: 'NOFANTASIA',
       header: 'Empresa',
-      body: row => <p style={{ color: 'blue' }}>{row.NOFANTASIA}</p>,
+      body: row => <th style={{ color: 'blue' }}>{row.NOFANTASIA}</th>,
       sortable: true,
       width: "10%"
     },
     {
       field: 'DTLANCAMENTO',
       header: 'Data Mov',
-      body: row => <p style={{ color: 'blue' }}>{dataFormatada(row.DTLANCAMENTO)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{row.DTLANCAMENTO}</th>,
       sortable: true,
     },
     {
       field: 'NOFUNCIONARIO',
       header: 'Funcionário',
-      body: row => <p style={{ color: 'blue' }}>{row.NOFUNCIONARIO}</p>,
+      body: row => <th style={{ color: 'blue' }}>{row.NOFUNCIONARIO}</th>,
       sortable: true,
     },
     {
       field: 'NUCPF',
       header: 'CPF',
-      body: row => <p style={{ color: 'blue' }}>{row.NUCPF}</p>,
+      body: row => <th style={{ color: 'blue' }}>{row.NUCPF}</th>,
       footer: 'Total Lançamentos',
       sortable: true,
     },
     {
       field: 'VRVALORDESCONTO',
       header: 'Valor',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.VRVALORDESCONTO)}</p>,
-      footer: () => <p> {formatMoeda(calcularTotalValorDesconto())} </p> , 
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.VRVALORDESCONTO)}</th>,
+      footer: () => <th> {formatMoeda(calcularTotalValorDesconto())} </th> , 
       sortable: true,
     },
     {
@@ -185,8 +185,10 @@ export const ActionListaAdiantamentoSalarioLoja = ({ dadosAdiantamentoFuncionari
                   titleButton={"Cancelar Adiantamento"}
                   cor={"danger"}
                   Icon={BsTrash3}
-                  iconSize={18}
-                  onClickButton={() => handleClickAtivar(row.IDADIANTAMENTOSALARIO, false)}
+                  iconSize={25}
+                  width="35px"
+                  height="35px"
+                  onClickButton={() => handleClickCancelar(row)}
                 />
               </div>
             </div>
@@ -203,8 +205,10 @@ export const ActionListaAdiantamentoSalarioLoja = ({ dadosAdiantamentoFuncionari
                   titleButton={"Ativar Adiantamento"}
                   cor={"success"}
                   Icon={FaCheck}
-                  iconSize={18}
-                  onClickButton={() => handleClickAtivar(row.IDADIANTAMENTOSALARIO, true)}
+                  iconSize={25}
+                  width="35px"
+                  height="35px"
+                  onClickButton={() => handleClickAtivar(row)}
                 />
               </div>
             </div>
@@ -214,98 +218,64 @@ export const ActionListaAdiantamentoSalarioLoja = ({ dadosAdiantamentoFuncionari
       },
     },
   ]
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    getIPUsuario();
-  }, [usuarioLogado]);
-
-  const getIPUsuario = async () => {
-    const response = await axios.get('http://ipwho.is/')
-    if(response.data) {
-      setIpUsuario(response.data.ip);
-    }
-    return response.data;
-  }
-
-
-  const handleAtivar = async (IDADIANTAMENTOSALARIO, status) => {
-    Swal.fire({
-      title: `Tem Certeza que Deseja ${status ? 'Ativar' : 'Cancelar'} o Adiantamento?`,
-      text: 'Você não poderá reverter a ação!',
-      icon: 'warning',
-      showCancelButton: true,
-      showConfirmButton: true,
-      cancelButtonText: 'Cancelar',
-      confirmButtonText: 'OK',
-      customClass: {
-        confirmButton: 'btn btn-primary',
-        cancelButton: 'btn btn-danger',
-        loader: 'custom-loader'
-      },
-      buttonsStyling: false
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const putData = {  
-            IDADIANTAMENTOSALARIO: IDADIANTAMENTOSALARIO,
-            STATIVO: status ? 'True' : 'False'
-          }
-          const response = await put('/atualizacao-adiantamento-status', putData)
-          const textDados = JSON.stringify(putData)
-          let textoFuncao = status ? 'FINANCEIRO/ATIVADO O ADIANTAMENTO SALARIAL' : 'FINANCEIRO/CANCELADO O ADIANTAMENTO SALARIAL';
-
-          const postData = {  
-            IDFUNCIONARIO: usuarioLogado.id,
-            PATHFUNCAO:  textoFuncao,
-            DADOS: textDados,
-            IP: ipUsuario
-          }
-  
-          const responsePost = await post('/log-web', postData)
-
-          Swal.fire({
-            title: status ? 'Ativado' : 'Cancelado',
-            text: `Adiantamento ${status ? 'ativado' : 'cancelado'} com Sucesso`,
-            icon: 'success'
-          });
-
-          return responsePost;
-        } catch (error) {
-          Swal.fire({
-            title: status ? 'Ativado' : 'Cancelado',
-            text: `Adiantamento ${status ? 'ativado' : 'cancelado'} com Sucesso`,
-            icon: 'success'
-          });
-        }
-      }
-    })
-  }
   
   const handleClickAtivar = (row) => {
-    if (row && row.IDADIANTAMENTOSALARIO) {
-      handleAtivar(row.IDADIANTAMENTOSALARIO, row.STATIVO);
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.IDADIANTAMENTOSALARIO) {
+        handleAtivar(row.IDADIANTAMENTOSALARIO);
+      }
+    } else {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Acesso Negado!',
+        text: 'Você não tem permissão para editar esta despesa.',
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: {
+          container: 'custom-swal',
+        }
+      })
     }
   };
+
+  const handleClickCancelar = (row) => {
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.IDADIANTAMENTOSALARIO) {
+        handleCancelar(row.IDADIANTAMENTOSALARIO);
+      }
+    } else {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Acesso Negado!',
+        text: 'Você não tem permissão para editar esta despesa.',
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: {
+          container: 'custom-swal',
+        }
+      })
+    }
+  };
+
+  
+  const footerGroup = (
+    <ColumnGroup>
+
+      <Row> 
+        <Column footer="Total Lançamentos" colSpan={5} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem', textAlign: 'center' }} />
+        <Column footer={formatMoeda(calcularTotalValorDesconto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }} /> 
+        <Column footer={""} colSpan={2}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}/>
+      </Row>
+    </ColumnGroup>
+  )
+   
 
   return (
 
     <Fragment>
-      <div className="panel">
+      <div className="panel" >
         <div className="panel-hdr">
           <h2>Adiantamento Salarial das Lojas</h2>
         </div>
@@ -324,12 +294,15 @@ export const ActionListaAdiantamentoSalarioLoja = ({ dadosAdiantamentoFuncionari
             title="Vendas por Loja"
             value={dadosAdiantamentos}
             globalFilter={globalFilterValue}
-            size={size}
-            sortField="VRTOTALPAGO"
+            size="small"
+            footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50, 100, dadosAdiantamentos.length  ]}
+            rowsPerPageOptions={[10, 20, 50, 100, dadosAdiantamentos.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
@@ -342,9 +315,9 @@ export const ActionListaAdiantamentoSalarioLoja = ({ dadosAdiantamentoFuncionari
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}

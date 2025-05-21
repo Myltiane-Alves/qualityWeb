@@ -103,7 +103,7 @@ export const ActionImprimirEtiquetaOT = ({ show, handleClose, dadosImprimirOT })
                       justifyContent: 'center',
                       alignContent: 'center',
 
-              
+                      
                     }} 
                   >
                    

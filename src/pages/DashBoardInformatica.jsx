@@ -5,6 +5,8 @@ import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
+import { get } from "../api/funcRequest";
+import { useQuery } from "react-query";
 const InformaticaActionHome = lazy(() => import("../componets/Informatica/Components/ActionHome/informaticaActionHome").then(module => ({ default: module.InformaticaActionHome })));
 const ActionPesquisaVendas = lazy(() => import("../componets/Informatica/Components/ActionListaVendas/actionPequisaVendas").then(module => ({ default: module.ActionPesquisaVendas })));
 const ActionPesquisaFuncionarios = lazy(() => import("../componets/Informatica/Components/ActionFuncionarios/actionPesquisaFuncionarios").then(module => ({ default: module.ActionPesquisaFuncionarios })));
@@ -15,11 +17,13 @@ const ActionPesquisaCliente = lazy(() => import("../componets/Informatica/Compon
 const ActionPesquisaExportarDadosCSVCredSystem = lazy(() => import("../componets/Informatica/Components/ActionExportarDadosCSV/actionPesquisaExportarDadosCSVCredSystem").then(module => ({ default: module.ActionPesquisaExportarDadosCSVCredSystem })));
 const ActionPesquisaLinkRelatorioBi = lazy(() => import("../componets/Informatica/Components/ActionLinkRelatorioBI/actionPesquisaLinkRelatorioBI").then(module => ({ default: module.ActionPesquisaLinkRelatorioBi })));
 const ActionPesquisaRelatorioBI = lazy(() => import("../componets/Informatica/Components/ActionRelatorioBI/actionPesquisaRelatorioBI").then(module => ({ default: module.ActionPesquisaRelatorioBI })));
+const ActionPesquisaDuplicarPermissao = lazy(() => import("../componets/Informatica/Components/ActionPermissao/actionPesquisaPerfilPermissao").then(module => ({ default: module.ActionPesquisaPerfilPermissao })));
 
-export const DashBoardInformatica = ({}) => {
+export const DashBoardInformatica = () => {
   const [actionVisivel, setActionVisivel] = useState(true);
   const [usuarioLogado, setUsuarioLogado] = useState(null);
-
+  const storedModule = localStorage.getItem('moduloselecionado');
+  const selectedModule = JSON.parse(storedModule);
   const [componentToShow, setComponentToShow] = useState("");
   const navigate = useNavigate();
 
@@ -46,6 +50,15 @@ export const DashBoardInformatica = ({}) => {
 
   }, [usuarioLogado]);
 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
 
   let component = null;
 
@@ -80,6 +93,9 @@ export const DashBoardInformatica = ({}) => {
     case "/informatica/ActionPesquisaLinkRelatorioBi":
       component = <ActionPesquisaLinkRelatorioBi />;
       break;
+    case "/informatica/ActionPesquisaDuplicarPermissao":
+      component = <ActionPesquisaDuplicarPermissao />;
+      break;
     default:
       component = null;
       break;
@@ -99,7 +115,7 @@ export const DashBoardInformatica = ({}) => {
             handleShowComponent={handleShowComponent}
           />
           <div className="page-content-wrapper">
-            <HeaderMain />
+            <HeaderMain optionsModulos={optionsModulos}/>
 
             <main id="js-page-content" role="main" className="page-content">
               <div className="row">

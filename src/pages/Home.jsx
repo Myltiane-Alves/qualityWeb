@@ -1,10 +1,16 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { AuthLogin } from "../componets/Formularios/FormLogin"
+import { getAnoAtual,  } from "../utils/dataAtual"
 
 
 
 export const Home = () => {
+  const [data, setData] = useState('')
 
+  useEffect(() => {
+    const dataAtual = getAnoAtual()
+    setData(dataAtual)
+  })
   return (
   
     <div className="page-wrapper overflow-hidden" style={{overflow: "hidden"}}>
@@ -41,8 +47,11 @@ export const Home = () => {
                   </div>
                 </div>
               </div>
+
+              
               <div className="position-absolute pos-bottom pos-left pos-right p-3 text-center text-white ">
-                2023 © MettaGroup by &nbsp;<a href='http://mettagroup.com.br' className='text-white opacity-40 fw-500' title='mettagroup.com.br' target='_blank'>mettagroup.com.br</a>
+                
+              {data} © MettaGroup by &nbsp;<a href='http://mettagroup.com.br' className='text-white opacity-40 fw-500' title='mettagroup.com.br' target='_blank'>mettagroup.com.br</a>
               </div>
             </div>
           </div>

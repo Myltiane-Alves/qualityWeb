@@ -12,25 +12,28 @@ import { getDataAtual } from "../../../../utils/dataAtual";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 import { useQuery } from "react-query";
 import { InputCheckBoxAction } from "../../../Inputs/chekBoxAction";
-// import { ListaSubGrupoAlteracaoPreco } from "../../../Inputs/menuDropDown";
+import { useFetchData } from "../../../../hooks/useFetchData";
+import { MenuTreeSelect } from "../../../Inputs/menuDropDown";
+import { ActionAlteracaoPreco } from "../../../Actions/ActionAlteracaoPreco";
+import { set } from "date-fns";
 
 
-export const ActionPesquisaAlteracaoPreco = () => {
+export const ActionPesquisaAlteracaoPreco = ({ }) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [codBarra, setCodBarra] = useState('');
   const [descricaoProduto, setDescricaoProduto] = useState('');
   const [estoque, setEstoque] = useState(false);
-  
   const [grupoSelecionado, setGrupoSelecionado] = useState([]);
   const [subGrupoSelecionado, setSubGrupoSelecionado] = useState([]);
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+  const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
-  const animatedComponents = makeAnimated();
+  const [isQueryAlteracao, setIsQueryAlteracao] = useState(false)
 
   useEffect(() => {
     const dataAtual = getDataAtual();
@@ -39,23 +42,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
   }, []);
 
-  const { data: dadosGrupos = [], error: errorGrupo, isLoading: isLoadingGrupo } = useQuery(
-    'grupo-produto',
-    async () => {
-      const response = await get(`/grupo-produto`);
-      return response.data;
-    },
-    { staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
-  );
-
-  const { data: dadosSubGrupos = [], error: errorSubGrupo, isLoading: isLoadingSubGrupo } = useQuery(
-    'subgrupo-produto',
-    async () => {
-      const response = await get(`/subgrupo-produto`);
-      return response.data;
-    },
-    { staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
-  );
+ 
 
   const { data: dadosMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas, refetch: refetchMarcas } = useQuery(
     'marcasLista',
@@ -65,17 +52,17 @@ export const ActionPesquisaAlteracaoPreco = () => {
     },
     { staleTime: 5 * 60 * 1000, }
   );
-  
+
   const { data: dadosEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch: refetchEmpresas } = useQuery(
     'listaEmpresaComercial',
     async () => {
       const response = await get(`/listaEmpresaComercial?idMarca=${marcaSelecionada}`);
-      
+
       return response.data;
     },
     { staleTime: 5 * 60 * 1000, }
   );
-  
+
   useEffect(() => {
     if (marcaSelecionada) {
       refetchEmpresas();
@@ -84,17 +71,22 @@ export const ActionPesquisaAlteracaoPreco = () => {
   }, [marcaSelecionada, refetchEmpresas]);
 
 
-  
+
   const fetchListaAlteracaoPreco = async () => {
     try {
 
-      const urlApi = `/alteracaoPreco?idMarca=${marcaSelecionada}&idEmpresa=${encodeURIComponent(empresaSelecionada)}&grupo=${encodeURIComponent(grupoSelecionado)}&subGrupo=${encodeURIComponent(subGrupoSelecionado)}&produto=${descricaoProduto}&codigobarras=${codBarra}&estoque=${estoque}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/alteracaoPreco?idEmpresa=${encodeURIComponent(empresaSelecionada)}&grupo=${encodeURIComponent(
+        grupoSelecionado.join(',')
+      )}&subGrupo=${encodeURIComponent(
+        subGrupoSelecionado.join(',')
+      )}&produto=${descricaoProduto}&codigobarras=${codBarra}&estoque=${estoque}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+
       const response = await get(urlApi);
-      
+
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
         animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
-  
+
         async function fetchNextPage(page) {
           try {
             page++;
@@ -110,15 +102,15 @@ export const ActionPesquisaAlteracaoPreco = () => {
             throw error;
           }
         }
-  
+
         await fetchNextPage(currentPage);
-        console.log(allData, 'response.data')
+
         return allData;
       } else {
-        console.log(response.data, 'response.data')
+
         return response.data;
       }
-  
+
     } catch (error) {
       console.error('Error fetching data:', error);
       throw error;
@@ -130,37 +122,108 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
 
   const { data: dadosAlteracaoPreco = [], error: errorVendasMarca, isLoading: isLoadingVendasMarca, refetch: refetchListaPrecoAlteracao } = useQuery(
-    ['listaVendasMarca', marcaSelecionada, empresaSelecionada,  grupoSelecionado, subGrupoSelecionado, descricaoProduto, codBarra, estoque, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    ['alteracaoPreco', marcaSelecionada, empresaSelecionada, grupoSelecionado, subGrupoSelecionado, descricaoProduto, codBarra, estoque, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchListaAlteracaoPreco(marcaSelecionada, empresaSelecionada, grupoSelecionado, subGrupoSelecionado, descricaoProduto, codBarra, estoque, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     {
-      enabled: Boolean(marcaSelecionada && empresaSelecionada ), 
-      // enabled: true, 
+      enabled: isQueryAlteracao,
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 10 * 60 * 1000,
     }
   );
-
-
-  const handleChangeGrupos = (selectedOptions) => {
-    const values = selectedOptions.map(option => option.value);
-    setGrupoSelecionado(values);
-  };
-  
-  const handleChangeSubGrupos = (selectedOptions) => {
-    const values = selectedOptions.map(option => option.value);
-    setSubGrupoSelecionado(values);
-  };
-
 
   const handleChangeMarca = (e) => {
     setMarcaSelecionada(e.value);
   };
-  
+
   const handleChangeEmpresa = (e) => {
+    const empresa = dadosEmpresas.find((item) => item.IDEMPRESA === e.value);
     setEmpresaSelecionada(e.value);
+    setEmpresaSelecionadaNome(empresa.NOFANTASIA);
   }
-  
+
+  const [treeData, setTreeData] = useState([]);
+  const [selectedNodes, setSelectedNodes] = useState({});
+
+
+  const { data: dadosGrupos = [], error: errorGrupo, isLoading: isLoadingGrupo } = useQuery(
+    'grupo-produto',
+    async () => {
+      const response = await get(`/grupo-produto`);
+      return response.data;
+    },
+    { staleTime: 5 * 60 * 1000, cacheTime: 10 * 60 * 1000 }
+  );
+
+
+  const { data: dadosSubGrupos = [], error: errorSubGrupo, isLoading: isLoadingSubGrupo } = useQuery(
+    'subgrupo-produto',
+    async () => {
+      const response = await get(`/subgrupo-produto`);
+      return response.data;
+    },
+    { staleTime: 5 * 60 * 1000, cacheTime: 10 * 60 * 1000 }
+  );
+
+
+
+
+  useEffect(() => {
+    if (dadosSubGrupos.length) {
+      const gruposMap = new Map();
+
+      dadosSubGrupos.forEach(subgrupo => {
+        const grupoId = subgrupo.ID_GRUPO;
+        const grupoDescricao = subgrupo.DS_GRUPO;
+
+        if (!gruposMap.has(grupoId)) {
+          gruposMap.set(grupoId, {
+            key: grupoId,
+            label: grupoDescricao,
+            children: [],
+          });
+        }
+
+        gruposMap.get(grupoId).children.push({
+          key: subgrupo.ID_ESTRUTURA,
+          label: subgrupo.ESTRUTURA,
+        });
+      });
+
+      // Atualiza o estado de treeData
+      const formattedTreeData = Array.from(gruposMap.values());
+      setTreeData(formattedTreeData);
+
+      // Atualiza os grupos e subgrupos selecionados
+      setGrupoSelecionado(formattedTreeData.map(grupo => grupo.key));
+      setSubGrupoSelecionado(formattedTreeData.flatMap(grupo => grupo.children.map(child => child.key)));
+    }
+  }, [dadosSubGrupos]);
+
+  const handleTreeSelectChange = (e) => {
+    const selectedValue = e.value;
+    setSelectedNodes(selectedValue);
+
+    // Atualize os grupos e subgrupos com base na seleção
+    const selectedGrupo = Object.keys(selectedValue).map(id => id); // Grupo selecionado
+    const selectedSubGrupo = Object.entries(selectedValue).flatMap(([id, data]) => data.children.map(child => child.key)); // Subgrupo selecionado
+
+    setGrupoSelecionado(selectedGrupo);
+    setSubGrupoSelecionado(selectedSubGrupo);
+  };
+
+
+  if (isLoadingGrupo || isLoadingSubGrupo) {
+    return <div>Carregando...</div>;
+  }
+
+  if (errorGrupo || errorSubGrupo) {
+    return <div>Erro ao carregar dados.</div>;
+  }
+
   const handleClick = () => {
     setIsLoadingPesquisa(true);
     setCurrentPage(prevPage => prevPage + 1)
+    setIsQueryAlteracao(true);
     refetchListaPrecoAlteracao()
     setTabelaVisivel(false);
   };
@@ -170,12 +233,12 @@ export const ActionPesquisaAlteracaoPreco = () => {
 
     <Fragment>
 
-    
-      <ActionMain
+
+      <ActionAlteracaoPreco
         linkComponentAnterior={["Home"]}
         linkComponent={["Alteração de Preços"]}
         title="Alteração de Preços"
-        subTitle="Nome da Loja"
+        subTitle={empresaSelecionadaNome}
 
         InputFieldDTInicioComponent={InputField}
         labelInputFieldDTInicio={"Data Início"}
@@ -190,7 +253,7 @@ export const ActionPesquisaAlteracaoPreco = () => {
         InputSelectEmpresaComponent={InputSelectAction}
         labelSelectEmpresa={"Empresa"}
         optionsEmpresas={[
-          {value: '0', label: 'Selecionar Empresa'},
+          { value: '0', label: 'Selecionar Empresa' },
           ...dadosEmpresas.map((item) => {
             return {
               value: item.IDEMPRESA,
@@ -201,50 +264,38 @@ export const ActionPesquisaAlteracaoPreco = () => {
         valueSelectEmpresa={empresaSelecionada}
         onChangeSelectEmpresa={handleChangeEmpresa}
 
-        InputSelectGrupoComponent={InputSelectAction}
-        labelSelectGrupo={"Marca"}
-        optionsGrupos={dadosMarcas.map((marca) => ({
+        InputSelectMarcasComponent={InputSelectAction}
+        labelSelectMarcas={"Marca"}
+        optionsMarcas={dadosMarcas.map((marca) => ({
           value: marca.IDGRUPOEMPRESARIAL,
-          label: marca.DSGRUPOEMPRESARIAL,
+          label: marca.GRUPOEMPRESARIAL,
 
         }))}
-        valueSelectGrupo={marcaSelecionada}
-        onChangeSelectGrupo={handleChangeMarca}
-        
+        valueSelectMarcas={marcaSelecionada}
+        onChangeSelectMarcas={handleChangeMarca}
+
+        MenuTreeSelectComponent={MenuTreeSelect}
+        valueTreeSelect={selectedNodes}
+        onChangeTreeSelect={(e) => {handleTreeSelectChange(e);  }}
+        optionsTreeSelect={treeData}
+        placeholderTreeSelect={'Selecione'}
+
+        InputCheckBoxAction={InputCheckBoxAction}
+        labelCheckBox={"Sem Estoque"}
+        nomeChekBox={"estoque"}
+        checked={estoque}
+        onChangeCheckBox={e => setEstoque(e.target.checked ? 'true' : 'false')}
 
         InputFieldCodBarraComponent={InputField}
         labelInputFieldCodBarra={"Cód.Barras / Nome Produto"}
         valueInputFieldCodBarra={codBarra}
         onChangeInputFieldCodBarra={e => setCodBarra(e.target.value)}
 
-        MultSelectGrupoComponent={MultSelectAction}
-        labelMultSelectGrupo={"Grupo"}
-        optionsMultSelectGrupo={dadosGrupos.map((grupo) => ({
-          value: grupo.ID_GRUPO,
-          label: grupo.GRUPO,
-        }))}
-        valueMultSelectGrupo={grupoSelecionado}
-        onChangeMultSelectGrupo={handleChangeGrupos}
-        animatedComponentsGrupo={animatedComponents}
-
-        MultSelectSubGrupoComponent={MultSelectAction}
-        labelMultSelectSubGrupo={"Subgrupo"}
-        optionsMultSelectSubGrupo={dadosSubGrupos.map((subGrupo) => ({
-          value: subGrupo.ID_ESTRUTURA,
-          label: subGrupo.ESTRUTURA,
-        }))}
-        valueMultSelectSubGrupo={subGrupoSelecionado}
-        onChangeMultSelectSubGrupo={handleChangeSubGrupos}
-        animatedComponentsSubGrupo={animatedComponents}
-
-         
-        CheckBoxComponent={InputCheckBoxAction}
-        idCheckBox={"estoque"}
-        labelCheckBox={"Sem Estoque"}
-        nomeChekBox={"estoque"}
-        isChekedBox={estoque}
-        placeHolderCheckBox
-        onChangeCheckBox={e => setEstoque(e.target.checked ? 'True' : 'False')}
+        InputFieldComponent={InputField}
+        labelInputField={"Nome Produto"}
+        valueInputField={descricaoProduto}
+        onChangeInputField={e => setDescricaoProduto(e.target.value)}
+        placeHolderInputFieldComponent={"Nome Produto"}
 
         ButtonSearchComponent={ButtonType}
         onButtonClickSearch={handleClick}
@@ -253,11 +304,9 @@ export const ActionPesquisaAlteracaoPreco = () => {
         IconSearch={AiOutlineSearch}
 
       />
-      
+
       <ActionListaAlteracaoPreco dadosAlteracaoPreco={dadosAlteracaoPreco} />
- 
+
     </Fragment>
   )
 }
-
-

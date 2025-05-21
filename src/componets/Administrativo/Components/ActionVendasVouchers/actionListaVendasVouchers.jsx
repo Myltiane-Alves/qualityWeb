@@ -95,7 +95,7 @@ export const ActionListaVendasVouchers = ({ dadosVendasClientes }) => {
       VRTOTALPAGO: item.venda.VRTOTALPAGO,
       DTHORAFECHAMENTO: item.venda.DTHORAFECHAMENTO,
       STCANCELADO: item.venda.STCANCELADO,
-      DTHORAFECHAMENTOFORMATEUA: dataFormatada(item.venda.DTHORAFECHAMENTOFORMATEUA),
+      DTHORAFECHAMENTOFORMATEUA: item.venda.DTHORAFECHAMENTOFORMATEUA,
       diasAposCompra: diasAposCompra = retornaDiasEntreDatas(item.venda.DTHORAFECHAMENTOFORMATEUA),
       stCortesia: stCortesia,
       stDefeito: stDefeito = diasAposCompra <= 90 ? 'Válida' : 'Inválida'
@@ -124,7 +124,7 @@ export const ActionListaVendasVouchers = ({ dadosVendasClientes }) => {
     {
       field: 'DTHORAFECHAMENTO',
       header: 'Data',
-      body: row => <th >{dataFormatada(row.DTHORAFECHAMENTO)}</th>,
+      body: row => <th >{row.DTHORAFECHAMENTO}</th>,
       sortable: true,
     },
     {
@@ -308,6 +308,9 @@ export const ActionListaVendasVouchers = ({ dadosVendasClientes }) => {
                 paginator={true}
                 rows={10}
                 rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                filterDisplay="menu"
                 showGridlines
                 stripedRows
                 emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -338,7 +341,7 @@ export const ActionListaVendasVouchers = ({ dadosVendasClientes }) => {
         <Fragment>
           <div className="panel">
             <div className="panel-hdr">
-              {dadosProdutosVenda[0].diferenciaDias > 30 && (
+              {dadosProdutosVenda[0].diferenciaDias <= 32 && (
                 <h2>
 
                   Produtos - Vendas {dadosProdutosVenda[0].IDVENDA} &nbsp; - &nbsp;
@@ -347,7 +350,7 @@ export const ActionListaVendasVouchers = ({ dadosVendasClientes }) => {
                   </span>
                 </h2>
               )}
-
+          
             </div>
               <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
                 <HeaderTable
@@ -365,10 +368,12 @@ export const ActionListaVendasVouchers = ({ dadosVendasClientes }) => {
                   title="Vendas Voucher por Loja"
                   value={dadosProdutos}
                   globalFilter={globalFilterValue}
-                  size={size}
+                  size="small"
                   sortOrder={-1}
-
-
+                  rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaVendasCanceladas.length]}
+                  paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                  currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+                  filterDisplay="menu"
                   showGridlines
                   stripedRows
                   emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

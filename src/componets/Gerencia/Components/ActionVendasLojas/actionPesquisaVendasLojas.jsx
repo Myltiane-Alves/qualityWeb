@@ -10,47 +10,40 @@ import { getDataAtual } from "../../../../utils/dataAtual";
 import { AiOutlineSearch } from "react-icons/ai";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 
 
 
-export const ActionPesquisaVendasLojas = () => {
+export const ActionPesquisaVendasLojas = ({usuarioLogado, ID, optionsEmpresas}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(true);
   const [tabelaVisivelProduto, setTabelaVisivelProduto] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
  
-
-  const navigate = useNavigate();
-  
   useEffect(() => {
-
     const dataInicial = getDataAtual();
     const dataFinal = getDataAtual();
     setDataPesquisaFim(dataFinal);
     setDataPesquisaInicio(dataInicial);
   }, []);
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
+  
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate, usuarioLogado]);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
 
   const fetchVendasProdutos = async () => {
     try {
-      
-      const urlApi = `/vendas-por-produtos?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+       const idEmpresa = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      const urlApi = `/vendas-por-produtos?idEmpresa=${idEmpresa}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -90,14 +83,14 @@ export const ActionPesquisaVendasLojas = () => {
 
   const { data: dadosVendasLojaProdutos = [], error: erroProdutos, isLoading: isLoadingProdutos, refetch: refetchVendasProdutos } = useQuery(
     'vendas-por-produtos',
-    () => fetchVendasProdutos(usuarioLogado.IDEMPRESA, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+    () => fetchVendasProdutos(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
   );
 
   const fetchVendasLojasResumido = async () => {
     try {
-      
-      const urlApi = `/venda-resumido?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const idEmpresa = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      const urlApi = `/venda-resumido?idEmpresa=${idEmpresa}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -137,7 +130,7 @@ export const ActionPesquisaVendasLojas = () => {
 
   const { data: dadosVendasLojaResumido = [], error: erroVendasResumidas, isLoading: isLoadingVendasResumidas, refetch: refetchVendasLojasResumido } = useQuery(
     'venda-resumido',
-    () => fetchVendasLojasResumido(usuarioLogado.IDEMPRESA, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+    () => fetchVendasLojasResumido(empresaSelecionada, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
   );
  
@@ -168,16 +161,31 @@ export const ActionPesquisaVendasLojas = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista Vendas da Lojas "]}
         title="Vendas Loja e Período"
-        subTitle="Nome da Loja"
-        InputFieldDTInicioComponent={InputField}
-        labelInputFieldDTInicio={"Data Início"}
-        valueInputFieldDTInicio={dataPesquisaInicio}
-        onChangeInputFieldDTInicio={e => setDataPesquisaInicio(e.target.value)}
+        subTitle={usuarioLogado?.NOFANTASIA}
 
-        InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
+        InputSelectPendenciaComponent={InputSelectAction}
+        labelSelectPendencia="Selecione a Empresa"
+        optionsPendencia={[
+          { value: '', label: 'Todas' },
+          ...optionsEmpresas?.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+      
+          }))
+        ]}
+        onChangeSelectPendencia={(e) =>  setEmpresaSelecionada(e.value) }
+        valueSelectPendencia={empresaSelecionada}
+        isVisible={{display: optionsModulos[0]?.ADMINISTRADOR == false ? "none" : "block"}}
+
+        InputFieldDTInicioAComponent={InputField}
+        valueInputFieldDTInicioA={dataPesquisaInicio}
+        labelInputDTInicioA={"Data Início"}
+        onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
+        
+        InputFieldDTFimAComponent={InputField}
+        labelInputDTFimA={"Data Fim"}
+        valueInputFieldDTFimA={dataPesquisaFim}
+        onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
 
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Vendas Resumido"}

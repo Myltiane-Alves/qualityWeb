@@ -10,7 +10,7 @@ import { formatMoeda } from "../../../../utils/formatMoeda";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { ActionDetalheVendaModal } from "../ActionVendasContigencia/actionDetalheVendaModal";
 import { ActionDetalheVendaProdutosModal } from "../ActionsModaisVendas/actionDetalheVendaProdutosModal";
-import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/actionRelacaoRecebimentosModal";
+import { ActionRelacaoRecebimentosModal } from "../ActionsModaisVendas/ActionRecebimentos/actionRelacaoRecebimentosModal";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -19,7 +19,7 @@ import HeaderTable from "../../../Tables/headerTable";
 import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "primereact/row";
 
-export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
+export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas, optionsModulos, usuarioLogado  }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
   const [modalVendaVisivel, setModalVendaVisivel] = useState(false);
   const [modalProdutoVisivel, setModalProdutoVisivel] = useState(false);
@@ -28,7 +28,7 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
   const [dadosProdutoModal, setDadosProdutoModal] = useState([]);
   const [dadosPagamentoModal, setDadosPagamentoModal] = useState([]);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
+  const [dadosDetalheRecebimentos, setDadosDetalheRecebimentos] = useState([]);
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -199,7 +199,7 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
     {
       field: 'NOFANTASIA',
       header: 'Empresa',
-      body: row => <p style={{  width: '120px', fontWeight: 600 }}> {row.NOFANTASIA}</p>,
+      body: row => <p style={{  width: '200px', fontWeight: 600, margin: 0 }}> {row.NOFANTASIA}</p>,
       sortable: true,
     },
     {
@@ -211,7 +211,7 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
     {
       field: 'IDVENDA',
       header: 'Nº Venda',
-      body: row => <th style={{ }}> {row.IDVENDA}</th>,
+      body: row => <p style={{  width: '100px', fontWeight: 600, margin: 0 }}> {row.IDVENDA}</p>,
       sortable: true,
 
     },
@@ -230,7 +230,7 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
     {
       field: 'NOFUNCIONARIO',
       header: 'Operador',
-      body: row => <p style={{  width: '150px',fontWeight: 600 }}> {row.NOFUNCIONARIO}</p>,
+      body: row => <p style={{  width: '250px',fontWeight: 600, margin: 0 }}> {row.NOFUNCIONARIO}</p>,
       sortable: true,
     },
     {
@@ -301,7 +301,7 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
     {
       field: 'TXTMOTIVOCANCELAMENTO',
       header: 'Motivo',
-      body: row => <p style={{ color: 'blue' }}> {row.TXTMOTIVOCANCELAMENTO ? 'Motivo Não Informado' : 'Motivo Não Informado'}</p>,
+      body: row => <p style={{ color: 'blue', margin: 0, width: '200px' }}> {row.TXTMOTIVOCANCELAMENTO ? 'Motivo Não Informado' : 'Motivo Não Informado'}</p>,
       sortable: true,
 
     },
@@ -318,6 +318,8 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
               onClickButton={() => handleClickVenda(row)}
               Icon={GrView}
               cor={"info"}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -326,6 +328,8 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
               onClickButton={() => handleClickProduto(row)}
               Icon={FaProductHunt}
               cor={"warning"}
+              width="30px"
+              height="30px"
             />
           </div>
           <div className="p-1">
@@ -334,6 +338,8 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
               onClickButton={() => handleClickPagamento(row)}
               Icon={MdOutlineAttachMoney}
               cor={"success"}
+              width="30px"
+              height="30px"
             />
           </div>
         </div>
@@ -388,6 +394,7 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
       const response = await get(`/recebimento?idVenda=${IDVENDA}`)
       if (response) {
         setDadosPagamentoModal(response.data)
+        setDadosDetalheRecebimentos(response.data)
         setModalPagamentoVisivel(true)
         console.log(modalPagamentoVisivel, 'modalPagamentoVisivel')
       }
@@ -446,9 +453,12 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
           title="Vendas por Loja"
           value={dadosListaVendasCanceladas}
           globalFilter={globalFilterValue}
-          size={size}
+          size="small"
           footerColumnGroup={footerGroup}
-          rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaVendasCanceladas.length]}
+          rowsPerPageOptions={[10, 20, 50, 100, dadosListaVendasCanceladas.length]}
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+          filterDisplay="menu"
           sortOrder={-1}
           paginator={true}
           rows={10}
@@ -490,6 +500,9 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas }) => {
         show={modalPagamentoVisivel}
         handleClose={handleCloseModal}
         dadosPagamentoModal={dadosPagamentoModal}
+        dadosDetalheRecebimentos={dadosDetalheRecebimentos}
+        optionsModulos={optionsModulos}
+        usuarioLogado={usuarioLogado}
       />
     </Fragment>
   )

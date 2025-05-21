@@ -10,11 +10,18 @@ import 'jspdf-autotable';
 import { formatarPorcentagem } from "../../../../utils/formatarPorcentagem";
 import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "primereact/row";
+import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionListaEstoqueAtual = ({ dadosEstoqueAtual }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
+    
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  }  
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -115,19 +122,33 @@ export const ActionListaEstoqueAtual = ({ dadosEstoqueAtual }) => {
     }
   });
 
-  const calcularEstoque= () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.QTDFINAL), 0);
-  }
 
+  const calcularTotalPagina = (field) => {
+    return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
+  };
+  const calcularTotal = (field) => {
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dados.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + toFloat(item[field] || 0), 0);
+  };
+
+  const calcularEstoque = () => {
+    const totalDinheiro = calcularTotal('QTDFINAL');
+    const totalVendas = calcularTotalPagina('QTDFINAL');
+    return `${totalDinheiro}   (${totalVendas} total)`;
+  };
   const calcularTotalCusto = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.totalCusto), 0);
-  }
-
+    const totalDinheiro = calcularTotal('totalCusto');
+    const totalVendas = calcularTotalPagina('totalCusto');
+    return `${formatMoeda(totalDinheiro)}   (${formatMoeda(totalVendas)} total)`;
+  };
   const calcularTotalVenda = () => {
-    return dados.reduce((total, dados) => total + parseFloat(dados.totalVenda), 0);
-  }
-
-
+    const totalDinheiro = calcularTotal('totalVenda');
+    const totalVendas = calcularTotalPagina('totalVenda');
+    return `${formatMoeda(totalDinheiro)}   (${formatMoeda(totalVendas)} total)`;
+  };
+ 
 
   const colunasEstoqueAtual = [
     {
@@ -201,14 +222,14 @@ export const ActionListaEstoqueAtual = ({ dadosEstoqueAtual }) => {
       field: 'totalCusto',
       header: 'Total Custo',
       body: row => <th style={{ fontSize: '13px' }}>{formatMoeda(row.totalCusto)}</th>,
-      footer: formatMoeda(calcularTotalCusto()),
+      footer: calcularTotalCusto(),
       sortable: true
     },
     {
       field: 'totalVenda',
       header: 'Total Venda',
       body: row => <th style={{ fontSize: '13px' }}>{formatMoeda(row.totalVenda)}</th>,
-      footer: formatMoeda(calcularTotalVenda()),
+      footer: calcularTotalVenda(),
       sortable: true
     },
     {
@@ -225,10 +246,12 @@ export const ActionListaEstoqueAtual = ({ dadosEstoqueAtual }) => {
 
       <Row> 
         <Column footer="Total " colSpan={8} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
-        <Column footer={calcularEstoque()} colSpan={3} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularTotalCusto())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
-        <Column footer={formatMoeda(calcularTotalVenda())} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} /> 
-        <Column footer={""} colSpan={4}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
+        <Column footer={calcularEstoque()}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer="" footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
+        <Column footer="" footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
+        <Column footer={calcularTotalCusto()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
+        <Column footer={calcularTotalVenda()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} /> 
+        <Column footer={""} colSpan={3}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
       </Row>
     </ColumnGroup>
   )
@@ -259,12 +282,17 @@ export const ActionListaEstoqueAtual = ({ dadosEstoqueAtual }) => {
             title="Estoque Atual"
             value={dados} 
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
-            rows={10}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+            first={first}
+            rows={rows}
+            onPage={onPageChange}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

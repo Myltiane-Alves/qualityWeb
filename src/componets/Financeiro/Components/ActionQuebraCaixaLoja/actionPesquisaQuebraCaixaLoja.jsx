@@ -13,7 +13,7 @@ import { useQuery } from 'react-query';
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 import { useFetchData, useFetchEmpresas } from "../../../../hooks/useFetchData";
 
-export const ActionPesquisaQuebraCaixaLoja = () => {
+export const ActionPesquisaQuebraCaixaLoja = ({usuarioLogado, ID}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [tabelaVisivelPositiva, setTabelaVisivelPositiva] = useState(false);
   const [tabelaVisivelNegativa, setTabelaVisivelNegativa] = useState(false);
@@ -28,8 +28,7 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
   const [ufSelecionado, setUfSelecionado] = useState('');
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(1000)
-  const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(true)
-  const [totalPages, setTotalPages] = useState(0);
+
 
   useEffect(() => {
     const dataInicial = getDataAtual();
@@ -42,9 +41,16 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', '/marcasLista');
   const { data: optionsEmpresas = [],} = useFetchEmpresas(marcaSelecionada);
 
-  const fetchQuebra = async () => {
-   
-    
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
+
+  const fetchQuebra = async () => {  
     try {
       const urlApi = `/quebra-caixa-loja?idEmpresa=${empresaSelecionada}&idMarca=${marcaSelecionada}&cpfOperadorQuebra=${cpfOperadorQuebra}&stQuebraPositivaNegativa=${quebraSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
@@ -197,41 +203,44 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
 
   const handleClick = async () => {
     setClickContador(prevContador => prevContador + 1);
-    if (quebraSelecionada === "1") {
-      setTabelaVisivelPositiva(true)
-      setTabelaVisivelNegativa(false)
-      setTabelaVisivel(false)
-      await refetchQuebraPositiva(quebraSelecionada);
 
-    } else if (quebraSelecionada === "2") {
-      setTabelaVisivelNegativa(true)
-      setTabelaVisivelPositiva(false)
-      setTabelaVisivel(false)
-
-      await refetchQuebraNegativa(quebraSelecionada);
-
-    } else if (quebraSelecionada === "0") {
-      setTabelaVisivel(true)
-      setTabelaVisivelNegativa(false)
-      setTabelaVisivelPositiva(false)
-      await refetchQuebra(quebraSelecionada);
-
+    if (quebraSelecionada === "Positiva") {
+      setTabelaVisivelPositiva(true);
+      setTabelaVisivelNegativa(false);
+      setTabelaVisivel(false);
+      setCurrentPage(prevPage => prevPage + 1);
+      await refetchQuebraPositiva();
+    } else if (quebraSelecionada === "Negativa") {
+      setTabelaVisivelNegativa(true);
+      setTabelaVisivelPositiva(false);
+      setTabelaVisivel(false);
+      
+      setCurrentPage(prevPage => prevPage + 1);
+      await refetchQuebraNegativa();
+    } else {
+      setTabelaVisivel(true);
+      setTabelaVisivelNegativa(false);
+      setTabelaVisivelPositiva(false);
+      
+      setCurrentPage(prevPage => prevPage + 1);
+      await refetchQuebra();
     }
-
   };
-
 
   const optionsQuebraDeCaixa = [
     {
-      value: "0",
+      id: 0,
+      value: "",
       label: 'Todas'
     },
     {
-      value: "1",
+      id: 1,
+      value: "Positiva",
       label: 'Positiva'
     },
     {
-      value: "2",
+      id: 2,
+      value: "Negativa",
       label: 'Negativa'
     },
   ]
@@ -280,7 +289,7 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
 
         InputSelectEmpresaComponent={InputSelectAction}
         optionsEmpresas={[
-          // { value: 0, label: 'Selecione uma loja' },
+          { value: 0, label: 'Selecione uma loja' },
           ...optionsEmpresas.map((empresa) => ({
             value: empresa.IDEMPRESA,
             label: empresa.NOFANTASIA,
@@ -297,7 +306,7 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
           { value: 0, label: 'Selecione uma loja' },
           ...optionsMarcas.map((marca) => ({
             value: marca.IDGRUPOEMPRESARIAL,
-            label: marca.DSGRUPOEMPRESARIAL
+            label: marca.GRUPOEMPRESARIAL
           }))
         ]}
         valueSelectMarca={marcaSelecionada}
@@ -306,7 +315,7 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
         InputSelectQuebraComponent={InputSelectAction}
         labelSelectQuebra={"Quebra"}
         optionsQuebra={[
-
+       
           ...optionsQuebraDeCaixa.map((empresa) => ({
             value: empresa.value,
             label: empresa.label,
@@ -332,22 +341,35 @@ export const ActionPesquisaQuebraCaixaLoja = () => {
 
       />
 
-
+       
       {tabelaVisivel && (
-        <ActionListaQuebraCaixaLoja dadosQuebraDeCaixa={dadosQuebraDeCaixa} />
+        <ActionListaQuebraCaixaLoja 
+          dadosQuebraDeCaixa={dadosQuebraDeCaixa} 
+          optionsModulos={optionsModulos}
+          usuarioLogado={usuarioLogado}   
+        />
       )}
 
 
       <div>
         {tabelaVisivelNegativa && (
 
-          <ActionListaQuebraCaixaLojaNegativa dadosQuebraDeCaixaNegativa={dadosQuebraDeCaixaNegativa} />
+          <ActionListaQuebraCaixaLojaNegativa 
+            dadosQuebraDeCaixaNegativa={dadosQuebraDeCaixaNegativa} 
+            optionsModulos={optionsModulos}
+            usuarioLogado={usuarioLogado}   
+          />
         )}
       </div>
       <div>
         {tabelaVisivelPositiva && (
 
-          <ActionListaQuebraCaixaLojaPositiva dadosQuebraDeCaixaPositiva={dadosQuebraDeCaixaPositiva} />
+          <ActionListaQuebraCaixaLojaPositiva 
+            dadosQuebraDeCaixaPositiva={dadosQuebraDeCaixaPositiva} 
+            optionsModulos={optionsModulos}
+            usuarioLogado={usuarioLogado}              
+
+          />
         )}
       </div>
     </Fragment>

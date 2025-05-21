@@ -13,13 +13,10 @@ import { useQuery } from "react-query"
 
 export const ActionPesquisaExtratoContaCorenteLoja = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [marcaSelecionada, setMarcaSelecionada] = useState(null);
   const [empresaSelecionada, setEmpresaSelecionada] = useState('');
   const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('');
-  // const [dadosExtratoLojaPeriodo, setDadosExtratoLojaPeriodo] = useState([])
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
 
@@ -28,14 +25,14 @@ export const ActionPesquisaExtratoContaCorenteLoja = () => {
     const dataFinal = getDataAtual();
     setDataPesquisaInicio(dataInicial);
     setDataPesquisaFim(dataFinal);
-  
   }, [])
+  
   const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas } = useFetchData('listaEmpresasIformatica', '/listaEmpresasIformatica');
 
   const fetchListaExtrato = async () => {
     try {
       
-      const urlApi = `listaExtratoDaLojaPeriodo?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const urlApi = `/listaExtratoDaLojaPeriodo?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -133,7 +130,7 @@ export const ActionPesquisaExtratoContaCorenteLoja = () => {
       />
 
       {tabelaVisivel && (
-        <div className="card">
+        <div className="card " style={{marginTop: '6rem'}}>
          <ActionListaExtratoContaCorrenteLoja dadosExtratoLojaPeriodo={dadosExtratoLojaPeriodo} />
         </div>
       )}

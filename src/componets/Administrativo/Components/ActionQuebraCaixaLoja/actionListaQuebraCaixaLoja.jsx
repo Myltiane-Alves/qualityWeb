@@ -2,10 +2,6 @@ import { Fragment, useEffect, useRef, useState } from "react"
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { dataFormatada } from "../../../../utils/dataFormatada";
-import { formatMoeda } from "../../../../utils/formatMoeda";
-import { CiEdit } from "react-icons/ci";
-import { AiOutlineDelete } from "react-icons/ai";
 import { MdOutlineLocalPrintshop } from "react-icons/md";
 import { get, post, put } from "../../../../api/funcRequest";
 import { ModalImprimirQuebra } from "../../Components/ModalImprimirQuebra";
@@ -15,18 +11,18 @@ import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { mascaraValor } from "../../../../utils/mascaraValor";
+import { toFloat } from "../../../../utils/toFloat";
 
 
-export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, quebraSelecionada }) => {
+export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, quebraSelecionada, optionsModulos, usuarioLogado }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
   const handleCloseModal = () => setModalVisivel(false);
   const [dadosQuebraCaixasModal, setDadosQuebraCaixasModal] = useState([])
-  const { register, handleSubmit, errors } = useForm();
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
+  // const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [ipUsuario, setIpUsuario] = useState('');
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [size, setSize] = useState('small')
@@ -86,14 +82,16 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
   const dados = dadosQuebraDeCaixa.map((item) => {
     return {
       IDQUEBRACAIXA: item.IDQUEBRACAIXA,
+      NOFANTASIA: item.NOFANTASIA,
       DTLANCAMENTO: item.DTLANCAMENTO,
       IDMOVIMENTOCAIXA: item.IDMOVIMENTOCAIXA,
       IDFUNCIONARIO: item.IDFUNCIONARIO,
       NOMEOPERADOR: item.NOMEOPERADOR,
-      VRQUEBRASISTEMA: formatMoeda(item.VRQUEBRASISTEMA),
-      VRQUEBRAEFETIVADO: formatMoeda(item.VRQUEBRAEFETIVADO),
+      CPFOPERADOR: item.CPFOPERADOR,
+      VRQUEBRASISTEMA: toFloat(item.VRQUEBRASISTEMA),
+      VRQUEBRAEFETIVADO: toFloat(item.VRQUEBRAEFETIVADO),
       TXTHISTORICO: item.TXTHISTORICO,
-      STATIVO: item.STATIVO ? "Ativo" : "Inativo"
+      STATIVO: item.STATIVO 
 
     }
   });
@@ -103,6 +101,12 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
       field: 'IDQUEBRACAIXA',
       header: 'ID',
       body: row => <th style={{ }}>{row.IDQUEBRACAIXA}</th>,
+      sortable: true,
+    },
+    {
+      field: 'NOFANTASIA',
+      header: 'Empresa',
+      body: row => <p style={{width: '200px', fontWeight: 600, margin: '0px' }}>{row.NOFANTASIA}</p>,
       sortable: true,
     },
     {
@@ -123,23 +127,27 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
       header: 'Nº Matrícula',
       body: row => <th style={{ }}>{row.IDFUNCIONARIO}</th>,
       sortable: true,
-
     },
     {
       field: 'NOMEOPERADOR',
       header: 'Colaborador',
       body: row => <th style={{ }}>{row.NOMEOPERADOR}</th>,
       sortable: true,
-
+    },
+    {
+      field: 'CPFOPERADOR',
+      header: 'CPF',
+      body: row => <th style={{ }}>{row.CPFOPERADOR}</th>,
+      sortable: true,
     },
     {
       field: 'VRQUEBRASISTEMA',
       header: 'Vr Quebra Sistema',
       body: row => {
-        if (row.VRQUEBRASISTEMA > 0) {
-          return <th style={{ color: 'blue' }}>  {row.VRQUEBRASISTEMA}</th>
+        if (parseFloat(row.VRQUEBRASISTEMA) > 0) {
+          return <th style={{ color: 'blue' }}> + {mascaraValor(row.VRQUEBRASISTEMA)}</th>
         } else {
-          return <th style={{ color: 'red' }}>  {row.VRQUEBRASISTEMA}</th>
+          return <th style={{ color: 'red' }}> - {mascaraValor(row.VRQUEBRASISTEMA)}</th>
         }
 
       },
@@ -150,9 +158,9 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
       header: 'Vr Quebra Lançado',
       body: row => {
         if (row.VRQUEBRAEFETIVADO > 0) {
-          return <th style={{ color: 'blue' }}>  {row.VRQUEBRAEFETIVADO}</th>
+          return <th style={{ color: 'blue' }}> + {mascaraValor(row.VRQUEBRAEFETIVADO)}</th>
         } else {
-          return <th style={{ color: 'red' }}>  {row.VRQUEBRAEFETIVADO}</th>
+          return <th style={{ color: 'red' }}> - {mascaraValor(row.VRQUEBRAEFETIVADO)}</th>
         }
       },
       sortable: true,
@@ -185,6 +193,8 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
                   cor={"danger"}
                   Icon={FaRegTrashAlt}
                   iconSize={18}
+                  width="35px"
+                  height="35px"
                   onClickButton={() => handleClickCancelar(row.IDQUEBRACAIXA, false)}
                 />
 
@@ -195,6 +205,8 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
                   cor={"primary"}
                   Icon={MdOutlineLocalPrintshop}
                   iconSize={18}
+                  width="35px"
+                  height="35px"
                   onClickButton={() => handleClickImprimir(row)}
                 />
 
@@ -211,6 +223,8 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
                 cor={"success"}
                 Icon={FaCheck}
                 iconSize={18}
+                width="35px"
+                height="35px"
                 onClickButton={() => handleClickCancelar(row.IDQUEBRACAIXA, true)}
               />
 
@@ -221,21 +235,6 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
 
     },
   ]
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
 
   useEffect(() => {
     getIPUsuario();
@@ -264,14 +263,39 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
   };
 
   const handleClickImprimir = (row) => {
-    if (row && row.IDQUEBRACAIXA) {
-      handleImprimir(row.IDQUEBRACAIXA);
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.IDQUEBRACAIXA) {
+        handleImprimir(row.IDQUEBRACAIXA);
+      }
+
+    } else {
+      Swal.fire({
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para acessar esta funcionalidade.',
+        icon: 'warning',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        }
+      })
     }
   };
 
 
   
   const handleCancelar = async (IDQUEBRACAIXA, status) => {
+    if(optionsModulos[0]?.ALTERAR == 'False') {
+      Swal.fire({
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para acessar esta funcionalidade.',
+        icon: 'warning',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        }
+      })
+      return;
+    }
     const putData = {  
       IDQUEBRACAIXA: IDQUEBRACAIXA,
       STATIVO: status ? 'True' : 'False'
@@ -301,7 +325,7 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
       }
 
       const responsePost = await post('/log-web', postData)
-  
+      handleClick();
       return responsePost.data;
 
     } catch (error) {
@@ -318,10 +342,9 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
     
   }
 
-  const handleClickCancelar = (row) => {
-    if (row && row.IDQUEBRACAIXA) {
-      handleCancelar(row.IDQUEBRACAIXA, row.STATIVO);
-      
+  const handleClickCancelar = (IDQUEBRACAIXA, status) => {
+    if (IDQUEBRACAIXA) {
+      handleCancelar(IDQUEBRACAIXA, status);
     }
   };
   
@@ -355,6 +378,9 @@ export const ActionListaQuebraCaixaLoja = ({ dadosQuebraDeCaixa, handleClick, qu
             paginator={true}
             rows={10}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado negativa</div>}

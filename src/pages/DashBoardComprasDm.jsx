@@ -5,16 +5,20 @@ import { MenuButton } from "../componets/Buttons/menuButton";
 import { HeaderMain } from "../componets/Header";
 import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { SidebarProvider } from "../componets/Sidebar/SidebarContext";
+import { useQuery } from "react-query";
+import { get } from "../api/funcRequest";
 const ActionComprasADMHome = lazy(() => import("../componets/ComprasADM/Components/ActionHome/actionComprasHome").then(module => ({ default: module.ActionComprasADMHome })));
 const ActionPesquisaDistribuicaoHistorico = lazy(() => import("../componets/ComprasADM/Components/ActionDistribuicaoHistorico/actionPesquisaDistribuicaoHistorico").then(module => ({ default: module.ActionPesquisaDistribuicaoHistorico })));
-const ActionPesquisaProdutoImagem = lazy(() => import("../componets/ComprasADM/Components/ActionImagemProduto/ActionPesquisaProdutoImagem").then(module => ({ default: module.ActionPesquisaProdutoImagem })));
+const ActionPesquisaProduto = lazy(() => import("../componets/ComprasADM/Components/ActionImagemProduto/ActionPesquisaProduto").then(module => ({ default: module.ActionPesquisaProduto })));
 const ActionPesquisaPromocao = lazy(() => import("../componets/ComprasADM/Components/ActionPromocoes/actionPesquisaPromocao").then(module => ({ default: module.ActionPesquisaPromocao })));
 
-export const DashBoardComprasDM = ({}) => {
+export const DashBoardComprasDM = () => {
   const [resumoVisivel, setResumoVisivel] = useState(false);
   const [actionVisivel, setActionVisivel] = useState(true);
   const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [componentToShow, setComponentToShow] = useState("");
+  const storedModule = localStorage.getItem('moduloselecionado');
+  const selectedModule = JSON.parse(storedModule);
   
   const navigate = useNavigate();
 
@@ -39,6 +43,16 @@ export const DashBoardComprasDM = ({}) => {
 
   }, [usuarioLogado]);
 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
+
   function handleShowComponent(componentName) {
     setComponentToShow(componentName);
   }
@@ -55,8 +69,8 @@ export const DashBoardComprasDM = ({}) => {
     case "/comprasadm/ActionPesquisaPromocao":
       component = <ActionPesquisaPromocao />
       break;
-    case "/comprasadm/ActionPesquisaProdutoImagem":
-      component = <ActionPesquisaProdutoImagem />
+    case "/comprasadm/ActionPesquisaProduto":
+      component = <ActionPesquisaProduto />
       break;
     default:
       break;
@@ -75,7 +89,7 @@ export const DashBoardComprasDM = ({}) => {
                 handleShowComponent={handleShowComponent}
               />
               <div className="page-content-wrapper">
-                <HeaderMain />
+                <HeaderMain optionsModulos={optionsModulos}/>
 
                 <main id="js-page-content" role="main" className="page-content">
                   <div className="row">

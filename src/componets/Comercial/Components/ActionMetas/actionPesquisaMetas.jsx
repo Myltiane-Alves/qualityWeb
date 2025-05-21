@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useState } from "react"
 import { AiOutlineSearch } from "react-icons/ai";
-import { useNavigate } from "react-router-dom"
 import { ActionListaMetas } from "./actionListaMetas";
 import { get } from "../../../../api/funcRequest";
 import { ActionMain } from "../../../Actions/actionMain";
@@ -8,84 +7,44 @@ import { InputField } from "../../../Buttons/Input";
 import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 import { ButtonType } from "../../../Buttons/ButtonType";
 import { getDataAtual } from "../../../../utils/dataAtual";
+import { useQuery } from "react-query";
+import { useFetchData } from "../../../../hooks/useFetchData";
 
 export const ActionPesquisaMetas = () => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [clickContador, setClickContador] = useState(0);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [marcas, setMarcas] = useState([]);
-  const [marcaSelecionada, setMarcaSelecionada] = useState(null);
-
-  const [dadosVendasMarca, setDadosVendasMarca] = useState([]);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
+  const [marcaSelecionada, setMarcaSelecionada] = useState('');
+  const [marcaNome, setMarcaNome] = useState('');
 
   useEffect(() => {
     const dataInicial = getDataAtual();
     const dataFinal = getDataAtual();
     setDataPesquisaInicio(dataInicial);
     setDataPesquisaFim(dataFinal);
-    getGrupoEmpresas()
   }, [])
+ 
+  const { data: dadosMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas } = useFetchData('marcasLista', `/marcasLista`);
 
-
-  const getGrupoEmpresas = async () => {
-    try {
-      const response = await get(`/listaGrupoEmpresas`)
-      if (response.data) {
-        setMarcas(response.data)
-      }
-    } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
-    }
-  }
-
-  const getListaVendasMarca = async () => {
-    try {
-      const response = await get(`/listaMetaVendas?page=`)
-      if (response.data) {
-        setDadosVendasMarca(response.data)
-      }
-      return response.data
-    } catch (error) {
-      console.log(error, "não foi possivel pegar os dados da tabela ")
-    }
-  }
+  const { data: dadosVendasMarca = [], error: errorVendasMarca, isLoading: isLoadingVendasMarca, refetch: refetchVendasMarca } = useQuery(
+    'listaMetaVendas',
+    async () => {
+      const response = await get(`/listaMetaVendas`);
+      return response.data;
+    },
+    { enabled: true, staleTime: 5 * 60 * 1000 }
+  );
 
   const handleSelectMarca = (e) => {
-    const selectId = e.target.value;
+    const nome = marcas.find((item) => item.IDGRUPOEMPRESARIAL === e.value)
+    setMarcaNome(nome.GRUPOEMPRESARIAL)
+    setMarcaSelecionada(e.value)
 
-    if (!isNaN(selectId)) {
-      setMarcaSelecionada(selectId)
-    }
   }
 
   const handleClick = () => {
-    setClickContador(prevContador => prevContador + 1);
-
-    if (clickContador % 2 === 0) {
-      setTabelaVisivel(true)
-      getListaVendasMarca(marcaSelecionada)
-    }
-
+    refetchVendasMarca()
+    setTabelaVisivel(true)
   }
 
   return (
@@ -96,7 +55,7 @@ export const ActionPesquisaMetas = () => {
         linkComponentAnterior={["Home"]}
         linkComponent={["Lista de Vendas"]}
         title="Vendas por Marcas e Período"
-        subTitle="Nome da Loja"
+        subTitle={marcaNome}
 
         InputFieldDTInicioComponent={InputField}
         labelInputFieldDTInicio={"Data Início"}
@@ -108,21 +67,20 @@ export const ActionPesquisaMetas = () => {
         valueInputFieldDTFim={dataPesquisaFim}
         onChangeInputFieldDTFim={e => setDataPesquisaFim(e.target.value)}
 
-
-        InputSelectEmpresaComponent={InputSelectAction}
-        onChangeSelectEmpresa={handleSelectMarca}
-        valueSelectEmpresa={marcaSelecionada}
-        optionsEmpresas={[
-
-          { value: '', label: 'Selecione a Marca' },
-          ...marcas.map((empresa) => ({
-            value: empresa.IDGRUPOEMPRESARIAL,
-            label: empresa.GRUPOEMPRESARIAL,
-          }))
+        InputSelectMarcasComponent={InputSelectAction}
+        labelSelectMarcas={"Marca"}
+        optionsMarcas={[
+          { value: '0', label: 'Selecionar Marca' },
+            ...dadosMarcas.map((marca) => {
+            return {
+              
+              value: marca.IDGRUPOEMPRESARIAL,
+              label: marca.GRUPOEMPRESARIAL,
+            }
+          })
         ]}
-
-        labelSelectEmpresa={"Marca"}
-
+        valueSelectMarca={marcaSelecionada}
+        onChangeSelectMarcas={handleSelectMarca}
 
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}
@@ -133,9 +91,7 @@ export const ActionPesquisaMetas = () => {
 
       {tabelaVisivel && (
         <ActionListaMetas dadosVendasMarca={dadosVendasMarca} />
-
       )}
     </Fragment>
   )
 }
-

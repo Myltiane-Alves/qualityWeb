@@ -118,7 +118,7 @@ export const ActionListaVendasResumidas = ({ dadosVendasLojaResumido }) => {
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => <th style={{ color: 'blue' }} >{row.NOFANTASIA}</th>,
+      body: row => <p style={{ color: 'blue', width: '200px', fontWeight: 600, margin: '0px' }} >{row.NOFANTASIA}</p>,
       sortable: true,
     },
     {
@@ -202,6 +202,9 @@ export const ActionListaVendasResumidas = ({ dadosVendasLojaResumido }) => {
             size={size}
             sortOrder={-1}
             rows={true}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             response

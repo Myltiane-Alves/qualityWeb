@@ -1,33 +1,50 @@
 import React, { Fragment, useEffect, useState } from "react"
-import { useAuth } from "../Providers/AuthContext";
-import { MenuButton } from "../componets/Buttons/menuButton";
-import { FooterMain } from "../componets/Footer";
+import { useAuth } from "../Providers/AuthContext";;
 import { IoMdArrowBack } from "react-icons/io";
 import { allModulos } from "../../allUsers.json"
 import { useNavigate } from "react-router-dom";
 import { CardModulos } from "../componets/CardsModulos";
+import { useFetchData } from "../hooks/useFetchData";
+import { useQuery } from "react-query";
+import { get } from "../api/funcRequest";
 
-export const Modulo = () => {
+// import { imgAdministrativo } from '../../public/img/icons/administrativo.png';
+// import { imgInformatica } from '../../public/img/icons/informatica.png';
+// import { imgGerencia } from '../../public/img/icons/gerencia.png';
+// import { imgRH } from '../../public/img/icons/rh.png';
+// import { imgMarketing } from '../../public/img/icons/marketing.png';
+// import { imgFinanceiro } from '../../public/img/icons/financeiro.png';
+// import { imgCompras } from '../../public/img/icons/compras.png';
+// import { imgComprasAdm } from '../../public/img/icons/compras.png';
+// import { imgContabilidade } from '../../public/img/icons/contabilidade.png';
+// import { imgExpedicao } from '../../public/img/icons/expedicao.png';
+// import { imgConferenciaCega } from '../../public/img/icons/conferenciaCega.png';
+// import { imgCadastro } from '../../public/img/icons/cadastro.png';
+// import { imgEtiquetagem } from '../../public/img/icons/etiqueta.png';
+// import { imgResumoVendas } from '../../public/img/icons/resumoVendas.png';
+// import { imgComercial } from '../../public/img/icons/comercial.png';
+// import { imgVoucher } from '../../public/img/icons/voucher.png';
+// import { imgMalote } from '../../public/img/icons/malote.png';
+
+
+
+export const Modulo = ({usuarioLogado}) => {
   const { handleLogout, usuario } = useAuth();
   const [selectedModule, setSelectedModule] = useState(null)
 
-  const navigate = useNavigate();
   
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      const parsedUsuario = JSON.parse(usuarioArmazenado);
-      setUsuarioLogado(parsedUsuario);
-    
-    }
-  }, [])
   // console.log(usuarioLogado, 'usuarioLogado')
-  useEffect(() => {
+  // const { data: optionsModulos = [] } = useFetchData('modulos', `/modulos?idUsuario=${usuarioLogado?.id}`);
 
-  }, [usuarioLogado])
+    const { data: optionsModulos = [], error: errorFuncionarios, isLoading: isLoadingFuncionarios, refetch: refetchFuncionarios } = useQuery(
+      'modulos',
+      async () => {
+        const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}`);
+        
+        return response.data;
+      },
+      { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+    );
 
 
   useEffect(() => {

@@ -10,12 +10,13 @@ import { ActionListaVendasContigencia } from "./actionListaVendasContigencia";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
-export const ActionPesquisaVendasContigencia = () => {
+export const ActionPesquisaVendasContigencia = ({ usuarioLogado, ID }) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('');
   const [dataPesquisaFim, setDataPesquisaFim] = useState('');
   const [marcaSelecionada, setMarcaSelecionada] = useState('')
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
+  const [ufSelecionado, setUfSelecionado] = useState('');
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000); 
@@ -26,6 +27,16 @@ export const ActionPesquisaVendasContigencia = () => {
     setDataPesquisaInicio(dataInicio);
     setDataPesquisaFim(dataFim);
   }, []);
+
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas, refetch: refetchMarcas } = useQuery(
     'marcasLista',
@@ -55,8 +66,8 @@ export const ActionPesquisaVendasContigencia = () => {
 
   const fetchVendasAtivasContigencia  = async () => {
     try {
-                                                                                                                                                                       
-      const urlApi = `venda-ativa?idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&statusContingencia=True`;
+                                                                                                                                                              
+      const urlApi = `venda-ativa?idMarca=${marcaSelecionada}&idEmpresa=${empresaSelecionada}&ufVenda=${ufSelecionado}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&statusContingencia=True&statusCancelado=False`;
       const response = await get(urlApi);
       
       if (response.data.length && response.page === pageSize) {
@@ -118,6 +129,12 @@ export const ActionPesquisaVendasContigencia = () => {
     refetchVendasAtivasContigencia()
   };
 
+  const optionsUF = [ 
+    { id: 1, value: '', label: 'Todos' },
+    { id: 2, value: 'DF', label: 'DF' },
+    { id: 3, value: 'GO', label: 'GO' },
+  ]
+
   return (
 
     <Fragment>
@@ -140,10 +157,12 @@ export const ActionPesquisaVendasContigencia = () => {
 
         InputSelectEmpresaComponent={InputSelectAction}
         labelSelectEmpresa={"Empresa"}
-        optionsEmpresas={optionsEmpresas.map((empresa) => ({
-          value: empresa.IDEMPRESA,
-          label: empresa.NOFANTASIA,
-        }))}
+        optionsEmpresas={[
+          { value: '0', label: 'Todas' },
+          ...optionsEmpresas.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+          }))]}
         valueSelectEmpresa={empresaSelecionada}
         onChangeSelectEmpresa={handleSelectEmpresa}
 
@@ -151,11 +170,20 @@ export const ActionPesquisaVendasContigencia = () => {
         labelSelectMarcas={"Marcas"}
         optionsMarcas={optionsMarcas.map((empresa) => ({
           value: empresa.IDGRUPOEMPRESARIAL,
-          label: empresa.DSGRUPOEMPRESARIAL,
+          label: empresa.GRUPOEMPRESARIAL,
 
         }))}
         valueSelectMarca={marcaSelecionada}
         onChangeSelectMarcas={handleSelectMarca}
+
+        InputSelectUFComponent={InputSelectAction}
+        labelSelectUF={"UF"}
+        optionsSelectUF={optionsUF.map((empresa) => ({
+          value: empresa.value,
+          label: empresa.label,
+        }))}
+        onChangeSelectUF={e => setUfSelecionado(e.value)}
+        valueSelectUF={ufSelecionado}
 
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}
@@ -166,7 +194,11 @@ export const ActionPesquisaVendasContigencia = () => {
 
       />
 
-      <ActionListaVendasContigencia  dadosVendasAtivasContigencia={dadosVendasAtivasContigencia}/>  
+      <ActionListaVendasContigencia  
+        dadosVendasAtivasContigencia={dadosVendasAtivasContigencia}
+        usuarioLogado={usuarioLogado}
+        optionsModulos={optionsModulos}  
+      />  
     </Fragment>
   )
 }

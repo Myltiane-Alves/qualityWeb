@@ -30,6 +30,8 @@ export const useCadastroProdutoAvulso = (dadosDetalheRecebimentos) => {
     const [ncmSelecionado, setNcmSelecionado] = useState('')
     const [tipoProdutoSelecionado, setTipoProdutoSelecionado] = useState('')
     const [tipoFiscalSelecionado, setTipoFiscalSelecionado] = useState('')
+    const [estoque, setEstoque] = useState('')
+    const [observacao, setObservacao] = useState('')
 
     const { data: dadosUnidadeMedida = [] } = useFetchData('unidadeMedida', '/unidadeMedida');
     const { data: dadosTamanhos = [] } = useFetchData('tamanhos', '/tamanhos');
@@ -169,8 +171,6 @@ export const useCadastroProdutoAvulso = (dadosDetalheRecebimentos) => {
         setQuantidade,
         referencia,
         setReferencia,
-        codBarras,
-        setCodBarras,
         descricao,
         setDescricao,
         fornecedor,
@@ -181,12 +181,6 @@ export const useCadastroProdutoAvulso = (dadosDetalheRecebimentos) => {
         setEstrutura,
         estilo,
         setEstilo,
-        vrCusto,
-        setVrCusto,
-        vrVenda,
-        setVrVenda,
-        categoriaProdutoSelecionado,
-        setCategoriaProdutoSelecionado,
         tamanhoSelecionado,
         setTamanhoSelecionado,
         unidadeSelecionada,
@@ -197,40 +191,25 @@ export const useCadastroProdutoAvulso = (dadosDetalheRecebimentos) => {
         setTipoTecidoSelecionado,
         categoriaSelecionada,
         setCategoriaSelecionada,
-        localExposicaoSelecionado,
-        setLocalExposicaoSelecionado,
-        ecommerceSelecionado,
-        setEcommerceSelecionado,
-        redeSocialSelecionado,
-        setRedeSocialSelecionado,
         ncmSelecionado,
         setNcmSelecionado,
         tipoProdutoSelecionado,
         setTipoProdutoSelecionado,
         tipoFiscalSelecionado,
         setTipoFiscalSelecionado,
-        dadosUnidadeMedida,
-        dadosTamanhos,
-        dadosCores,
-        dadosTipoTecidos,
-        dadosCategoriaPedidos,
-        dadosCategoriasProdutos,
-        dadosExposicao,
-        dadosTipoProdutos,
-        dadosTipoFiscalProdutos,
-        handleCategoriaProduto,
         handleTamanho,
         handleUnidade,
         handleCor,
         handleTipoTecido,
         handleCategoria,
-        handleLocalExposicao,
-        handleEcommerce,
-        handleRedeSocial,
         handleNcm,
         handleTipoProduto,
         handleTipoFiscal,
-        cadastrarProduto
+        observacao,
+        setObservacao,
+        estoque,
+        setEstoque,
+        cadastrarProduto,
 
     };
 };

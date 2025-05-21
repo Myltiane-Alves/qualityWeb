@@ -25,7 +25,6 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
   const [totalVRTOTALPAGO, setTotalVRTOTALPAGO] = useState(0);
   const [dadosVendas, setDadosVendas] = useState([]);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -143,7 +142,7 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
     {
       field: 'IDVENDA',
       header: 'Nº Venda',
-      body: row => <th>{row.IDVENDA}</th>,
+      body: row => <p style={{ width: '100px', margin: '0px', fontWeight: 600 }}>{row.IDVENDA}</p>,
       sortable: true,
 
     },
@@ -157,7 +156,7 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
     {
       field: 'DTHORAFECHAMENTO',
       header: 'Abertura',
-      body: row => <th>{row.DTHORAFECHAMENTO}</th>,
+      body: row => <p style={{ width: '150px', margin: '0px', fontWeight: 600 }}>{row.DTHORAFECHAMENTO}</p>,
       sortable: true,
 
     },
@@ -166,10 +165,10 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
       header: 'Operador',
       body: row => {
         return (
-          <div style={{ width: '300px' }}>
+          <p style={{ width: '250px', margin: '0px' }}>
 
             <th >{row.NOFUNCIONARIO}</th>
-          </div>
+          </p>
         )
       },
       sortable: true,
@@ -222,6 +221,8 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
                 iconSize={18}
                 iconColor={"#fff"}
                 cor={"primary"}
+                width="30px"
+                height="30px"
 
               />
 
@@ -234,6 +235,8 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
                 iconSize={18}
                 iconColor={"#fff"}
                 cor={"info"}
+                width="30px"
+                height="30px"
               />
 
             </div>
@@ -278,12 +281,11 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
 
   const handleEditPagamento = async (IDVENDA) => {
     try {
-      const response = await get(`/vendas-recebimentos?idVenda=${IDVENDA}`)
-      // const response = await get(`/recebimento?idVenda=${IDVENDA}`)
+      const response = await get(`/recebimento?idVenda=${IDVENDA}`)
       if (response.data) {
         setDadosPagamentoModal(response.data)
         setModalPagamentoVisivel(true)
-        
+        console.log(response.data, 'dados pagamento')
       }
     } catch (error) {
       console.log(error, 'não foi possivel pegar os dados da tabela')
@@ -302,7 +304,7 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
     <Fragment>
       <div className="panel" style={{ marginTop: "5rem", marginBottom: "1rem" }}>
         <div className="panel-hdr">
-          <h2>Lista de Empresas</h2>
+          <h2>Lista Vendas Lojas</h2>
         </div>
         <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
           <HeaderTable
@@ -319,12 +321,15 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
             value={dados}
             title="Lista de Vendas Loja"
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
@@ -338,6 +343,8 @@ export const ActionListaVendas = ({ dadosVendasLoja }) => {
                 footer={coluna.footer}
                 sortable={coluna.sortable}
                 headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '1rem', border: '1px solid #e9e9e9' }}
               />
             ))}
           </DataTable>

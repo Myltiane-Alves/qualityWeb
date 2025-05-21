@@ -121,7 +121,7 @@ export const ActionPesquisaCliente = () => {
   }
 
   const handleClick = () => {
-    setCurrentPage(+1)
+    setCurrentPage(prevPage => prevPage + 1);
     refetchListaCliente();
     setTabelaVisivel(false)
   }
@@ -168,7 +168,7 @@ export const ActionPesquisaCliente = () => {
           {value: '', label: 'Selecione uma Marca'},
           ...optionsMarcas.map((item) => ({
             value: item.IDGRUPOEMPRESARIAL,
-            label: item.DSGRUPOEMPRESARIAL
+            label: item.GRUPOEMPRESARIAL
           }))
         ]}
         valueSelectMarca={marcaSelecionada}

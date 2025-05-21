@@ -42,7 +42,7 @@ export const ActionPesquisaVendas = () => {
   const fetchListaVendas = async () => {
     try {
       
-      const urlApi = `/vendas-loja-informatica?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquiaFim=${dataPesquisaFim}`;
+      const urlApi = `/vendas-loja-informatica?idEmpresa=${empresaSelecionada}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquiaFim=${dataPesquisaFim}&status=False`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {

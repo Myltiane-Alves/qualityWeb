@@ -32,6 +32,10 @@ export const ActionPesquisaEstoqueLoja = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(1000)
   const [isLoadingPesquisa, setIsLoadingPesquisa] = useState(true)
+  const [queryIsAtual, setQueryIsAtual] = useState(false)
+  const [queryIsEstoque, setQueryIsEstoque] = useState(false)
+  const [queryIsAnterior, setQueryIsAnterior] = useState(false)
+  const [queryIsPosicao, setQueryIsPosicao] = useState(false)
 
   const navigate = useNavigate();
   const animatedComponents = makeAnimated();
@@ -54,7 +58,6 @@ export const ActionPesquisaEstoqueLoja = () => {
     {enabled: false, staleTime: 5 * 60 * 1000, }
   );
 
-  
   const { data: dadosGrupos = [], error: errorGrupos, isLoading: isLoadingGrupos, refetch: refetchGrupos } = useQuery(
     'grupo-produto',
     async () => {
@@ -67,7 +70,7 @@ export const ActionPesquisaEstoqueLoja = () => {
   const { data: dadosSubGrupos = [], error: errorSubGrupos, isLoading: isLoadingSubGrupos, refetch: refetchSubGrupos } = useQuery(
     'subgrupo-produto',
     async () => {
-      const response = await get(`/subgrupo-produto${grupoSelecionado}`);
+      const response = await get(`/subgrupo-produto?idGrupo=${grupoSelecionado}`);
       return response.data;
     },
     { staleTime: 5 * 60 * 1000, }
@@ -134,25 +137,67 @@ export const ActionPesquisaEstoqueLoja = () => {
   };
    
   const { data: dadosEstoqueAtual = [], error: errorEstoque, isLoading: isLoadingEstoque, refetch: refetchListaEstoque } = useQuery(
-    ['estoqueAtual', empresaSelecionada, grupoSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, fornecedorSelecionado, codBarra, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    ['inventariomovimento', empresaSelecionada, grupoSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, fornecedorSelecionado, codBarra, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
     () => fetchListaEstoque(empresaSelecionada, grupoSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, fornecedorSelecionado, codBarra, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     {
-      enabled: false, 
+      enabled: queryIsAtual, 
     }
   );
 
+
+  const fetchListaEstoqueRotatividade = async () => {
+    try {
+    
+      const urlApi = `/inventariomovimento?idEmpresa=${empresaSelecionada}&idGrupo=${grupoSelecionado}&idSubGrupo=${subGrupoSelecionado}&idMarca=${marcaSelecionada}&idFornecedor=${fornecedorSelecionado}&descricaoProduto=${codBarra}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}&stAtivo=`;
+      const response = await get(urlApi);
+      
+      if (response.data.length && response.data.length === pageSize) {
+        let allData = [...response.data];
+        animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
+  
+        async function fetchNextPage(currentPage) {
+          try {
+            currentPage++;
+            const responseNextPage = await get(`${urlApi}&page=${currentPage}`);
+            if (responseNextPage.length) {
+              allData.push(...responseNextPage.data);
+              return fetchNextPage(currentPage);
+            } else {
+              return allData;
+            }
+          } catch (error) {
+            console.error('Erro ao buscar próxima página:', error);
+            throw error;
+          }
+        }
+  
+        await fetchNextPage(currentPage);
+        return allData;
+      } else {
+       
+        return response.data;
+      }
+  
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    } finally {
+      fecharAnimacaoCarregamento();
+    }
+  };
+
   const { data: dadosEstoqueRotatividade = [], error: errorEstoqueRotatividade, isLoading: isLoadingEstoqueRotatividade, refetch: refetchListaEstoqueRotatividade } = useQuery(
-    ['estoqueAtual', empresaSelecionada, grupoSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, fornecedorSelecionado, codBarra, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
-    () => fetchListaEstoque(empresaSelecionada, grupoSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, fornecedorSelecionado, codBarra, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+    ['inventariomovimento', empresaSelecionada, grupoSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, fornecedorSelecionado, codBarra, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize],
+    () => fetchListaEstoqueRotatividade(empresaSelecionada, grupoSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, fornecedorSelecionado, codBarra, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     {
-      enabled: false, 
+      enabled: queryIsEstoque, 
     }
   );
 
   const fetchListaEstoqueUltima = async () => {
     try {
       
-      const urlApi = `/ultimaPosicaoEstoque?idEmpresa=${empresaSelecionada}&idGrupo=${grupoSelecionado}&idSubGrupo=${subGrupoSelecionado}&idMarca=${marcaSelecionada}&idFornecedor=${fornecedorSelecionado}&descProduto=${codBarra}&dataPesquisaInicio=${dataPesquisaInicio}&stativo=True`;
+      const urlApi = `/ultimaPosicaoEstoque?idEmpresa=${empresaSelecionada}&idGrupo=${grupoSelecionado}&idSubGrupo=${subGrupoSelecionado}&idMarca=${marcaSelecionada}&idFornecedor=${fornecedorSelecionado}&descricaoProduto=${codBarra}&dataPesquisaInicio=${dataPesquisaInicio}&stAtivo=`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data === pageSize) {
@@ -194,7 +239,7 @@ export const ActionPesquisaEstoqueLoja = () => {
     ['ultimaPosicaoEstoque', empresaSelecionada, grupoSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, fornecedorSelecionado, codBarra, dataPesquisaInicio, currentPage, pageSize],
     () => fetchListaEstoqueUltima(empresaSelecionada, grupoSelecionado, grupoSelecionado, subGrupoSelecionado, marcaSelecionada, fornecedorSelecionado, codBarra, dataPesquisaInicio, currentPage, pageSize),
     {
-      enabled: false, 
+      enabled: queryIsPosicao, 
     }
   );
  
@@ -224,7 +269,12 @@ export const ActionPesquisaEstoqueLoja = () => {
 
   const handleClickEstoqueAtual = () => {
     setIsLoadingPesquisa(true)
-    setCurrentPage(+1)
+    setCurrentPage(prevPage => prevPage + 1)
+    setQueryIsAtual(true)
+    setQueryIsEstoque(false)
+    setQueryIsAnterior(false)
+    setQueryIsPosicao(false)
+
     refetchListaEstoque()
     setTabelaEstoqueAtual(true)
     setTabelaEstoqueRotatividade(false)
@@ -233,7 +283,12 @@ export const ActionPesquisaEstoqueLoja = () => {
   }
   const handleClickEstoqueRotatividade = () => {
     setIsLoadingPesquisa(true)
-    setCurrentPage(+1)
+    setCurrentPage(prevPage => prevPage + 1)
+    setQueryIsEstoque(true)
+    setQueryIsAtual(false)
+    setQueryIsAnterior(false)
+    setQueryIsPosicao(false)
+
     refetchListaEstoqueRotatividade()
     setTabelaEstoqueRotatividade(true)
     setTabelaEstoqueAtual(false)
@@ -243,7 +298,12 @@ export const ActionPesquisaEstoqueLoja = () => {
   
   const handleClickEstoqueUltimaPosicao = () => {
     setIsLoadingPesquisa(true)
-    setCurrentPage(+1)
+    setCurrentPage(prevPage => prevPage + 1)
+    setQueryIsPosicao(true)
+    setQueryIsEstoque(false)
+    setQueryIsAtual(false)
+    setQueryIsAnterior(false)
+
     refetchListaEstoqueUltima()
     setTabelaEstoqueUltimaPosicao(true)
     setTabelaEstoqueRotatividade(false)

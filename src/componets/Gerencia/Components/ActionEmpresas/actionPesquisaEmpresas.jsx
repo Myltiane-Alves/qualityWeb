@@ -9,11 +9,21 @@ import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
 
 
-export const ActionPesquisaEmpresas = () => {
+export const ActionPesquisaEmpresas = ({usuarioLogado, ID}) => {
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
   const [empresaSelecionadaNome, setEmpresaSelecionadaNome] = useState('')
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
+
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
 
   const fetchEmpresas = async () => {
     try {
@@ -97,9 +107,8 @@ export const ActionPesquisaEmpresas = () => {
         IconSearch={AiOutlineSearch}
       />
 
-      <ActionListaEmpresas dadosEmpresas={dadosEmpresas}/>
+      <ActionListaEmpresas dadosEmpresas={dadosEmpresas} usuarioLogado={usuarioLogado} optionsModulos={optionsModulos}/>
     
     </Fragment>
   )
 }
-

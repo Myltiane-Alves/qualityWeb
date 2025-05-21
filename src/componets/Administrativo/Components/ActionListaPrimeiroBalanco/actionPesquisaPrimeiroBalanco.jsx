@@ -7,9 +7,18 @@ import { AiOutlineSearch } from "react-icons/ai";
 import Swal from "sweetalert2";
 import { useQuery } from "react-query";
 
-export const ActionPesquisaPrimeiroBalanco = () => {
+export const ActionPesquisaPrimeiroBalanco = ({usuarioLogado, ID }) => {
   const [empresaSelecionada, setEmpresaSelecionada] = useState('')
 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000,}
+  );
 
   const { data: optionsEmpresa = [], error: errorFornecedor, isLoading: isLoadingFornecedor, refetch: refetchFornecedor } = useQuery(
     'preparar-primeiro-balanco-loja',
@@ -25,6 +34,17 @@ export const ActionPesquisaPrimeiroBalanco = () => {
   };
   
   const onSubmit = async () => {
+    if(optionsModulos[0]?.ALTERAR == 'False') {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Você não tem permissão para realizar essa ação.',
+        showConfirmButton: false,
+        timer: 1500
+      });
+      return;
+    } 
+
     if(empresaSelecionada === '' || empresaSelecionada === null || empresaSelecionada === '0'){
       Swal.fire({
         position: 'center',

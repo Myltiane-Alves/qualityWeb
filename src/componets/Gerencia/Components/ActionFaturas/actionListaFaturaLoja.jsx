@@ -20,37 +20,13 @@ import Swal from "sweetalert2";
 import { toFloat } from "../../../../utils/toFloat";
 
 
-export const ActionListaFaturaLoja = ({ dadosFaturas }) => {
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
+export const ActionListaFaturaLoja = ({ dadosFaturas, usuarioLogado, optionsModulos }) => {
   const [dadosDetalheFatura, setDadosDetalheFatura] = useState([]);
   const [modalDetalheFatura, setModalDetalheFatura] = useState(false);
   const [modalCancelarFatura, setModalCancelarFatura] = useState(false);
   const [dadosCancelarFatura, setDadosCancelarFatura] = useState([]);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-
-  }, [usuarioLogado]);
-
 
 
   const onGlobalFilterChange = (e) => {
@@ -183,7 +159,7 @@ export const ActionListaFaturaLoja = ({ dadosFaturas }) => {
     {
       field: 'DTPROCESSAMENTO',
       header: 'DT Recebido',
-      body: row => <th style={{ color: 'blue' }}>{dataFormatada(row.DTPROCESSAMENTO)}</th>,
+      body: row => <th style={{ color: 'blue' }}>{row.DTPROCESSAMENTO}</th>,
       sortable: true,
     },
     {
@@ -269,7 +245,9 @@ export const ActionListaFaturaLoja = ({ dadosFaturas }) => {
                       cor={"primary"}
                       Icon={CiEdit}
                       onClickButton={() => handleClickEditar(row)}
-                      iconSize={18}
+                      iconSize={25}
+                      width="35px"
+                      height="35px"
                     />
                   </div>
                   <div className="p-1">
@@ -278,7 +256,9 @@ export const ActionListaFaturaLoja = ({ dadosFaturas }) => {
                       cor={"danger"}
                       Icon={AiOutlineCloseCircle}
                       onClickButton={() => handleClickCancelar(row)}
-                      iconSize={18}
+                      iconSize={25}
+                      width="35px"
+                      height="35px"
                     />
                   </div>
                 </div>
@@ -308,6 +288,9 @@ export const ActionListaFaturaLoja = ({ dadosFaturas }) => {
                   cor={"info"}
                   Icon={MdOutlineRemoveShoppingCart}
                   onClickButton={() => handleIncluirRecompra(row)}
+                  iconSize={25}
+                  width="35px"
+                  height="35px"
                 />
               </div>
 
@@ -325,7 +308,10 @@ export const ActionListaFaturaLoja = ({ dadosFaturas }) => {
                   titleButton={"Excluir Recompra"}
                   cor={"danger"}
                   Icon={MdOutlineAddShoppingCart}
-                  onClickButton={() => handleClickImprimir(row)}
+                  onClickButton={() => handleIncluirRecompra(row)}
+                  iconSize={25}
+                  width="35px"
+                  height="35px"
                 />
               </div>
 
@@ -350,8 +336,19 @@ export const ActionListaFaturaLoja = ({ dadosFaturas }) => {
   };
 
   const handleClickEditar = (row) => {
-    if (row && row.IDDETALHEFATURA) {
-      handleEditar(row.IDDETALHEFATURA);
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.IDDETALHEFATURA) {
+        handleEditar(row.IDDETALHEFATURA);
+      }
+    } else {
+      Swal.fire({
+        icon: 'info',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de conferência do caixa.',
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
     }
   };
 
@@ -368,13 +365,35 @@ export const ActionListaFaturaLoja = ({ dadosFaturas }) => {
   };
 
   const handleClickCancelar = (row) => {
-    if (row && row.IDDETALHEFATURA) {
-      handleCancelar(row.IDDETALHEFATURA);
-    }
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.IDDETALHEFATURA) {
+        handleCancelar(row.IDDETALHEFATURA);
+      }
+    } else {
+      Swal.fire({
+        icon: 'info',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para cancelar a fatura.',
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    }  
   };
   
 
   const handleIncluirRecompra = async (row) => {
+    if(optionsModulos[0]?.ALTERAR == 'False') {
+      Swal.fire({
+        icon: 'info',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de recompra.',
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+      return;
+    }
     let msgTitulo = row.STRECOMPRA === 'True' ? 'Excluir' : 'Incluir';
 
     const putData = {
@@ -427,12 +446,15 @@ export const ActionListaFaturaLoja = ({ dadosFaturas }) => {
           <DataTable
             title="Faturas da Loja"
             value={dados}
-            size={size}
+            size="small"
             globalFilter={globalFilterValue}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[5, 10, 20, 50, 100, 500, 1000, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

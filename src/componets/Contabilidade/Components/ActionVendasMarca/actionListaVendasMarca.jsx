@@ -12,7 +12,6 @@ import HeaderTable from "../../../Tables/headerTable";
 export const ActionListaVendasMarca = ({ dadosVendasMarca }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
-  const [size, setSize] = useState('small')
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -153,11 +152,14 @@ export const ActionListaVendasMarca = ({ dadosVendasMarca }) => {
             title="Vendas produtos por Loja"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

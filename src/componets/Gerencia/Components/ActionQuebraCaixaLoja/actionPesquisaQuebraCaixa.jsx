@@ -1,6 +1,4 @@
 import React, { Fragment, useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom";
-import Swal from 'sweetalert2'
 import { get } from "../../../../api/funcRequest";
 import { InputField } from "../../../Buttons/Input";
 import { ActionMain } from "../../../Actions/actionMain";
@@ -10,17 +8,16 @@ import { ActionListaQuebraCaixa } from "./actionListaQuebraCaixa";
 import { getDataAtual } from "../../../../utils/dataAtual";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 
 
-export const ActionPesquisaQuebraCaixa = () => {
+export const ActionPesquisaQuebraCaixa = ({usuarioLogado, ID, optionsEmpresas}) => {
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
   const [dataPesquisaFim, setDataPesquisaFim] = useState('')
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
-
-  const navigate = useNavigate();
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
 
   useEffect(() => {
     const dataInicio = getDataAtual()
@@ -29,26 +26,21 @@ export const ActionPesquisaQuebraCaixa = () => {
     setDataPesquisaFim(dataFinal)
 
   }, [])
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
+ 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate, usuarioLogado]);
-
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
 
   const fetchQuebraCaixa = async () => {
     try {
-      
-      const urlApi = `/lista-quebra-caixa?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const idEmpresa = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      const urlApi = `/lista-quebra-caixa?idEmpresa=${idEmpresa}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
       
       if (response.data.length && response.data.length === pageSize) {
@@ -88,22 +80,15 @@ export const ActionPesquisaQuebraCaixa = () => {
 
   const { data: dadosQuebraCaixa = [], error: erroQuality, isLoading: isLoadingQuality, refetch: refetchQuebraCaixa } = useQuery(
     'lista-quebra-caixa',
-    () => fetchQuebraCaixa(usuarioLogado.IDEMPRESA, dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
+    () => fetchQuebraCaixa(dataPesquisaInicio, dataPesquisaFim, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000, cacheTime: 5 * 60 * 1000 }
   );
 
   const handleClick = () => {
-    if (usuarioLogado && usuarioLogado.IDEMPRESA && dataPesquisaInicio && dataPesquisaFim) {
-     setCurrentPage(prevPage => prevPage + 1);
-      refetchQuebraCaixa(usuarioLogado.IDEMPRESA, dataPesquisaInicio, dataPesquisaFim);
-      setTabelaVisivel(true);
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "Por favor, preencha todos os campos.",
-        text: "Verifique os Campos de Data",
-      });
-    }
+    setCurrentPage(prevPage => prevPage + 1);
+    setTabelaVisivel(true);
+    refetchQuebraCaixa();
+  
   }
 
   
@@ -116,17 +101,35 @@ export const ActionPesquisaQuebraCaixa = () => {
         linkComponent={["Conferência de Caixas"]}
         title="Lista de Quebras de Caixas da Loja"
         subTitle={usuarioLogado?.NOFANTASIA}
-        InputFieldDTInicioComponent={InputField}
-        labelInputFieldDTInicio={"Data Início"}
-        valueInputFieldDTInicio={dataPesquisaInicio}
-        onChangeInputFieldDTInicio={(e) => setDataPesquisaInicio(e.target.value)}
 
+        InputSelectPendenciaComponent={InputSelectAction}
+        labelSelectPendencia="Selecione a Empresa"
+        optionsPendencia={[
+          { value: '', label: 'Todas' },
+          ...optionsEmpresas?.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+            idGrupoEmpresarial: empresa.IDGRUPOEMPRESARIAL,
+          }))
+        ]}
+        onChangeSelectPendencia={(e) => {
+          const empresaSelecionadaObj = optionsEmpresas.find(empresa => empresa.IDEMPRESA === e.value);
+          setMarcaSelecionado(empresaSelecionadaObj?.IDGRUPOEMPRESARIAL || '');
+          setEmpresaSelecionada(e.value);
+        }}
+        valueSelectPendencia={empresaSelecionada}
+        isVisible={{display: optionsModulos[0]?.ADMINISTRADOR == false ? "none" : "block"}}
+
+        InputFieldDTInicioAComponent={InputField}
+        valueInputFieldDTInicioA={dataPesquisaInicio}
+        labelInputDTInicioA={"Data Início"}
+        onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
         
-        InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
-
+        InputFieldDTFimAComponent={InputField}
+        labelInputDTFimA={"Data Fim"}
+        valueInputFieldDTFimA={dataPesquisaFim}
+        onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
+        
         onButtonClickSearch={handleClick}
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}

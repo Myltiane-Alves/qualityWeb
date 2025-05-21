@@ -12,9 +12,8 @@ import axios from "axios";
 import { getDataHoraAtual } from "../../../../utils/horaAtual";
 
 
-export const ActionCadastrarFaturaModal = ({ show, handleClose, dadosDetelheFatura }) => {
+export const ActionCadastrarFaturaModal = ({ show, handleClose, dadosDetelheFatura, usuarioLogado, optionsModulos }) => {
   const { register, handleSubmit, formState: {errors} } = useForm();
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [empresa, setEmpresa] = useState('')
   const [codAutorizacao, setCodAutorizacao] = useState('')
   const [valorFatura, setValorFatura] = useState(0)
@@ -28,25 +27,10 @@ export const ActionCadastrarFaturaModal = ({ show, handleClose, dadosDetelheFatu
     const data = getDataHoraAtual()
     setHoraAtual(data)
   }, [])
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-
-  }, [navigate]);
 
   useEffect(() => {
     getIPUsuario();
-  }, [usuarioLogado]);
+  }, []);
  
   const getIPUsuario = async () => {
     const response = await axios.get('http://ipwho.is/')
@@ -58,6 +42,19 @@ export const ActionCadastrarFaturaModal = ({ show, handleClose, dadosDetelheFatu
 
 
   const onSubmit = async (data) => {
+    if(optionsModulos[0]?.CRIAR == 'False') {
+      Swal.fire({
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para alterar este registro.',
+        icon: 'error',
+        timer: 3000,
+        customClass: {
+          container: 'custom-swal',
+        }
+      });
+      return;
+    }
+
     if (!codAutorizacao || !valorFatura) {
       Swal.fire({
       title: 'Error',
@@ -95,6 +92,18 @@ export const ActionCadastrarFaturaModal = ({ show, handleClose, dadosDetelheFatu
     try {
         const response = await post('/criar-detalhe-fatura', postData)
   
+        const textDados = JSON.stringify(postData)
+        let textoFuncao = 'GERENCIA/AJUSTE MOVIMENTO CAIXA';
+              
+        const createData = {
+          IDFUNCIONARIO: usuarioLogado.id,
+          PATHFUNCAO: textoFuncao,
+          DADOS: textDados,
+          IP: ipUsuario
+        }
+        
+        await post('/log-web', createData)
+        
         Swal.fire({
           title: 'Atualização',
           text: 'Atualização Realizada com Sucesso',
@@ -104,23 +113,20 @@ export const ActionCadastrarFaturaModal = ({ show, handleClose, dadosDetelheFatu
             container: 'custom-swal',
           }
         });
-  
+        return response.data;
+      } catch (error) {
+        
         const textDados = JSON.stringify(postData)
-        let textoFuncao = 'GERENCIA/AJUSTE MOVIMENTO CAIXA';
-    
-    
+        let textoFuncao = 'GERENCIA/ERRO AO AJUSTAR MOVIMENTO CAIXA';
+        
         const createData = {
           IDFUNCIONARIO: usuarioLogado.id,
           PATHFUNCAO: textoFuncao,
           DADOS: textDados,
           IP: ipUsuario
         }
-    
-        const responsePost = await post('/log-web', createData)
-    
         
-        return responsePost.data;
-      } catch (error) {
+        const responsePost = await post('/log-web', createData)
         Swal.fire({
           title: 'Cadastro',
           text: 'Erro ao Tentar Confimar Alteração',
@@ -132,6 +138,7 @@ export const ActionCadastrarFaturaModal = ({ show, handleClose, dadosDetelheFatu
         });
   
         console.log(error);
+        return responsePost.data
       }
 
   }

@@ -189,76 +189,76 @@ export const ActionListaVendasLojasResumo = ({ dadosTotalVendasEmpresa, dataPesq
     {
       field: 'dataPesquisa',
       header: 'Data',
-      body: row => <p style={{ color: 'blue', width: 100 }}>{row.dataPesquisa}</p>,
+      body: row => <th style={{ color: 'blue', width: 100 }}>{row.dataPesquisa}</th>,
       sortable: true,
     },
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => <p style={{ color: 'blue',width: '180px' }}>{row.NOFANTASIA}</p>,
+      body: row => <th style={{ color: 'blue',width: '180px' }}>{row.NOFANTASIA}</th>,
       footer: <th style={{ fontWeight: 700 }} >{'Total'}</th>,
       sortable: true,
     },
     {
       field: 'totalBruto',
       header: 'Valor Bruto',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.totalBruto)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.totalBruto)}</th>,
       footer: <th style={{ fontWeight: 700 }} >{formatMoeda(calcularValorTotalBruto())}</th>,
       sortable: true,
     },
     {
       field: 'VALORTOTALDINHEIRO',
       header: 'Dinheiro',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALDINHEIRO)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALDINHEIRO)}</th>,
       footer: <th style={{ fontWeight: 700 }} >{formatMoeda(calcularValorTotalDinheiro())}</th>,
       sortable: true,
     },
     {
       field: 'VALORTOTALCARTAO',
       header: 'Cartão',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALCARTAO)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALCARTAO)}</th>,
       footer: <th style={{ fontWeight: 700 }} >{formatMoeda(calcularValorTotalCartao())}</th>,
       sortable: true,
     },
     {
       field: 'VALORTOTALPOS',
       header: 'POS',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALPOS)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALPOS)}</th>,
       footer: <th style={{ fontWeight: 700 }} >{formatMoeda(calcularValorTotalPos())}</th>,
       sortable: true,
     },
     {
       field: 'VALORTOTALPIX',
       header: 'PIX',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALPIX)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALPIX)}</th>,
       footer: <th style={{ fontWeight: 700 }} >{formatMoeda(calcularValorTotalPix())}</th>,
       sortable: true,
     },
     {
       field: 'VALORTOTALCONVENIO',
       header: 'Convênio',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALCONVENIO)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALCONVENIO)}</th>,
       footer: <th style={{ fontWeight: 700 }} >{formatMoeda(calcularValorTotalConvenio())}</th>,
       sortable: true,
     },
     {
       field: 'VALORTOTALFATURAPIX',
       header: 'Fatura Pix',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALFATURAPIX)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALFATURAPIX)}</th>,
       footer: <th style={{ fontWeight: 700 }} >{formatMoeda(calcularValorTotalFaturaPix())}</th>,
       sortable: true,
     },
     {
       field: 'VALORTOTALFATURA',
       header: 'Fatura',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALFATURA)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.VALORTOTALFATURA)}</th>,
       footer: <th style={{ fontWeight: 700 }} >{formatMoeda(calcularValorTotalFatura())}</th>,
       sortable: true,
     },
     {
       field: 'totalDespesasAdiantamento',
       header: 'Despesa',
-      body: row => <p style={{ color: 'red' }}>{formatMoeda(row.totalDespesasAdiantamento)}</p>,
+      body: row => <th style={{ color: 'red' }}>{formatMoeda(row.totalDespesasAdiantamento)}</th>,
       footer: <th style={{ fontWeight: 700, color: 'red' }}>{formatMoeda(calcularValorTotalDespesas())}</th>,
       sortable: true,
     },
@@ -266,7 +266,7 @@ export const ActionListaVendasLojasResumo = ({ dadosTotalVendasEmpresa, dataPesq
     {
       field: 'totalDisponivel',
       header: 'Disponível',
-      body: row => <p style={{ color: 'blue' }}>{formatMoeda(row.totalDisponivel)}</p>,
+      body: row => <th style={{ color: 'blue' }}>{formatMoeda(row.totalDisponivel)}</th>,
       footer: <th style={{ fontWeight: 700 }} >{formatMoeda(calcularValorTotalDisponivel())}</th>,
       sortable: true,
     },
@@ -279,11 +279,11 @@ export const ActionListaVendasLojasResumo = ({ dadosTotalVendasEmpresa, dataPesq
             titleButton={"Detalhar Fechamento"}
             onClickButton={() => handleClickEdit(row)}
             Icon={GrView}
-            iconSize={18}
+            iconSize={25}
+            width="40px"
+            height="40px"
             iconColor={"#fff"}
             cor={"success"}
-
-
           />
 
         </div>
@@ -338,7 +338,10 @@ export const ActionListaVendasLojasResumo = ({ dadosTotalVendasEmpresa, dataPesq
             sortOrder={-1}
             paginator={true}
             rows={10}
-            rowsPerPageOptions={[5, 10, 20, 50, 100]}
+            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}

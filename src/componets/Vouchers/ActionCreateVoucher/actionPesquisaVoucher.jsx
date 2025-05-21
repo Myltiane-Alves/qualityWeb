@@ -1,5 +1,5 @@
 import React, { Fragment, useState } from "react"
-import { ActionPesquisaCreateVoucherCliente } from "./actionPesquisaCreateVoucherCliente";
+import { ActionPesquisaCreateVoucherCliente } from "./ActionCliente/actionPesquisaCreateVoucherCliente";
 import { ActionPesquisaCreateVoucher } from "./actionPesquisaCreateVoucher";
 
 

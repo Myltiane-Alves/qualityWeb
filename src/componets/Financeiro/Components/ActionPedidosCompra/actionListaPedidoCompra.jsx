@@ -10,7 +10,6 @@ import * as XLSX from 'xlsx';
 
 export const ActionListaPedidoCompra = ({dadosPedidosCompras}) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -129,93 +128,93 @@ export const ActionListaPedidoCompra = ({dadosPedidosCompras}) => {
     {
       field: 'IDRESUMOPEDIDO',
       header: 'N° Pedido',
-      body: row => <p style={{ color: 'blue'}}> {row.IDRESUMOPEDIDO}</p>,
+      body: row => <th style={{ color: 'blue'}}> {row.IDRESUMOPEDIDO}</th>,
       sortable: true
     },
     {
       field: 'IDRESUMOPEDIDO',
       header: 'Documento',
-      body: row => <p style={{ color: 'blue'}}> {row.IDRESUMOPEDIDO}</p>,
+      body: row => <th style={{ color: 'blue'}}> {row.IDRESUMOPEDIDO}</th>,
       sortable: true
     },
     {
       field: 'ASSTMIGRADOSAP',
       header: 'Movimento',
-      body: row => <p style={{ color: row.ASSTMIGRADOSAP == 'True' ? 'blue' : 'red' }}>{row.ASSTMIGRADOSAP == 'True' ? 'Migrado SAP' : 'Previsto'}</p>,
+      body: row => <th style={{ color: row.ASSTMIGRADOSAP == 'True' ? 'blue' : 'red' }}>{row.ASSTMIGRADOSAP == 'True' ? 'Migrado SAP' : 'Previsto'}</th>,
       sortable: true,
     },
     {
       field: 'DSDESCRICAOCONTA',
       header: 'Descrição',
-      body: row => <p style={{ color: 'blue'}}> {row.DSDESCRICAOCONTA}</p>,
+      body: row => <p style={{ color: 'blue', width: '150px', margin: '0px', fontWeight: 600}}> {row.DSDESCRICAOCONTA}</p>,
       sortable: true
     },
     {
       field: 'NOFORNECEDOR',
       header: 'Fornecedor',
-      body: row => <p style={{ color: 'blue'}}> {row.NOFORNECEDOR} </p>,
+      body: row => <p style={{ color: 'blue', width: '250px', margin: '0px', fontWeight: 600}}> {row.NOFORNECEDOR} </p>,
       sortable: true
     },
     {
       field: 'MODPEDIDO',
       header: 'Grupo',
-      body: row => <p style={{ color: 'blue'}}> {row.MODPEDIDO}</p>,
+      body: row => <th style={{ color: 'blue'}}> {row.MODPEDIDO}</th>,
       sortable: true
     },
     {
       field: 'QTDDIASPAGAMENTO',
       header: 'QTD Dias',
-      body: row => <p style={{ color: 'blue'}}> { row.QTDDIASPAGAMENTO}</p>,
+      body: row => <th style={{ color: 'blue'}}> { row.QTDDIASPAGAMENTO}</th>,
       sortable: true
     },
     {
       field: 'DTPEDIDOFORMATADA',
       header: 'DT Pedido',
-      body: row => <p style={{ color: 'blue'}}> {row.DTPEDIDOFORMATADA}</p>,
+      body: row => <p style={{ color: 'blue', width: '150px', margin: '0px', fontWeight: 600}}> {row.DTPEDIDOFORMATADA}</p>,
       sortable: true
     },
     {
       field: 'DTPREVENTREGAFORMATADA',
       header: 'DT Entrega',
-      body: row => <p style={{ color: 'blue'}}> {row.DTPREVENTREGAFORMATADA}</p>,
+      body: row => <p style={{ color: 'blue',  margin: '0px', fontWeight: 600}}> {row.DTPREVENTREGAFORMATADA}</p>,
       sortable: true
     },
     {
       field: 'DTVENCIMENTOFORMATADA',
       header: 'DT Vencimento',
-      body: row => <p style={{ color: 'blue'}}> {row.DTVENCIMENTOFORMATADA}</p>,
+      body: row => <th style={{ color: 'blue'}}> {row.DTVENCIMENTOFORMATADA}</th>,
       sortable: true
     },
     {
       field: 'DTCADASTROFORMATADA',
       header: 'DT Lançamento',
-      body: row => <p style={{ color: 'blue'}}> {row.DTCADASTROFORMATADA}</p>,
+      body: row => <th style={{ color: 'blue'}}> {row.DTCADASTROFORMATADA}</th>,
       sortable: true
     },
     {
       field: 'NUVEZESPARCELA',
       header: 'Parcela',
-      body: row => <p style={{ color: 'blue'}}> {row.NUVEZESPARCELA}</p>,
-      footer: 'Total',
+      body: row => <th style={{ color: 'blue'}}> {row.NUVEZESPARCELA}</th>,
+      // footer: 'Total',
       sortable: true
     },
     {
       field: 'VRTOTALLIQUIDO',
       header: 'A Pagar',
-      body: row => <p style={{color: 'red'}}> {formatMoeda(row.VRTOTALLIQUIDO)} </p>,
-      footer: formatMoeda(calcularTotalAPagar()),
+      body: row => <th style={{color: 'red'}}> {formatMoeda(row.VRTOTALLIQUIDO)} </th>,
+      // footer: formatMoeda(calcularTotalAPagar()),
       sortable: true
     },
     {
       field: 'DSFORMAPAGCONTA',
       header: 'Forma Pagamento',
-      body: row => <p style={{ color: 'blue'}}> {row.DSFORMAPAGCONTA}</p>,
+      body: row => <th style={{ color: 'blue'}}> {row.DSFORMAPAGCONTA}</th>,
       sortable: true
     },
     {
       field: 'NOEMPESAPAG',
       header: 'Filial',
-      body: row => <p style={{color: 'blue', width: '100px' }}>{row.NOEMPESAPAG}</p>,
+      body: row => <p style={{color: 'blue', width: '200px', margin: '0px', fontWeight: 600 }}>{row.NOEMPESAPAG}</p>,
       sortable: true
     }
   ]
@@ -223,46 +222,54 @@ export const ActionListaPedidoCompra = ({dadosPedidosCompras}) => {
   return (
 
     <Fragment>
-      <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-          <HeaderTable
-            globalFilterValue={globalFilterValue}
-            onGlobalFilterChange={onGlobalFilterChange}
-            handlePrint={handlePrint}
-            exportToExcel={exportToExcel}
-            exportToPDF={exportToPDF}
-          />
+      <div className="panel">
+        <div className="panel-hdr">
+          <h2>Lista Pedidos de Compras</h2>
         </div>
-      <div className="card" ref={dataTableRef}>
-
-        <DataTable
-          title="Vendas por Loja"
-          value={dados}
-          globalFilter={globalFilterValue}
-          size={size}
-          sortOrder={-1}
-          paginator={true}
-          rows={10}
-          rowsPerPageOptions={[5, 10, 20, 50, 100, dados.length]}
-          showGridlines
-          stripedRows
-          emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
-        >
-          {conlunasPedidos.map(coluna => (
-            <Column
-              key={coluna.field}
-              field={coluna.field}
-              header={coluna.header}
-
-              body={coluna.body}
-              footer={coluna.footer}
-              sortable={coluna.sortable}
-              headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-              footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-              bodyStyle={{ fontSize: '0.8rem' }}
-
+        <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+            <HeaderTable
+              globalFilterValue={globalFilterValue}
+              onGlobalFilterChange={onGlobalFilterChange}
+              handlePrint={handlePrint}
+              exportToExcel={exportToExcel}
+              exportToPDF={exportToPDF}
             />
-          ))}
-        </DataTable>
+          </div>
+        <div className="card" ref={dataTableRef}>
+
+          <DataTable
+            title="Vendas por Loja"
+            value={dados}
+            globalFilter={globalFilterValue}
+            size={"small"}
+            sortOrder={-1}
+            paginator={true}
+            rows={10}
+            rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
+            showGridlines
+            stripedRows
+            emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}
+          >
+            {conlunasPedidos.map(coluna => (
+              <Column
+                key={coluna.field}
+                field={coluna.field}
+                header={coluna.header}
+
+                body={coluna.body}
+                footer={coluna.footer}
+                sortable={coluna.sortable}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                bodyStyle={{ fontSize: '0.8rem' }}
+
+              />
+            ))}
+          </DataTable>
+        </div>
       </div>
 
 

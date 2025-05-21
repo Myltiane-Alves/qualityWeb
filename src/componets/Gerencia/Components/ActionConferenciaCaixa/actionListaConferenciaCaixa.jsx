@@ -23,7 +23,7 @@ import Swal from "sweetalert2";
 import { ActionImprimirRecibos } from "./actionImprimirRecebibo";
 
 
-export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuario }) => {
+export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuarioLogado, optionsModulos }) => {
   const [dadosDetalheFechamento, setDadosDetalheFechamento] = useState([]);
   const [dadosDetelheCaixa, setDadosDetelheCaixa] = useState([]);
   const [dadosDetelheFatura, setDadosDetelheFatura] = useState([]);
@@ -34,7 +34,6 @@ export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuario }) =
   const [modalImprimir, setModalImprimir] = useState(false);
   const [imprimirRecibo, setImprimirRecibo] = useState(false);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
 
@@ -364,10 +363,21 @@ export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuario }) =
   ]
 
   const handleConferir = async (row) => {
-
+    if(optionsModulos[0]?.ALTERAR == 'False') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de conferência do caixa.',
+        confirmButtonColor: '#7352A5',
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+      return;
+    }
 
     const putData = {
-      IDSUPERVISOR: usuario,
+      IDSUPERVISOR: usuarioLogado,
       STCONFERIDO: '1',
       ID: row.ID,
     };
@@ -408,8 +418,20 @@ export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuario }) =
   };
 
   const handleClickAjusteFechamento = (row) => {
-    if (row && row.ID) {
-      handleAjusteFechamento(row.ID);
+    if (optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.ID) {
+        handleAjusteFechamento(row.ID);
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de conferência do caixa.',
+        confirmButtonColor: '#7352A5',
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
     }
   };
 
@@ -426,9 +448,21 @@ export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuario }) =
   };
 
   const handleClickCadastroQuebra = (row) => {
-    if (row && row.ID) {
-      handleCadastrarQuebra(row.ID);
-    }
+    if (optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.ID) {
+        handleCadastrarQuebra(row.ID);
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de conferência do caixa.',
+        confirmButtonColor: '#7352A5',
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    }  
   };
 
   const handleCadastrarFatura = async (ID) => {
@@ -444,9 +478,21 @@ export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuario }) =
   };
 
   const handleClickCadastroFatura = (row) => {
-    if (row && row.ID) {
-      handleCadastrarFatura(row.ID);
-    }
+    if (optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.ID) {
+        handleCadastrarFatura(row.ID);
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para alterar o status de conferência do caixa.',
+        confirmButtonColor: '#7352A5',
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    }  
   };
 
   const handleImprimir = async (ID) => {
@@ -462,9 +508,21 @@ export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuario }) =
   };
 
   const handleClickImprimir = (row) => {
-    if (row && row.ID) {
-      handleImprimir(row.ID);
-    }
+    if (optionsModulos[0]?.ALTERAR == 'True') {
+      if (row && row.ID) {
+        handleImprimir(row.ID);
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Atenção!',
+        text: 'Você não tem permissão para Imprimir.',
+        confirmButtonColor: '#7352A5',
+        customClass: {
+          container: 'custom-swal',
+        },
+      });
+    }  
   };
 
   const footerGroup = (
@@ -504,13 +562,16 @@ export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuario }) =
           <DataTable
             title="Movimento dos Caixas"
             value={dados}
-            size={size}
+            size="small"
             globalFilter={globalFilterValue}
             footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
             rows={10}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             showGridlines
             stripedRows
             response
@@ -524,9 +585,9 @@ export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuario }) =
                 body={coluna.body}
                 footer={coluna.footer}
                 sortable={coluna.sortable}
-                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                bodyStyle={{ fontSize: '0.8rem' }}
+                headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
+                footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
+                bodyStyle={{ fontSize: '1rem' }}
 
               />
             ))}
@@ -538,18 +599,24 @@ export const ActionListaConferenciaCaixa = ({ dadosMovimentosCaixa, usuario }) =
           show={modalAjusteFechamento}
           handleClose={() => setModalAjusteFechamento(false)}
           dadosDetalheFechamento={dadosDetalheFechamento}
+          usuarioLogado={usuarioLogado}
+          optionsModulos={optionsModulos}
         />
 
         <ActionCadastrarQuebraCaixaModal
           show={modalCastroQuebraCaixa}
           handleClose={() => setModalCastroQuebraCaixa(false)}
           dadosDetelheCaixa={dadosDetelheCaixa}
+          usuarioLogado={usuarioLogado}
+          optionsModulos={optionsModulos}
         />
 
         <ActionCadastrarFaturaModal 
           show={modalCastroFatura}
           handleClose={() => setModalCastroFatura(false)}
           dadosDetelheFatura={dadosDetelheFatura}
+          usuarioLogado={usuarioLogado}
+          optionsModulos={optionsModulos}
         />
 
 

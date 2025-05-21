@@ -12,12 +12,13 @@ import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 import 'jspdf-autotable';
 import { get } from "../../../../api/funcRequest";
-import { ActionColetorBalancoModal } from "../ActionListaBalancoAvulso/actionColetorBalancoModal";
+import { ActionColetorBalancoModal } from "./ActionColetorBalanco/actionColetorBalancoModal";
 import { ActionPreviaBalancoModal } from "./actionPreviaBalancoModal";
 import { ActionVisualizarImprimirPrestacaoContas } from "./actionVisualizarImprimirPrestacaoContas";
 import { toFloat } from "../../../../utils/toFloat";
+import Swal from "sweetalert2";
 
-export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
+export const ActionListaBalancoPorLoja = ({ dadosBalanco, optionsModulos, usuarioLogado }) => {
   const [modalResumoBalanco, setModalResumoBalanco] = useState(false)
   const [dadosColetorBalanco, setDadosColetorBalanco] = useState([])
   const [dadosPreviaBalancoModal, setDadosPreviaBalancoModal] = useState([])
@@ -25,7 +26,6 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
   const [modalImprimirVisivel, setModalImprimirVisivel] = useState(false)
   const [dadosListaContasBalanco, setDadosListaContasBalanco] = useState([])
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -131,13 +131,13 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
     {
       field: 'DTABERTURA',
       header: 'Data Abertura',
-      body: row => <th >{row.DTABERTURA}</th>,
+      body: row => <p style={{fontWeight: 600, width: '150px', margin: '0px'}} >{row.DTABERTURA}</p>,
       sortable: true,
     },
     {
       field: 'DTFECHAMENTO',
       header: 'Data Fechamento',
-      body: row => <th>{row.DTFECHAMENTO}</th>,
+      body: row => <p style={{fontWeight: 600, width: '150px', margin: '0px'}}>{row.DTFECHAMENTO}</p>,
       sortable: true,
     },
     {
@@ -162,7 +162,7 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
     {
       field: 'STCONCLUIDO',
       header: 'Status',
-      body: row => <th>{ row.STCONCLUIDO == 'True' ? 'Concluído' : 'Em Aberto'}</th>,
+      body: row => <p style={{fontWeight: 600, width: '100px', margin: '0px'}}>{ row.STCONCLUIDO == 'True' ? 'Concluído' : 'Em Aberto'}</p>,
       sortable: true,
     },
     {
@@ -177,7 +177,9 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
               titleButton={"Prévia Balanço Diferença"}
               cor={"primary"}
               Icon={FaBalanceScaleLeft}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickPrevialanco(row)}
             />
           </div>
@@ -186,7 +188,9 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
               titleButton={"Detalhar Balanço"}
               cor={"success"}
               Icon={GrFormView}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickResumoBalanco(row)}
             />
           </div>
@@ -195,7 +199,9 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
               titleButton={"Prévia Balanço"}
               cor={"warning"}
               Icon={FaScaleUnbalanced}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickPrevialanco(row)}
             />
           </div>
@@ -207,7 +213,9 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
               titleButton={"Prestação de Contas"}
               cor={"danger"}
               Icon={FcCurrencyExchange}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickContaBalanco(row)}
             />
           </div>
@@ -217,7 +225,9 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
               titleButton={"Prévia Balanço Geral"}
               cor={"info"}
               Icon={FaBalanceScale}
-              iconSize={18}
+              iconSize={25}
+              width="35px"
+              height="35px"
               onClickButton={() => handleClickPreviaGeral(row)}
             />
           </div>
@@ -239,11 +249,22 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
   }
 
   const handleClickPrevialanco = async (row) => {
-    if (row.IDRESUMOBALANCO && row.IDEMPRESA) {
-      setModalPreviaBalanco(true)
-      handleEditPreviaBalanco(row.IDRESUMOBALANCO, row.IDEMPRESA)
+    if (optionsModulos[0]?.ALTERAR == 'True') {
+
+      if (row.IDRESUMOBALANCO && row.IDEMPRESA) {
+        setModalPreviaBalanco(true)
+        handleEditPreviaBalanco(row.IDRESUMOBALANCO, row.IDEMPRESA)
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para acessar essa funcionalidade.',
+        timer: 3000
+      });
     }
   }
+
   const handleEditPreviaGeral = async (IDRESUMOBALANCO, IDEMPRESA) => {
     try {
       const response = await get(`/novoPreviaBalanco?idResumo=${IDRESUMOBALANCO}&idEmpresa=${IDEMPRESA}&diferenca=0&processa=0`)
@@ -256,9 +277,19 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
   }
 
   const handleClickPreviaGeral = async (row) => {
-    if (row.IDRESUMOBALANCO && row.IDEMPRESA) {
-      setModalPreviaBalanco(true)
-      handleEditPreviaBalanco(row.IDRESUMOBALANCO, row.IDEMPRESA)
+    if (optionsModulos[0]?.ALTERAR == 'True') {
+
+      if (row.IDRESUMOBALANCO && row.IDEMPRESA) {
+        setModalPreviaBalanco(true)
+        handleEditPreviaBalanco(row.IDRESUMOBALANCO, row.IDEMPRESA)
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para acessar essa funcionalidade.',
+        timer: 3000
+      });
     }
   }
 
@@ -278,9 +309,18 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
   }
 
   const handleClickResumoBalanco = async (row) => {
-    if (row.IDRESUMOBALANCO && row.IDEMPRESA) {
-      setModalResumoBalanco(true)
-      handleEditResumoBalanco(row.IDRESUMOBALANCO, row.IDEMPRESA)
+    if (optionsModulos[0]?.ALTERAR == 'True') {
+      if (row.IDRESUMOBALANCO && row.IDEMPRESA) {
+        setModalResumoBalanco(true)
+        handleEditResumoBalanco(row.IDRESUMOBALANCO, row.IDEMPRESA)
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para acessar essa funcionalidade.',
+        timer: 3000
+      });
     }
   }
 
@@ -294,11 +334,20 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
       console.log(error, 'não foi possivel pegar os dados da tabela')
     }
   }
+
   const handleClickContaBalanco = (row) => {
-    if(row && row.IDRESUMOBALANCO) {
-      setModalImprimirVisivel(true)
-      handleEditContaBalanco(row.IDRESUMOBALANCO)
-   
+    if(optionsModulos[0]?.ALTERAR == 'True') {
+      if(row && row.IDRESUMOBALANCO) {
+        setModalImprimirVisivel(true)
+        handleEditContaBalanco(row.IDRESUMOBALANCO)   
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso Negado',
+        text: 'Você não tem permissão para acessar essa funcionalidade.',
+        timer: 3000
+      });
     }
   }
 
@@ -306,7 +355,7 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
 
     <Fragment>
 
-      <div id="panel-1" className="panel" style={{marginTop: '5rem'}}>
+      <div id="panel-1" className="panel" >
         <div className="panel-hdr">
           <h2 >
             Lista de Balanço por Loja
@@ -331,7 +380,7 @@ export const ActionListaBalancoPorLoja = ({ dadosBalanco }) => {
                 title="Vendas por Loja"
                 value={dados}
                 globalFilter={globalFilterValue}
-                size={size}
+                size="small"
                 sortOrder={-1}
                 paginator={true}
                 rows={10}

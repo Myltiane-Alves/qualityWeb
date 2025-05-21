@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { formatMoeda } from "../../../../utils/formatMoeda";
@@ -9,45 +9,16 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 import Swal from "sweetalert2";
-import { post, put } from "../../../../api/funcRequest";
-import { useNavigate } from "react-router-dom";
 import { BsTrash3 } from "react-icons/bs";
 import { toFloat } from "../../../../utils/toFloat";
+import { useEditarDeposito } from "./hooks/useEditarDeposito";
 
-export const ActionListaConciliarPorBanco = ({ dadosConciliarBanco }) => {
+export const ActionListaConciliarPorBanco = ({ dadosConciliarBanco, usuarioLogado, optionsModulos,handleClick }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [ipUsuario, setIpUsuario] = useState('');
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    getIPUsuario();
-  }, [usuarioLogado]);
-
-  const getIPUsuario = async () => {
-    const response = await fetch('http://ipwho.is/')
-    if (response.data) {
-      setIpUsuario(response.data);
-    }
-    return response.data;
-  }
+  const  {
+    handleCancelar
+  } = useEditarDeposito({ optionsModulos, usuarioLogado, handleClick })
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -132,31 +103,31 @@ export const ActionListaConciliarPorBanco = ({ dadosConciliarBanco }) => {
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => <th style={{ color: '' }}>{row.NOFANTASIA}</th>,
+      body: row => <p style={{fontWeight: 600, margin: "0px", width: "200px" }}>{row.NOFANTASIA}</p>,
       sortable: true
     },
     {
       field: 'DTCOMPENSACAO',
       header: 'Data Compensação',
-      body: row => <th style={{ color: '' }}>{row.DTCOMPENSACAO}</th>,
+      body: row => <p style={{fontWeight: 600, margin: "0px", width: "150px" }}>{row.DTCOMPENSACAO}</p>,
       sortable: true
     },
     {
       field: 'DTDEPOSITO',
       header: 'Data Depósito',
-      body: row => <th style={{ color: '' }}>{row.DTDEPOSITO}</th>,
+      body: row => <p style={{fontWeight: 600, margin: "0px", width: "150px" }}>{row.DTDEPOSITO}</p>,
       sortable: true
     },
     {
       field: 'DTMOVIMENTOCAIXA',
       header: 'Data Movimento',
-      body: row => <th style={{ color: '' }}>{row.DTMOVIMENTOCAIXA}</th>,
+      body: row => <p style={{fontWeight: 600, margin: "0px", width: "150px" }}>{row.DTMOVIMENTOCAIXA}</p>,
       sortable: true
     },
     {
       field: 'DSBANCO',
       header: 'Banco',
-      body: row => <th style={{ color: '' }}>{row.DSBANCO}</th>,
+      body: row => <p style={{fontWeight: 600, margin: "0px", width: "150px" }}>{row.DSBANCO}</p>,
       footer: 'Total',
       sortable: true
     },
@@ -177,18 +148,18 @@ export const ActionListaConciliarPorBanco = ({ dadosConciliarBanco }) => {
       field: 'STCANCELADO',
       header: 'Status',
       body: row => (
-        <th style={{ color: row.STCANCELADO === 'False' ? 'blue' : 'red' }}>
+        <p style={{fontWeight: 600, margin: "0px", width: "100px", color: row.STCANCELADO === 'False' ? 'blue' : 'red' }}>
           {row.STCANCELADO === 'False' ? 'Dep. Ativo' : 'Dep. Cancelado'}
-        </th>
+        </p>
       ),
     },
     {
       field: 'STCONFERIDO',
       header: 'Situação',
       body: row => (
-        <th style={{ color: row.STCONFERIDO === 'True' ? 'green' : 'red' }}>
+        <p style={{fontWeight: 600, margin: "0px", width: "100px", color: row.STCONFERIDO === 'True' ? 'green' : 'red' }}>
           {row.STCONFERIDO === 'True' ? 'Conciliado' : 'Não Conciliado'}
-        </th>
+        </p>
       ),
     },
     {
@@ -207,7 +178,9 @@ export const ActionListaConciliarPorBanco = ({ dadosConciliarBanco }) => {
                   titleButton={"Cancelar Conciliação"}
                   cor={"danger"}
                   Icon={BsTrash3}
-                  iconSize={20}
+                  iconSize={25}
+                  width="35px"
+                  height="35px"
                   onClickButton={() => handleClickCancelar(row)}
                 />
               </div>
@@ -218,59 +191,22 @@ export const ActionListaConciliarPorBanco = ({ dadosConciliarBanco }) => {
       },
     },
   ]
-
-  const handleCancelar = async (IDDEPOSITOLOJA) => {
-    Swal.fire({
-      title: 'Tem Certeza que Deseja Cancelar a Conciliação do Depósito?',
-      text: 'Você não poderá reverter esta ação!',
-      icon: 'warning',
-      showCancelButton: true,
-      showConfirmButton: true,
-      cancelButtonText: 'Cancelar',
-      confirmButtonText: 'OK',
-      customClass: {
-        confirmButton: 'btn btn-primary',
-        cancelButton: 'btn btn-danger',
-        loader: 'custom-loader'
-      },
-      buttonsStyling: false
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const putData = {  
-            IDDEPOSITOLOJA: IDDEPOSITOLOJA,
-    
-          }
-          const response = await put('/atualizar-deposito-loja', putData)
-         
-          const textDados = JSON.stringify(putData)
-          let textoFuncao = 'FINANCEIRO/CANCELADO CONCILIAÇÃO DO DEPOSITO';
-       
-          const postData = {  
-            IDFUNCIONARIO: usuarioLogado.id,
-            PATHFUNCAO:  textoFuncao,
-            DADOS: textDados,
-            IP: ipUsuario
-          }
-  
-          const responsePost = await post('/log-web', postData)
-      
-          Swal.fire({
-            title: 'Cancelado', 
-            text: 'Conciliação do Depósito cancelado com Sucesso', 
-            icon: 'success'
-          })
-
-          return responsePost;
-        } catch (error) {
-          console.error('Erro ao buscar detalhes da venda: ', error);
-        }
-      }
-    })
-    
-  }
   
   const handleClickCancelar = (row) => {
+    if (optionsModulos[0]?.ALTERAR == 'False') {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Erro!',
+        text: 'Você não tem permissão para cancelar a conciliação do depósito!',
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 4000 
+      });
+      return
+    } 
     if (row && row.IDDEPOSITOLOJA) {
       handleCancelar(row.IDDEPOSITOLOJA);
     }
@@ -281,7 +217,7 @@ export const ActionListaConciliarPorBanco = ({ dadosConciliarBanco }) => {
     <Fragment>
 
 
-      <div className="panel">
+      <div className="panel" >
         <div className="panel-hdr">
           <h2>
             Lista de Depósitos <span class="fw-300"><i>Por Bancos</i> Pesquisa pela data do Depósito</span>
@@ -301,12 +237,15 @@ export const ActionListaConciliarPorBanco = ({ dadosConciliarBanco }) => {
         <DataTable
           title="Vendas por Loja"
           value={dadosListaConciliarBanco}
-          size={size}
+          size="small"
           globalFilter={globalFilterValue}
           sortOrder={-1}
           paginator={true}
           rows={10}
           rowsPerPageOptions={[10, 20, 50, 100, dadosListaConciliarBanco.length]}
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+          filterDisplay="menu"
           showGridlines
           stripedRows
           emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

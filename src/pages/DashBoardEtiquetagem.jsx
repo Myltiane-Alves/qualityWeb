@@ -5,12 +5,16 @@ import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
+import { useQuery } from "react-query";
+import { get } from "../api/funcRequest";
 
-const ActionPesquisaProdutosAvulso = lazy(() => import("../componets/Etiquetagem/Components/ActionProdutoEtiqueta/actionPesquisaProdutosAvulso").then(module => ({ default: module.ActionPesquisaProdutosAvulso })));
+const ActionPesquisaProdutoEtiqueta = lazy(() => import("../componets/Etiquetagem/Components/ActionProdutoEtiqueta/actionPesquisaProdutoEtiqueta").then(module => ({ default: module.ActionPesquisaProdutoEtiqueta })));
 
-export const DashBoardEtiquetagem = ({}) => {
+export const DashBoardEtiquetagem = () => {
   const [usuarioLogado, setUsuarioLogado] = useState(null)
   const [componentToShow, setComponentToShow] = useState("");
+  const storedModule = localStorage.getItem('moduloselecionado');
+  const selectedModule = JSON.parse(storedModule);
   const navigate = useNavigate();
 
   function handleShowComponent(componentName) {
@@ -36,11 +40,22 @@ export const DashBoardEtiquetagem = ({}) => {
   useEffect(() => {
   }, [usuarioLogado]);
 
+
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
+
   let component = null;
 
   switch (componentToShow) {
-    case "/etiquetagem/ActionPesquisaProdutosAvulso":
-      component = <ActionPesquisaProdutosAvulso />;
+    case "/etiquetagem/ActionPesquisaProdutoEtiqueta":
+      component = <ActionPesquisaProdutoEtiqueta />;
       break;
     default:
       component = null;
@@ -58,7 +73,7 @@ export const DashBoardEtiquetagem = ({}) => {
                 handleShowComponent={handleShowComponent}
               />
               <div className="page-content-wrapper">
-                <HeaderMain />
+                <HeaderMain optionsModulos={optionsModulos}/>
 
                 <main id="js-page-content" role="main" className="page-content">
                   <div className="row">
@@ -67,7 +82,7 @@ export const DashBoardEtiquetagem = ({}) => {
                         <div className="panel-container show">
                           <div className="panel-content">
                             <Suspense fallback={<div>Loading...</div>}>
-                              <ActionPesquisaProdutosAvulso />
+                              <ActionPesquisaProdutoEtiqueta />
                               {componentToShow && component}
                             </Suspense>
                           </div>

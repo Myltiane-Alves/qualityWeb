@@ -11,9 +11,12 @@ import { get } from "../../../api/funcRequest";
 import { MdOutlineAttachMoney } from "react-icons/md";
 import { FaProductHunt } from "react-icons/fa";
 import { GrView } from "react-icons/gr";
-import { ActionRelacaoRecebimentosModal } from "../Components/ActionsModaisVendas/actionRelacaoRecebimentosModal";
+import { ActionRelacaoRecebimentosModal } from "../Components/ActionsModaisVendas/ActionRecebimentos/actionRelacaoRecebimentosModal";
 import { ActionDetalheVendaProdutosModal } from "../Components/ActionsModaisVendas/actionDetalheVendaProdutosModal";
 import { ActionDetalheVendaModal } from "../Components/ActionsModaisVendas/actionDetalheVendaModal";
+import { toFloat } from "../../../utils/toFloat";
+import { TbFileTypeXml } from "react-icons/tb";
+import { ActionVendaXMLModal } from "./ActionVendasXML/actionVendaXMLModal";
 
 export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas, empresaSelecionada }) => {
   const [modalVendaVisivel, setModalVendaVisivel] = useState(false);
@@ -22,24 +25,27 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas, empresaSele
   const [dadosVendas, setDadosVendas] = useState([]);
   const [dadosProdutoModal, setDadosProdutoModal] = useState([]);
   const [dadosPagamentoModal, setDadosPagamentoModal] = useState([]);
+  const [dadosDetalheVendasXML, setDadosDetalheVendasXML] = useState([]);
+  const [modalXmlVisivel, setModalXmlVisivel] = useState(false);
 
   const dadosCanceladasVendas = dadosVendasCanceladas.map((item, index) => {
     let contador = index + 1; 
-
+    // console.log(dadosVendasCanceladas, "item")
     return {
       IDCAIXAWEB: item.IDCAIXAWEB,
-      DSCAIXA: item.DSCAIXA,
+      DSCAIXA: `${item.IDCAIXAWEB} - ${item.DSCAIXA}`,
       IDVENDA: item.IDVENDA,
       NFE_INFNFE_IDE_NNF: item.NFE_INFNFE_IDE_NNF,
       DTHORAFECHAMENTO: item.DTHORAFECHAMENTO,
       NOFUNCIONARIO: item.NOFUNCIONARIO,
       NOFUNCIOCANCEL: item.NOFUNCIOCANCEL,
-      STCONFERIDO: item.STCONFERIDO,
-      VRTOTALPAGO: parseFloat(item.VRTOTALPAGO),
-      VRTOTALDESCONTO: parseFloat(item.VRTOTALDESCONTO),
-      VRTOTALVENDA: parseFloat(item.VRTOTALVENDA),
-      STCONTINGENCIA: item.STCONTINGENCIA,
       TXTMOTIVOCANCELAMENTO: item.TXTMOTIVOCANCELAMENTO,
+      VRTOTALPAGO: toFloat(item.VRTOTALPAGO),
+      STCONTINGENCIA: item.STCONTINGENCIA,
+      XML_FORMATADO: item.XML_FORMATADO || '',
+      STCONFERIDO: item.STCONFERIDO,
+      VRTOTALDESCONTO: toFloat(item.VRTOTALDESCONTO),
+      VRTOTALVENDA: toFloat(item.VRTOTALVENDA),
       contador
     };
   });
@@ -63,7 +69,7 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas, empresaSele
     {
       field: 'DSCAIXA',
       header: 'Caixa',
-      body: row => <th>{row.IDCAIXAWEB + row.DSCAIXA}</th>,
+      body: row => <th>{row.DSCAIXA}</th>,
       sortable: true,
     },
     {
@@ -155,6 +161,20 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas, empresaSele
               cor={"success"}
             />
           </div>
+          <div className="p-1">
+             <ButtonTable
+                titleButton={`${row.XML_FORMATADO?.length > 0 ? 'Visualizar Xml da Venda' : 'Venda Sem XML'}` }
+                disabledBTN={row.XML_FORMATADO?.length === 0}
+                onClickButton={() => clickDetalharVendaXML(row)}
+                Icon={TbFileTypeXml}
+                iconSize={20}
+                iconColor={"#fff"}
+                cor={"info"}
+                width="30px"
+                height="30px"
+
+              />
+          </div>
         </div>
       ),
     },
@@ -215,6 +235,23 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas, empresaSele
     }
   }
 
+  const clickDetalharVendaXML = (row) => {
+    if (row && row.IDVENDA) {
+      handleDetalharVendaXML(row.IDVENDA);
+    }
+  };
+
+  const handleDetalharVendaXML = async (IDVENDA) => {
+    try {
+      const response = await get(`/venda-xml?idVenda=${IDVENDA}`);
+      setModalXmlVisivel(true);
+      setDadosDetalheVendasXML(response.data)
+      
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const footerGroup = (
     <ColumnGroup>
       <Row> 
@@ -229,45 +266,45 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas, empresaSele
     <Fragment>
 
  
-          <div className="panel" style={{marginTop: '2rem'}}>
-            <header className="panel-hdr " >
-              <h2 id="TituloLoja" >
-                Lista de Vendas Canceladas
-              </h2>
-            </header>
+      <div className="panel" style={{marginTop: '2rem'}}>
+          <header className="panel-hdr " >
+            <h2 >
+              Lista de Vendas Canceladas
+            </h2>
+          </header>
 
-            <div className="card">
-              <DataTable
-                title="Vendas por Loja"
-                value={dadosCanceladasVendas}
-                sortField="VRTOTALPAGO"
-                footerColumnGroup={footerGroup}
-                sortOrder={-1}
-                paginator={true}
-                rows={10}
-                rowsPerPageOptions={[5, 10, 20, 50]}
-                showGridlines
-                stripedRows
-                emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
-              >
-                {colunaVendasCanceladas.map(coluna => (
-                  <Column
-                    key={coluna.field}
-                    field={coluna.field}
-                    header={coluna.header}
-                    body={coluna.body}
-                    // footer={coluna.footer}
-                    sortable={coluna.sortable}
-                    headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-                    footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-                    bodyStyle={{ fontSize: '0.8rem' }}
+          <div className="card">
+            <DataTable
+              title="Vendas por Loja"
+              value={dadosCanceladasVendas}
+              size="small"
+              footerColumnGroup={footerGroup}
+              sortOrder={-1}
+              paginator={true}
+              rows={10}
+              rowsPerPageOptions={[10, 20, 50, 100, dadosCanceladasVendas.length]}
+              showGridlines
+              stripedRows
+              emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado</div>}
+            >
+              {colunaVendasCanceladas.map(coluna => (
+                <Column
+                  key={coluna.field}
+                  field={coluna.field}
+                  header={coluna.header}
+                  body={coluna.body}
+                  // footer={coluna.footer}
+                  sortable={coluna.sortable}
+                  headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
+                  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
+                  bodyStyle={{ fontSize: '0.8rem' }}
 
-                  />
-                ))}
-              </DataTable>
-            </div>
+                />
+              ))}
+            </DataTable>
+          </div>
 
-        </div>
+      </div>
 
 
       {modalVendaVisivel && (
@@ -294,6 +331,12 @@ export const ActionListaVendasCanceladas = ({ dadosVendasCanceladas, empresaSele
           dadosPagamentoModal={dadosPagamentoModal}
         />
       )}
+
+    <ActionVendaXMLModal 
+      show={modalXmlVisivel} 
+      handleClose={() => setModalXmlVisivel(false)}
+      dadosDetalheVendasXML={dadosDetalheVendasXML} 
+    />
     </Fragment>
   )
 }

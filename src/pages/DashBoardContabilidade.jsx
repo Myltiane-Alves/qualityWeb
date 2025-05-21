@@ -5,17 +5,22 @@ import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
 import { HeaderMain } from "../componets/Header";
 import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
+import { useQuery } from "react-query";
+import { get } from "../api/funcRequest";
 
 const ResumoDashBoardContabilidade = lazy(() => import("../componets/Contabilidade/Components/ResumoContabilidade/ResumoDashBoardContabilidade").then(module => ({ default: module.ResumoDashBoardContabilidade })));
 const ActionPesquisaVendasMarca = lazy(() => import("../componets/Contabilidade/Components/ActionVendasMarca/actionPesquisaVendasMarca").then(module => ({ default: module.ActionPesquisaVendasMarca })));
 const ActionPesquisaVendasContingencia = lazy(() => import("../componets/Contabilidade/Components/ActionVendas/actionPesquisaVendasContingencia").then(module => ({ default: module.ActionPesquisaVendasContingencia })));
 const ActionPesquisaVendasXML = lazy(() => import("../componets/Contabilidade/Components/ActionVendasXML/actionPesquisaVendasXML").then(module => ({ default: module.ActionPesquisaVendasXML })));
+const ActionPesquisaProductoPreco = lazy(() => import("../componets/Contabilidade/Components/ActionProdutoPreco/actionPesquisaProdutosPreco").then(module => ({ default: module.ActionPesquisaProductoPreco })));
 
-export const DashBoardContabilidade = ({ }) => {
+export const DashBoardContabilidade = () => {
   const [resumoVisivel, setResumoVisivel] = useState(true);
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [componentToShow, setComponentToShow] = useState("");
-
+  const storedModule = localStorage.getItem('moduloselecionado');
+  const selectedModule = JSON.parse(storedModule);
+  
   const navigate = useNavigate();
 
   function handleShowComponent(componentName) {
@@ -41,6 +46,15 @@ export const DashBoardContabilidade = ({ }) => {
 
   }, [usuarioLogado]);
 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
 
   let component = null;
 
@@ -56,6 +70,9 @@ export const DashBoardContabilidade = ({ }) => {
       break;
     case "/contabilidade/ActionPesquisaVendasXML":
       component = <ActionPesquisaVendasXML />;
+      break;
+    case "/contabilidade/ActionPesquisaProductoPreco":
+      component = <ActionPesquisaProductoPreco />;
       break;
     default:
       break;
@@ -74,7 +91,7 @@ export const DashBoardContabilidade = ({ }) => {
                 handleShowComponent={handleShowComponent}
               />
               <div className="page-content-wrapper">
-                <HeaderMain />
+                <HeaderMain optionsModulos={optionsModulos}/>
 
                 <main id="js-page-content" role="main" className="page-content">
                   <div className="row">

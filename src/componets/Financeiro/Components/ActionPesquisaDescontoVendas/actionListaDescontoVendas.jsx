@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { toFloat } from "../../../../utils/toFloat"
@@ -14,10 +14,14 @@ import { ColumnGroup } from "primereact/columngroup";
 
 export const ActionListaDescontoVendas = ({ dadosDescontoVendas }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size] = useState('small');
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
   const dataTableRef = useRef();
 
-
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  }  
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
   };
@@ -114,6 +118,7 @@ export const ActionListaDescontoVendas = ({ dadosDescontoVendas }) => {
       DSCAIXAFECHAMENTO: item.DSCAIXAFECHAMENTO,
       MATOPERADORFECHAMENTO: item.MATOPERADORFECHAMENTO,
       OPERADORFECHAMENTO: item.OPERADORFECHAMENTO,
+      CPF_OR_CNPJ_CLIENTE: item.CPF_OR_CNPJ_CLIENTE,
       VRRECDINHEIRO: item.VRRECDINHEIRO,
       VRRECCARTAO: item.VRRECCARTAO,
       VRRECCONVENIO: item.VRRECCONVENIO,
@@ -142,8 +147,12 @@ export const ActionListaDescontoVendas = ({ dadosDescontoVendas }) => {
   }) :[];
 
   const calcularTotal = (field) => {
-    return dadosListaDetalhada.reduce((total, item) => total + parseFloat(item[field]), 0);
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dadosListaDetalhada.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + parseFloat(item[field] || 0), 0);
   };
+
 
   const calcularTotalDinheiroPercentual = () => {
     const totalDinheiro = calcularTotal('VRRECDINHEIRO');
@@ -219,31 +228,46 @@ export const ActionListaDescontoVendas = ({ dadosDescontoVendas }) => {
     {
       field: 'IDVENDA',
       header: 'Venda',
-      body: row => row.IDVENDA,
+      body: row => <th>{row.contador}</th>,
       sortable: true,
     },
     {
       field: 'DTHORAFECHAMENTO',
       header: 'Data',
-      body: row => {return <p style={{width: 150, margin: 0}}>{row.DTHORAFECHAMENTO}</p>},
+      body: row => {return <p style={{width: 150, margin: '0px', fontWeight: 600}}>{row.DTHORAFECHAMENTO}</p>},
       sortable: true,
     },
     {
       field: 'NOFANTASIA',
       header: 'Loja',
-      body: row => {return <p style={{width: 150, margin: 0}}>{row.NOFANTASIA}</p>},
+      body: row => {return <p style={{width: 170, margin: 0, fontWeight: 600}}>{row.NOFANTASIA}</p>},
       sortable: true,
     },
     {
       field: 'DSCAIXAFECHAMENTO',
       header: 'Caixa',
-      body: row => {return <p style={{width: 80, margin: 0}}>{row.DSCAIXAFECHAMENTO}</p>},
+      body: row => {return <p style={{width: 80, margin: 0,fontWeight: 600}}>{row.DSCAIXAFECHAMENTO}</p>},
       sortable: true,
     },
     {
       field: 'MATOPERADORFECHAMENTO',
       header: 'Operador',
-      body: row => <p style={{width: 300,margin: 0}}> {`${row.MATOPERADORFECHAMENTO} - ${row.OPERADORFECHAMENTO}`} </p>,
+      body: row => <p style={{width: 300,margin: 0,fontWeight: 600}}> {`${row.MATOPERADORFECHAMENTO} - ${row.OPERADORFECHAMENTO}`} </p>,
+      footer: (row) => {
+        return (
+          <div>
+            <p style={{ fontWeight: 600 }}>Total Venda Bruta do Período</p>
+            <hr />
+            <p style={{ fontWeight: 600 }}>{formatMoeda(calcularTotalVendido())}</p>
+          </div>
+        )
+      },
+      sortable: true,
+    },
+    {
+      field: 'CPF_OR_CNPJ_CLIENTE',
+      header: 'CPF/CNPJ Cliente',
+      body: row => <p style={{width: 300,margin: 0,fontWeight: 600}}> {row.CPF_OR_CNPJ_CLIENTE} </p>,
       footer: (row) => {
         return (
           <div>
@@ -258,70 +282,70 @@ export const ActionListaDescontoVendas = ({ dadosDescontoVendas }) => {
     {
       field: 'VRRECDINHEIRO',
       header: 'Vl. Dinheiro',
-      body: row => formatMoeda(row.VRRECDINHEIRO),
-      footer: (row) => {return <p style={{ fontWeight: 600 }}>{calcularTotalDinheiroPercentual()}</p> },
+      body: row => <th>{formatMoeda(row.VRRECDINHEIRO)}</th>,
+      footer: (row) => {return <p style={{ fontWeight: 900 }}>{calcularTotalDinheiroPercentual()}</p> },
       sortable: true,
     },
     {
       field: 'VRRECCARTAO',
       header: 'Vl. Cartão',
-      body: row => formatMoeda(row.VRRECCARTAO),
+      body: row => <th>{formatMoeda(row.VRRECCARTAO)}</th>,
       footer: (row) => { return <p style={{ fontWeight: 600 }}>{calcularPercentualCartao()}</p> },
       sortable: true,
     },
     {
       field: 'VRRECCONVENIO',
       header: 'Vl. Convênio',
-      body: row => formatMoeda(row.VRRECCONVENIO),
+      body: row => <th>{formatMoeda(row.VRRECCONVENIO)}</th>,
       footer: (row) => {return <p style={{ fontWeight: 600 }}>{calcularPercentualConvenio()}</p>},
       sortable: true,
     },
     {
       field: 'VRRECPOS',
       header: 'Vl. POS',
-      body: row => formatMoeda(row.VRRECPOS),
+      body: row => <th>{formatMoeda(row.VRRECPOS)}</th>,
       footer: (row) => {return <p style={{ fontWeight: 600 }}>{calcularPercentualPos()}</p>  },
       sortable: true,
     },
     {
       field: 'VRRECVOUCHER',
       header: 'Vl. Voucher',
-      body: row => formatMoeda(row.VRRECVOUCHER),
+      body: row => <th>{formatMoeda(row.VRRECVOUCHER)}</th>,
       footer: (row) => {return <p style={{ fontWeight: 600 }}>{calcularPercentualVoucher()}</p>},
       sortable: true,
     },
     {
       field: 'VALORTOTALPRODUTOBRUTO',
       header: 'Vl. Bruto',
-      body: row => formatMoeda(row.VALORTOTALPRODUTOBRUTO),
+      body: row => <th>{formatMoeda(row.VALORTOTALPRODUTOBRUTO)}</th>,
       footer: (row) => {return <p style={{ fontWeight: 600 }}>{calcularPercentualBruto()}</p>},
       sortable: true,
     },
     {
       field: 'VLTOTALDESCONTOFUNCIONARIO',
       header: 'Vl. Desc. Func.',
-      body: row => formatMoeda(row.VLTOTALDESCONTOFUNCIONARIO),
+      body: row => <th>{formatMoeda(row.VLTOTALDESCONTOFUNCIONARIO)}</th>,
       footer: (row) => {return <p style={{ fontWeight: 600 }}>{calcularPercentualDescontoFuncionario()}</p>   },
       sortable: true,
     },
     {
       field: 'VLTOTALDESCONTOCLIENTE',
       header: 'Vl. Desc. Cliente',
-      body: row => formatMoeda(row.VLTOTALDESCONTOCLIENTE),
+      body: row => <th>{formatMoeda(row.VLTOTALDESCONTOCLIENTE)}</th>,
       footer: (row) => {return <p style={{ fontWeight: 600 }}>{calcularPercentualDescontoCliente()}</p> },
       sortable: true,
     },
     {
       field: 'VRDESCONTO',
       header: 'Vl. Desconto Total',
-      body: row => formatMoeda(row.VRDESCONTO),
+      body: row => <th>{formatMoeda(row.VRDESCONTO)}</th>,
       footer: (row) => {return <p style={{ fontWeight: 600 }}>{calcularPercentualDesconto()}</p>},
       sortable: true,
     },
     {
       field: 'TOTALLIQUIDO',
       header: 'Vl. Pago',
-      body: row => formatMoeda(row.TOTALLIQUIDO),
+      body: row => <th>{formatMoeda(row.TOTALLIQUIDO)}</th>,
       footer: (row) => {return <p style={{ fontWeight: 600 }}>{calcularPercentualLiquido()}</p>   },
       sortable: true,
     }
@@ -334,7 +358,8 @@ export const ActionListaDescontoVendas = ({ dadosDescontoVendas }) => {
 
       <Row> 
         
-        <Column footer={`Total Venda Bruta do Período ${formatMoeda(calcularTotalVendido())}`} colSpan={5} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem', textAlign: 'center' }} />
+        <Column footer={`Total Venda Bruta do Período ${formatMoeda(calcularTotalVendido())}`} colSpan={5} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem', textAlign: 'center' }} />
+        <Column footer={calcularTotalDinheiroPercentual()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
         <Column footer={calcularTotalDinheiroPercentual()} footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }} />
         <Column footer={calcularPercentualCartao()}  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}/>
    
@@ -355,7 +380,7 @@ export const ActionListaDescontoVendas = ({ dadosDescontoVendas }) => {
   return (
 
     <Fragment>
-      <div className="resultado">
+      <div className="panel" >
         <div className="panel-hdr">
           <h2>
             Lista de Pesquisa Detalhada
@@ -373,16 +398,20 @@ export const ActionListaDescontoVendas = ({ dadosDescontoVendas }) => {
        
         <div className="card" ref={dataTableRef}>
           <DataTable
-          //  a paginação do dataTable esta sendo definida no rowsPerPageOptions
             title="Lista Detalhada"
             value={dadosListaDetalhada}
             globalFilter={globalFilterValue}
-            size={size}
+            size={"small"}
             footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
-            rows={10}
             rowsPerPageOptions={[5, 10, 20, 50, 100, dadosListaDetalhada.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
+            first={first}
+            rows={rows}
+            onPage={onPageChange}
             showGridlines
             stripedRows
             emptyMessage={<div className="dataTables_empty">Nenhum resultado encontrado </div>}

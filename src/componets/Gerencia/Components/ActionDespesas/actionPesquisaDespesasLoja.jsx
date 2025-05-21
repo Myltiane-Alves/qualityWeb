@@ -8,37 +8,20 @@ import { ButtonType } from "../../../Buttons/ButtonType";
 import { ActionListaDespesasLoja } from "./actionListaDespesasLoja";
 import { AiOutlineSearch } from "react-icons/ai";
 import { MdAdd } from "react-icons/md";
-import {ActionCadastrarDespesasModal} from "./actionCadastrarDespesasModal"
+import { ActionCadastrarDespesasModal } from "./ActionCadastrarDespesas/actionCadastrarDespesasModal";
 import { useQuery } from "react-query";
 import { animacaoCarregamento, fecharAnimacaoCarregamento } from "../../../../utils/animationCarregamento";
+import Swal from "sweetalert2";
+import { InputSelectAction } from "../../../Inputs/InputSelectAction";
 
-
-export const ActionPesquisaDespesaLoja = () => {
+export const ActionPesquisaDespesaLoja = ({ usuarioLogado, ID, optionsEmpresas }) => {
   const [modalVisivel, setModalVisivel] = useState(false);
   const [tabelaVisivel, setTabelaVisivel] = useState(false);
   const [dataPesquisaInicio, setDataPesquisaInicio] = useState('')
   const [dataPesquisaFim, setDataPesquisaFim] = useState('')
-  const [usuarioLogado, setUsuarioLogado] = useState(null)
+  const [empresaSelecionada, setEmpresaSelecionada] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1000);
-
-  const navigate = useNavigate();
-
-  
-  useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);;
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
 
   useEffect(() => {
     const dataInicial = getDataAtual()
@@ -46,20 +29,28 @@ export const ActionPesquisaDespesaLoja = () => {
     setDataPesquisaInicio(dataInicial)
     setDataPesquisaFim(dataFinal)
 
+  }, []);
 
-  }, [usuarioLogado]);
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario-excecao',
+    async () => {
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
 
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 60 * 60 * 1000, }
+  );
 
   const fetchDespesas = async () => {
     try {
-      
-      const urlApi = `/despesas-loja-empresa?idEmpresa=${usuarioLogado.IDEMPRESA}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
+      const idEmpresa = optionsModulos[0]?.ADMINISTRADOR == false ? usuarioLogado?.IDEMPRESA : empresaSelecionada;
+      const urlApi = `/despesas-loja-empresa?idEmpresa=${idEmpresa}&dataPesquisaInicio=${dataPesquisaInicio}&dataPesquisaFim=${dataPesquisaFim}`;
       const response = await get(urlApi);
-      
+
       if (response.data.length && response.data.length === pageSize) {
         let allData = [...response.data];
         animacaoCarregamento(`Carregando... Página ${currentPage} de ${response.data.length}`, true);
-        
+
         async function fetchNextPage(page) {
           try {
             page++;
@@ -75,14 +66,14 @@ export const ActionPesquisaDespesaLoja = () => {
             throw error;
           }
         }
-        
+
         await fetchNextPage(currentPage);
         return allData;
       } else {
-       
+
         return response.data;
       }
-  
+
     } catch (error) {
       console.error('Error fetching data:', error);
       throw error;
@@ -93,26 +84,37 @@ export const ActionPesquisaDespesaLoja = () => {
 
   const { data: dadosDespesasLoja = [], error: erroQuality, isLoading: isLoadingQuality, refetch: refetchDespesas } = useQuery(
     'despesas-loja-empresa',
-    () => fetchDespesas(usuarioLogado.IDEMPRESA,  currentPage, pageSize),
+    () => fetchDespesas(usuarioLogado.IDEMPRESA, currentPage, pageSize),
     { enabled: false, staleTime: 5 * 60 * 1000 }
   );
 
 
   const handleClick = () => {
-    
-    if (usuarioLogado && usuarioLogado.IDEMPRESA && usuarioLogado.DATA_HORA_SESSAO ) {
-      setCurrentPage(prevPage => prevPage + 1);
-      refetchDespesas(usuarioLogado.IDEMPRESA && usuarioLogado.DATA_HORA_SESSAO);
-      setTabelaVisivel(true);
-    } else {
-      console.log('Usuário não possui informações válidas.');
-    }
+
+    setCurrentPage(prevPage => prevPage + 1);
+    refetchDespesas();
+    setTabelaVisivel(true);
+
   }
 
   const handleShowModal = () => {
-    setModalVisivel(true);
+    if (optionsModulos[0]?.CRIAR == 'True') {
+      setModalVisivel(true);
+    } else {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Você não tem permissão para cadastrar!',
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 3000,
+      })
+      return;
+    }
   };
- 
+
   const handleCloseModal = () => {
     setModalVisivel(false);
 
@@ -128,16 +130,29 @@ export const ActionPesquisaDespesaLoja = () => {
         title="Lista de Despesas da Loja"
         subTitle={`${usuarioLogado?.NOFANTASIA}`}
 
-        InputFieldDTInicioComponent={InputField}
-        valueInputFieldDTInicio={dataPesquisaInicio}
-        labelInputFieldDTInicio={"Data Início"}
-        onChangeInputFieldDTInicio={(e) => setDataPesquisaInicio(e.target.value)}
+        InputSelectPendenciaComponent={InputSelectAction}
+        labelSelectPendencia="Selecione a Empresa"
+        optionsPendencia={[
+          { value: '', label: 'Todas' },
+          ...optionsEmpresas.map((empresa) => ({
+            value: empresa.IDEMPRESA,
+            label: empresa.NOFANTASIA,
+          }))
+        ]}
+        onChangeSelectPendencia={(e) => setEmpresaSelecionada(e.value)}
+        valueSelectPendencia={empresaSelecionada}
+        isVisible={{display: optionsModulos[0]?.ADMINISTRADOR == false ? "none" : "block"}}
 
-        InputFieldDTFimComponent={InputField}
-        labelInputFieldDTFim={"Data Fim"}
-        valueInputFieldDTFim={dataPesquisaFim}
-        onChangeInputFieldDTFim={(e) => setDataPesquisaFim(e.target.value)}
-
+        InputFieldDTInicioAComponent={InputField}
+        valueInputFieldDTInicioA={dataPesquisaInicio}
+        labelInputDTInicioA={"Data Início"}
+        onChangeInputFieldDTInicioA={(e) => setDataPesquisaInicio(e.target.value)}
+        
+        InputFieldDTFimAComponent={InputField}
+        labelInputDTFimA={"Data Fim"}
+        valueInputFieldDTFimA={dataPesquisaFim}
+        onChangeInputFieldDTFimA={(e) => setDataPesquisaFim(e.target.value)}
+        
 
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Pesquisar"}
@@ -153,14 +168,16 @@ export const ActionPesquisaDespesaLoja = () => {
       />
 
       {tabelaVisivel &&
-       <ActionListaDespesasLoja dadosDespesasLoja={dadosDespesasLoja}  />           
+        <ActionListaDespesasLoja dadosDespesasLoja={dadosDespesasLoja} />
       }
 
-      <ActionCadastrarDespesasModal 
+      <ActionCadastrarDespesasModal
         show={modalVisivel}
         handleClose={handleCloseModal}
+        optionsModulos={optionsModulos}
+        usuarioLogado={usuarioLogado}
       />
-       
+
     </Fragment>
   )
 }

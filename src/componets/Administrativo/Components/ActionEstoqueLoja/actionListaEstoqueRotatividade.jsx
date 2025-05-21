@@ -10,11 +10,19 @@ import { dataFormatada } from "../../../../utils/dataFormatada";
 import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "react-bootstrap";
 import { formatMoeda } from "../../../../utils/formatMoeda";
+import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionListaEstoqueRotatividade = ({ dadosEstoqueRotatividade }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [size, setSize] = useState('small');
   const dataTableRef = useRef();
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
+    
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  }  
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -91,7 +99,7 @@ export const ActionListaEstoqueRotatividade = ({ dadosEstoqueRotatividade }) => 
     }
   })
   const dados = dadosEstoqueRotatividade.map((item, index) => {
-    console.log(item, 'item')
+ 
     return {
       IDPRODUTO: item.IDPRODUTO,
       NUCODBARRAS: item.NUCODBARRAS,
@@ -110,29 +118,46 @@ export const ActionListaEstoqueRotatividade = ({ dadosEstoqueRotatividade }) => 
     }
   });
 
-  const calcularQtdEntrada = () => {
-    return dadosEstoqueRotatividade.reduce((total, dados) => total + parseFloat(dados.QTDENTRADA), 0);
-  }
+  const calcularTotalPagina = (field) => {
+    return dados.reduce((total, item) => total + parseFloat(item[field]), 0);
+  };
+  const calcularTotal = (field) => {
+    const firstIndex = first * rows;
+    const lastIndex = firstIndex + rows;
+    const dataPaginada = dados.slice(firstIndex, lastIndex); 
+    return dataPaginada.reduce((total, item) => total + toFloat(item[field] || 0), 0);
+  };
 
-  const calcularQtdEntradaVoucher = () => {
-    return dadosEstoqueRotatividade.reduce((total, dados) => total + parseFloat(dados.QTDENTRADAVOUCHER), 0);
-  }
-
-  const calcularQtdSaida = () => {
-    return dadosEstoqueRotatividade.reduce((total, dados) => total + parseFloat(dados.QTDSAIDA), 0);
-  }
-
-  const calcularQtdSaidaTransferencia = () => {
-    return dadosEstoqueRotatividade.reduce((total, dados) => total + parseFloat(dados.QTDSAIDATRANSFERENCIA), 0);
-  }
-
-  const calcularQtdRetornoAjustePedido = () => {
-    return dadosEstoqueRotatividade.reduce((total, dados) => total + parseFloat(dados.QTDRETORNOAJUSTEPEDIDO), 0);
-  }
-
-  const calcularQtdAjusteBalanco = () => {
-    return dadosEstoqueRotatividade.reduce((total, dados) => total + parseFloat(dados.QTDAJUSTEBALANCO), 0);
-  }
+  const  calcularQtdEntrada = () => {
+    const totalDinheiro = calcularTotal('QTDENTRADA');
+    const totalVendas = calcularTotalPagina('QTDENTRADA');
+    return `${totalDinheiro}   (${totalVendas} total)`;
+  };
+  const  calcularQtdEntradaVoucher = () => {
+    const totalDinheiro = calcularTotal('QTDENTRADAVOUCHER');
+    const totalVendas = calcularTotalPagina('QTDENTRADAVOUCHER');
+    return `${totalDinheiro}   (${totalVendas} total)`;
+  };
+  const  calcularQtdSaida = () => {
+    const totalDinheiro = calcularTotal('QTDSAIDA');
+    const totalVendas = calcularTotalPagina('QTDSAIDA');
+    return `${totalDinheiro}   (${totalVendas} total)`;
+  };
+  const  calcularQtdSaidaTransferencia = () => {
+    const totalDinheiro = calcularTotal('QTDSAIDATRANSFERENCIA');
+    const totalVendas = calcularTotalPagina('QTDSAIDATRANSFERENCIA');
+    return `${totalDinheiro}   (${totalVendas} total)`;
+  };
+  const  calcularQtdRetornoAjustePedido = () => {
+    const totalDinheiro = calcularTotal('QTDRETORNOAJUSTEPEDIDO');
+    const totalVendas = calcularTotalPagina('QTDRETORNOAJUSTEPEDIDO');
+    return `${totalDinheiro}   (${totalVendas} total)`;
+  };
+  const  calcularQtdAjusteBalanco = () => {
+    const totalDinheiro = calcularTotal('QTDAJUSTEBALANCO');
+    const totalVendas = calcularTotalPagina('QTDAJUSTEBALANCO');
+    return `${totalDinheiro}   (${totalVendas} total)`;
+  };
 
   const headerGroup = (
     <ColumnGroup>
@@ -230,6 +255,7 @@ export const ActionListaEstoqueRotatividade = ({ dadosEstoqueRotatividade }) => 
     );
   };
 
+  
   return (
 
     <Fragment>
@@ -256,8 +282,13 @@ export const ActionListaEstoqueRotatividade = ({ dadosEstoqueRotatividade }) => 
             size={size}
             sortOrder={-1}
             paginator={true}
-            rows={10}
+            first={first}
+            rows={rows}
+            onPage={onPageChange}
             rowsPerPageOptions={[10, 20, 50, 100, dados.length]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} Registros"
+            filterDisplay="menu"
             rowGroupMode="subheader"
             groupRowsBy="IDPRODUTO"
             sortMode="single"

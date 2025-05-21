@@ -15,7 +15,7 @@ export const MultSelectAction = ({
   return (
 
     <Fragment >
-      <div className="col-sm-6 col-md-4 col-xl-6 mt-4" >
+      <div className="col-sm-6 col-md-4 col-xl-6 " >
         <label className="form-label" htmlFor={id}>{label}</label>
         
 
@@ -27,10 +27,13 @@ export const MultSelectAction = ({
           closeMenuOnSelect={false}
           isMulti={isMulti}
           name={nome}
-          options={optionsMultSelect}
-          onChange={onChange}
+          options={optionsMultSelect}  
           className="basic-multi-select"
           classNamePrefix="select"
+          menuPortalTarget={document.body}
+          styles={{
+            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+          }}
         />
       </div>
     </Fragment>

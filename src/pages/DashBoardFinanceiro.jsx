@@ -5,8 +5,8 @@ import { MenuButton } from "../componets/Buttons/menuButton";
 import { FooterMain } from "../componets/Footer";
 import { SidebarProvider } from "../componets/Sidebar/SidebarContext";
 import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
-
-
+import { get } from "../api/funcRequest";
+import { useQuery } from "react-query";
 
 const ResumoDashBoardFinaneiro = lazy(() => import('../componets/Financeiro/Components/ResumoFinanceiro/ResumoDashBoardFinanceiro').then(module => ({ default: module.ResumoDashBoardFinaneiro })));
 const ActionPesquisaVendasLoja = lazy(() => import('../componets/Financeiro/Components/ActionVendasLoja/actionPesquisaVendasLoja').then(module => ({ default: module.ActionPesquisaVendasLoja })));
@@ -16,11 +16,13 @@ const ActionPesquisaVendasPix = lazy(() => import('../componets/Financeiro/Compo
 const ActionPesquisaVendasConciliacao = lazy(() => import('../componets/Financeiro/Components/ActionVendasConciliacao/actionPesquisaVendasConciliacao').then(module => ({ default: module.ActionPesquisaVendasConciliacao })));
 const ActionPesquisaDepositosLoja = lazy(() => import('../componets/Financeiro/Components/ActionDepositoLoja/actionPesquisaDepositosLoja').then(module => ({ default: module.ActionPesquisaDepositosLoja })));
 const ActionPesquisaDespesaLoja = lazy(() => import('../componets/Financeiro/Components/ActionListaDespesasLoja/actionPesquisaDespesaLoja').then(module => ({ default: module.ActionPesquisaDespesaLoja })));
+const ActionPesquisaFaturasLoja = lazy(() => import('../componets/Financeiro/Components/ActionFaturasLoja/actionPesquisaFaturasLoja').then(module => ({ default: module.ActionPesquisaFaturasLoja })));
 const ActionPesquisaRecebimentosLoja = lazy(() => import('../componets/Financeiro/Components/ActionRecebimentosLoja/actionPesquisaRecebimentosLoja').then(module => ({ default: module.ActionPesquisaRecebimentosLoja })));
 const ActionPesquisaQuebraCaixaLoja = lazy(() => import('../componets/Financeiro/Components/ActionQuebraCaixaLoja/actionPesquisaQuebraCaixaLoja').then(module => ({ default: module.ActionPesquisaQuebraCaixaLoja })));
 const ActionPesquisaAdiantamentoSalarioLoja = lazy(() => import('../componets/Financeiro/Components/ActionAdiantamentoSalarioLoja/actionPesquisaAdiantamentoSalarioLoja').then(module => ({ default: module.ActionPesquisaAdiantamentoSalarioLoja })));
-const ActionPesquisaMapaCaixa = lazy(() => import('../componets/Financeiro/Components/ActionMapaCaixa/actionPesquisaMapaCaixa').then(module => ({ default: module.ActionPesquisaMapaCaixa })));
 const ActionPesquisaExtratoLoja = lazy(() => import('../componets/Financeiro/Components/ActionExtratoLoja/actionPesquisaExtratoLoja').then(module => ({ default: module.ActionPesquisaExtratoLoja })));
+const ActionPesquisaMapaCaixa = lazy(() => import('../componets/Financeiro/Components/ActionMapaCaixa/actionPesquisaMapaCaixa').then(module => ({ default: module.ActionPesquisaMapaCaixa })));
+const ActionPesquisaSaldoLoja = lazy(() => import('../componets/Financeiro/Components/ActionListaSaldoLoja/actionPesquisaSaldoLoja').then(module => ({ default: module.ActionPesquisaSaldoLoja })));
 const ActionPesquisaConciliarBanco = lazy(() => import('../componets/Financeiro/Components/ActionPesquisaConciliarBanco/actionPesquisaConciliarBanco').then(module => ({ default: module.ActionPesquisaConciliarBanco })));
 const ActionPesquisaRemessaVenda = lazy(() => import('../componets/Financeiro/Components/ActionRemessaVenda/actionPesquisaRemessaVenda').then(module => ({ default: module.ActionPesquisaRemessaVenda })));
 const ActionPesquisaCaixaStatus = lazy(() => import('../componets/Financeiro/Components/ActionCaixaStatus/actionPesquisaCaixaStatus').then(module => ({ default: module.ActionPesquisaCaixaStatus })));
@@ -28,17 +30,18 @@ const ActionPesquisaDescontoVendas = lazy(() => import('../componets/Financeiro/
 const ActionPesquisaExtratoMovimentoBonificacao = lazy(() => import('../componets/Financeiro/Components/ActionMovimentosBonificação/actionPesquisaExtratoMovimentoBonificacao').then(module => ({ default: module.ActionPesquisaExtratoMovimentoBonificacao })));
 const ActionPesquisaPedidoCompra = lazy(() => import('../componets/Financeiro/Components/ActionPedidosCompra/actionPesquisaPedidoCompra').then(module => ({ default: module.ActionPesquisaPedidoCompra })));
 const ActionPesquisaConciliacaoBancosDTW = lazy(() => import('../componets/Financeiro/Components/ActionPesquisaConciliacaoBancosDTW/actionPesquisaConciliacaoBancosDTW').then(module => ({ default: module.ActionPesquisaConciliacaoBancosDTW })));
-const ActionPesquisaFaturasVendasPixDTW = lazy(() => import('../componets/Financeiro/Components/ActionFaturaVendasPixDTW/actionPesquisaVendasPixDTW').then(module => ({ default: module.ActionPesquisaFaturasVendasPixDTW })));
 const ActionPesquisaVendasPixDTW = lazy(() => import('../componets/Financeiro/Components/ActionListaVendasFaturaPixDTW/actionPesquisaVendasPixDTW').then(module => ({ default: module.ActionPesquisaVendasPixDTW })));
-const ActionPesquisaFaturasLoja = lazy(() => import('../componets/Financeiro/Components/ActionFaturasLoja/actionPesquisaFaturasLoja').then(module => ({ default: module.ActionPesquisaFaturasLoja })));
-const ActionPesquisaSaldoLoja = lazy(() => import('../componets/Financeiro/Components/ActionListaSaldoLoja/actionPesquisaSaldoLoja').then(module => ({ default: module.ActionPesquisaSaldoLoja })));
+const ActionPesquisaFaturasVendasPixDTW = lazy(() => import('../componets/Financeiro/Components/ActionFaturaVendasPixDTW/actionPesquisaFaturasPixDTW').then(module => ({ default: module.ActionPesquisaFaturasVendasPixDTW })));
 const ActionPesquisaEmpresas = lazy(() => import('../componets/Financeiro/Components/ActionEmpresas/actionPesquisaEmpresas').then(module => ({ default: module.ActionPesquisaEmpresas })));
 const ActionPesquisaMotivoDevolucao = lazy(() => import('../componets/Financeiro/Components/ActionMotivoDevolucao/actionPesquisaMotivoDevolucao').then(module => ({ default: module.ActionPesquisaMotivoDevolucao })));
+const ActionPesquisaConferenciaMalote = lazy(() => import('../componets/Financeiro/Components/ActionConferenciaMalote/actionPesquisaConferenciaMalote').then(module => ({ default: module.ActionPesquisaConferenciaMalote })));
 
-export const DashBoardFinanceiro = ({ }) => {
+export const DashBoardFinanceiro = () => {
   const [resumoVisivel, setResumoVisivel] = useState(true);
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [componentToShow, setComponentToShow] = useState("");
+  const storedModule = localStorage.getItem('moduloselecionado');
+  const selectedModule = JSON.parse(storedModule);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -57,14 +60,28 @@ export const DashBoardFinanceiro = ({ }) => {
   }, []);
 
 
-
   useEffect(() => {
-    
 
   }, [usuarioLogado])
 
+  const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
+    'menus-usuario',
+    async () => {
+      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
+      
+      return response.data;
+    },
+    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
+  );
+
+  const permissaoUsuario = selectedModule.menuPai.menuFilho;
+  const {   
+    ID, 
+  } = permissaoUsuario[0] || {};
+
   function handleShowComponent(componentName) {
     setComponentToShow(componentName);
+ 
   }
 
   let component = null;
@@ -83,7 +100,7 @@ export const DashBoardFinanceiro = ({ }) => {
       component = <ActionPesquisaVendasDigital />
       break;
     case "/financeiro/ActionPesquisaVendasPix":
-      component = <ActionPesquisaVendasPix />
+      component = <ActionPesquisaVendasPix usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaVendasConciliacao":
       component = <ActionPesquisaVendasConciliacao />
@@ -92,28 +109,28 @@ export const DashBoardFinanceiro = ({ }) => {
       component = <ActionPesquisaDepositosLoja />
       break;
     case "/financeiro/ActionPesquisaDespesaLoja":
-      component = <ActionPesquisaDespesaLoja />
+      component = <ActionPesquisaDespesaLoja usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaRecebimentosLoja":
       component = <ActionPesquisaRecebimentosLoja />
       break;
     case "/financeiro/ActionPesquisaQuebraCaixaLoja":
-      component = <ActionPesquisaQuebraCaixaLoja />
+      component = <ActionPesquisaQuebraCaixaLoja usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaAdiantamentoSalarioLoja":
-      component = <ActionPesquisaAdiantamentoSalarioLoja />
+      component = <ActionPesquisaAdiantamentoSalarioLoja usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaMapaCaixa":
       component = <ActionPesquisaMapaCaixa />
       break;
     case "/financeiro/ActionPesquisaExtratoLoja":
-      component = <ActionPesquisaExtratoLoja />
+      component = <ActionPesquisaExtratoLoja usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaConciliarBanco":
-      component = <ActionPesquisaConciliarBanco />
+      component = <ActionPesquisaConciliarBanco usuarioLogado={usuarioLogado} ID={ID}/>
       break;
     case "/financeiro/ActionPesquisaRemessaVenda":
-      component = <ActionPesquisaRemessaVenda />
+      component = <ActionPesquisaRemessaVenda  usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaCaixaStatus":
       component = <ActionPesquisaCaixaStatus />
@@ -122,31 +139,34 @@ export const DashBoardFinanceiro = ({ }) => {
       component = <ActionPesquisaDescontoVendas />
       break;
     case "/financeiro/ActionPesquisaExtratoMovimentoBonificacao":
-      component = <ActionPesquisaExtratoMovimentoBonificacao />
+      component = <ActionPesquisaExtratoMovimentoBonificacao usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaPedidoCompra":
       component = <ActionPesquisaPedidoCompra />
       break;
     case "/financeiro/ActionPesquisaConciliacaoBancosDTW":
-      component = <ActionPesquisaConciliacaoBancosDTW />
+      component = <ActionPesquisaConciliacaoBancosDTW  usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaVendasPixDTW":
-      component = <ActionPesquisaVendasPixDTW />
+      component = <ActionPesquisaVendasPixDTW  usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaFaturasVendasPixDTW":
-      component = <ActionPesquisaFaturasVendasPixDTW />
+      component = <ActionPesquisaFaturasVendasPixDTW usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaFaturasLoja":
-      component = <ActionPesquisaFaturasLoja />
+      component = <ActionPesquisaFaturasLoja usuarioLogado={usuarioLogado} ID={ID} />
+      break;
+    case "/financeiro/ActionPesquisaConferenciaMalote":
+      component = <ActionPesquisaConferenciaMalote usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaSaldoLoja":
       component = <ActionPesquisaSaldoLoja />
       break;
     case "/financeiro/ActionPesquisaEmpresas":
-      component = <ActionPesquisaEmpresas />
+      component = <ActionPesquisaEmpresas usuarioLogado={usuarioLogado} ID={ID} />
       break;
     case "/financeiro/ActionPesquisaMotivoDevolucao":
-      component = <ActionPesquisaMotivoDevolucao />
+      component = <ActionPesquisaMotivoDevolucao usuarioLogado={usuarioLogado} ID={ID} />
       break;
     default:
       component = null;
@@ -168,7 +188,7 @@ export const DashBoardFinanceiro = ({ }) => {
             />
 
             <div className="page-content-wrapper">
-              <HeaderMain />
+              <HeaderMain optionsModulos={optionsModulos}/>
 
               <main id="js-page-content" role="main" className="page-content">
                 <div className="row">
@@ -202,5 +222,3 @@ export const DashBoardFinanceiro = ({ }) => {
     </Fragment>
   )
 }
-
-

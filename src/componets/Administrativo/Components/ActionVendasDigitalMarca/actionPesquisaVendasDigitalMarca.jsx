@@ -25,6 +25,7 @@ export const ActionPesquisaVendasDigitalMarca = () => {
     setDataPesquisaFim(dataFinal)
   }, [])
   
+  
 
   const fetchListaVendasMarca = async () => {
     try {

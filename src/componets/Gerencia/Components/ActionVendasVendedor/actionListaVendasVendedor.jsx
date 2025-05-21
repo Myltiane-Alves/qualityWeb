@@ -14,7 +14,6 @@ import { toFloat } from "../../../../utils/toFloat";
 
 export const ActionListaVendasVendedor = ({ dadosVendasVendedor }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [size, setSize] = useState('small');
   const dataTableRef = useRef();
 
   const onGlobalFilterChange = (e) => {
@@ -184,7 +183,7 @@ export const ActionListaVendasVendedor = ({ dadosVendasVendedor }) => {
             title="Vendas por Vendedor"
             value={dados}
             globalFilter={globalFilterValue}
-            size={size}
+            size="small"
             footerColumnGroup={footerGroup}
             sortOrder={-1}
             paginator={true}
