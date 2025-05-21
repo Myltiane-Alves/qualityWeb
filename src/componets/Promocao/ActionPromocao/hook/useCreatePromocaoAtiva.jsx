@@ -409,7 +409,6 @@ export const useCreatePromocaoAtiva = ({  }) => {
   };
 
 
-
   return {
     mecanicaSelecionada,
     setMecanicaSelecionada,
