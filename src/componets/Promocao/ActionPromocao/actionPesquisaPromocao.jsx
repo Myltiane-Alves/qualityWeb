@@ -14,7 +14,7 @@ import { GrView } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
 
 
-export const ActionPesquisaPromocao = ({usuarioLogado, ID }) => {
+export const ActionPesquisaPromocao = ({usuarioLogado }) => {
   const renderCount = useRef(0);
   renderCount.current += 1;
   // console.log("esse componente re-renderizou", renderCount.current, "vezes");
@@ -22,7 +22,7 @@ export const ActionPesquisaPromocao = ({usuarioLogado, ID }) => {
   const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
     'menus-usuario-excecao',
     async () => {
-      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=${ID}`);
+      const response = await get(`/menus-usuario-excecao?idUsuario=${usuarioLogado?.id}&idMenuFilho=143`);
 
       return response.data;
     },

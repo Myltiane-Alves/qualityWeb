@@ -39,25 +39,12 @@ export const DashBoardPromocao = ({ }) => {
 
   }, [usuarioLogado]);
 
- const { data: optionsModulos = [], error: errorModulos, isLoading: isLoadingModulos, refetch: refetchModulos } = useQuery(
-    'menus-usuario',
-    async () => {
-      const response = await get(`/menus-usuario?idUsuario=${usuarioLogado?.id}&idModulo=${selectedModule?.id}`);
-      
-      return response.data;
-    },
-    { enabled: Boolean(usuarioLogado?.id), staleTime: 5 * 60 * 1000, }
-  );
-  const permissaoUsuario = selectedModule.menuPai.menuFilho;
-  const {   
-    ID, 
-  } = permissaoUsuario[0] || {};
-
+ 
   let component = null;
 
   switch (componentToShow) {
     case "/promocoes/ActionPesquisaPromocao":
-      component = <ActionPesquisaPromocao usuarioLogado={usuarioLogado} ID={ID} />;
+      component = <ActionPesquisaPromocao usuarioLogado={usuarioLogado} />;
       break;
     default:
       component = null;
