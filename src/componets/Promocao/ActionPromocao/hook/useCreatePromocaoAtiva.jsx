@@ -7,7 +7,7 @@ import { getDataAtual } from "../../../../utils/dataAtual"
 import * as XLSX from 'xlsx';
 import { optionsMecanica } from "../../../../../mecanica"
 
-export const useCreatePromocaoAtiva = ({ usuarioLogado  }) => {
+export const useCreatePromocaoAtiva = ({  }) => {
   const [mecanicaSelecionada, setMecanicaSelecionada] = useState(0)
   const [aplicacaoDestinoSelecionada, setAplicacaoDestinoSelecionada] = useState('')
   const [tipoDescontoSelecionado, setTipoDescontoSelecionado] = useState(0)
@@ -32,20 +32,8 @@ export const useCreatePromocaoAtiva = ({ usuarioLogado  }) => {
   const [marcaDestino, setMarcaDestino] = useState(-1)
   const [descricao, setDescricao] = useState('')
   const [precoPrdouto, setPrecoProduto] = useState(0)
-  const [ipUsuario, setIpUsuario] = useState('')
 
-  useEffect(() => {
-    getIPUsuario();
 
-  }, [usuarioLogado]);
-
-  const getIPUsuario = async () => {
-    const response = await axios.get('http://ipwho.is/');
-    if (response.data) {
-      setIpUsuario(response.data.ip);
-    }
-    return response.data;
-  };
 
   useEffect(() => {
     const dataInicial = getDataAtual()
@@ -377,10 +365,10 @@ export const useCreatePromocaoAtiva = ({ usuarioLogado  }) => {
 
       const textDados = JSON.stringify(postData);
       const createData = {
-        IDFUNCIONARIO: usuarioLogado?.id,
+        IDFUNCIONARIO: '',
         PATHFUNCAO: 'MARKETING/CADASTRO PROMOÇÃO',
         DADOS: textDados,
-        IP: ipUsuario,
+        IP: '',
       };
       
       await post('/log-web', createData);
@@ -398,10 +386,10 @@ export const useCreatePromocaoAtiva = ({ usuarioLogado  }) => {
       return response.data;
     } catch (error) {
       const createData = {
-        IDFUNCIONARIO: usuarioLogado?.id,
+        IDFUNCIONARIO: '',
         PATHFUNCAO: 'MARKETING/ERRO AO CADASTRAR PROMOÇÃO',
         DADOS: '',
-        IP: ipUsuario,
+        IP: '',
       };
 
       await post('/log-web', createData);
@@ -472,9 +460,6 @@ export const useCreatePromocaoAtiva = ({ usuarioLogado  }) => {
     optionsMarcas,
     optionsEmpresas,
     optionsMecanica,
-    optionsFatorPromocao,
-    optionsTPapartide,
-    ipUsuario,
     mostrarProdutosSelecionados,
     handleFileUpload,
     onSubmit

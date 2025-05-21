@@ -14,7 +14,7 @@ import { GrView } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
 
 
-export const ActionPesquisaPromocao = ({usuarioLogado }) => {
+export const ActionPesquisaPromocao = ({ }) => {
 
   const  {
     mecanicaSelecionada,
@@ -69,7 +69,7 @@ export const ActionPesquisaPromocao = ({usuarioLogado }) => {
     handleFileUpload, 
     mostrarProdutosSelecionados,
     onSubmit
-  } = useCreatePromocaoAtiva({ usuarioLogado });
+  } = useCreatePromocaoAtiva({  });
 
   const styleQTDInicio = useMemo(() => (mecanicaSelecionada == 1 ? { display: "none" } : {}), [mecanicaSelecionada]);
   const styleQTDFim = useMemo(() => (mecanicaSelecionada == 1 ? { display: "none" } : {}), [mecanicaSelecionada]);
