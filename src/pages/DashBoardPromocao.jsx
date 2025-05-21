@@ -6,6 +6,7 @@ import { get } from "../api/funcRequest";
 
 const ActionPesquisaPromocao = lazy(() => import("../componets/Promocao/ActionPromocao/actionPesquisaPromocao").then(module => ({ default: module.ActionPesquisaPromocao })));
 
+
 export const DashBoardPromocao = ({ }) => {
   const [resumoVisivel, setResumoVisivel] = useState(false);
   const [actionVisivel, setActionVisivel] = useState(true);
