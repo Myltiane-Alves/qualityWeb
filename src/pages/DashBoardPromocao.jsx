@@ -1,15 +1,10 @@
 import React, { Fragment, useEffect, useState, Suspense, lazy } from "react"
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "../componets/Sidebar/SidebarContext";
-import { MenuSidebarAdmin } from "../componets/Sidebar/sidebar";
-import { HeaderMain } from "../componets/Header";
-import { MenuButton } from "../componets/Buttons/menuButton";
-import { FooterMain } from "../componets/Footer";
 import { useQuery } from "react-query";
 import { get } from "../api/funcRequest";
 
 const ActionPesquisaPromocao = lazy(() => import("../componets/Promocao/ActionPromocao/actionPesquisaPromocao").then(module => ({ default: module.ActionPesquisaPromocao })));
-const ActionPesquisaPromocoesAtivas = lazy(() => import("../componets/Promocao/ActionPromocoesAtivas/actionPesquisaPromocoesAtivas").then(module => ({ default: module.ActionPesquisaPromocoesAtivas })));
 
 export const DashBoardPromocao = ({ }) => {
   const [resumoVisivel, setResumoVisivel] = useState(false);
@@ -63,9 +58,6 @@ export const DashBoardPromocao = ({ }) => {
     case "/promocoes/ActionPesquisaPromocao":
       component = <ActionPesquisaPromocao usuarioLogado={usuarioLogado} ID={ID} />;
       break;
-    // case "/promocoes/ActionPesquisaPromocoesAtivas":
-    //   component = <ActionPesquisaPromocoesAtivas usuarioLogado={usuarioLogado} ID={ID}/>;
-    //   break;
     default:
       component = null;
       break;
@@ -79,12 +71,9 @@ export const DashBoardPromocao = ({ }) => {
 
           <div className="page-wrapper">
             <div className="page-inner">
-              {/* <MenuSidebarAdmin
-                componentToShow={componentToShow}
-                handleShowComponent={handleShowComponent}
-              /> */}
+    
               <div className="page-content-wrapper">
-                {/* <HeaderMain optionsModulos={optionsModulos} /> */}
+     
 
                 <main id="js-page-content" role="main" className="page-content">
                   <div className="row">
@@ -107,10 +96,6 @@ export const DashBoardPromocao = ({ }) => {
                   </div>
                 </main>
 
-                {/* <Fragment>
-                  <MenuButton />
-                  <FooterMain />
-                </Fragment> */}
               </div>
             </div>
           </div>
