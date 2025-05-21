@@ -363,16 +363,6 @@ export const useCreatePromocaoAtiva = ({  }) => {
       const response = await post('/criar-promocoes-ativas', postData);
       // Swal.close()
 
-      const textDados = JSON.stringify(postData);
-      const createData = {
-        IDFUNCIONARIO: '',
-        PATHFUNCAO: 'MARKETING/CADASTRO PROMOÇÃO',
-        DADOS: textDados,
-        IP: '',
-      };
-      
-      await post('/log-web', createData);
-
       Swal.fire({
         position: 'center',
         icon: 'success',
@@ -385,14 +375,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
       });
       return response.data;
     } catch (error) {
-      const createData = {
-        IDFUNCIONARIO: '',
-        PATHFUNCAO: 'MARKETING/ERRO AO CADASTRAR PROMOÇÃO',
-        DADOS: '',
-        IP: '',
-      };
-
-      await post('/log-web', createData);
+     
       Swal.fire({
         position: 'top-end',
         icon: 'error',
