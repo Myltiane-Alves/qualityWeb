@@ -297,3 +297,18 @@ console.log(mecanicaSelecionada, aplicacaoDestinoSelecionada, tipoDescontoSeleci
     </Fragment>
   )
 }
+
+/* 
+regra para filtrar uma promoção ativa será por dataFim, se a dataFim for maior que a data atual, a promoção estará ativa.
+se a dataFim for menor que a data atual, a promoção estará inativa.
+quando for cadastrar uma promoção, IDPRODUTODESTINO e IDPRODUTOORIGEM, não pode está em uma promoção ativa
+que será pesquisado na DETALHEPROMOCAO, no IDPRODUTO, ou seja IDRESUMOPROMOCAOMARKETING
+vai na tabela de DETALHEPROMOCAO, e pesquisa se o IDPRODUTOORIGEM ou IDPRODUTODESTINO já existe
+na tabela de DETALHEPROMOCAO, se existir, não pode cadastrar a promoção, se não existir, pode cadastrar a promoção.
+
+
+*/
+
+
+// RODOVIA DF-128 KM 7 - ASSOCIAÇÃO DOS PRODUTORES RURAIS DO VALE VERDE - APROVALE
+// n 105
