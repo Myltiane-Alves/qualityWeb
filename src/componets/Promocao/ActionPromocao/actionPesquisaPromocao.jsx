@@ -111,7 +111,7 @@ export const ActionPesquisaPromocao = ({ }) => {
 }, [mecanicaSelecionada, setMecanicaSelecionada, setAplicacaoDestinoSelecionada, setTipoDescontoSelecionado, ]);
 
   const styleDesconto1 = useMemo(() => (mecanicaSelecionada == 2 && aplicacaoDestinoSelecionada == 1 && tipoDescontoSelecionado == 2 ? { display: "none" } : {}), [mecanicaSelecionada]);
-
+console.log(mecanicaSelecionada, aplicacaoDestinoSelecionada, tipoDescontoSelecionado);
 
 
   const handleCadastrar = () => {
@@ -128,6 +128,7 @@ export const ActionPesquisaPromocao = ({ }) => {
     }
     return optionsEmpresas.filter(empresa => empresa.IDGRUPOEMPRESARIAL === marcaSelecionada);
   }, [optionsEmpresas, marcaSelecionada]);
+
 
   return (
     <Fragment>
