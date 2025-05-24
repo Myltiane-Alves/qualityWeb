@@ -112,11 +112,18 @@ export const ActionPesquisaPromocao = ({ }) => {
 
   const styleDesconto1 = useMemo(() => (mecanicaSelecionada == 2 && aplicacaoDestinoSelecionada == 1 && tipoDescontoSelecionado == 2 ? { display: "none" } : {}), [mecanicaSelecionada]);
 console.log(mecanicaSelecionada, aplicacaoDestinoSelecionada, tipoDescontoSelecionado);
+  // se mecanicaSelecionada for igual a 2 e tipoDescontoSelecionado for igual a 2 
+  // limpar os campos de precoProduto, vrDesconto, valorInicio
 
-
+  useEffect(() => {
+    if (mecanicaSelecionada === 2 && tipoDescontoSelecionado === 2) {
+      setPrecoProduto('');
+      setVrDesconto('');
+      setValorInicio('');
+    }
+  }, [mecanicaSelecionada, tipoDescontoSelecionado, setPrecoProduto, setVrDesconto, setValorInicio]);
   const handleCadastrar = () => {
-      onSubmit();
-    
+    onSubmit();
   }
 
   const empresasFiltradas = useMemo(() => {
