@@ -73,9 +73,9 @@ export const ActionPesquisaPromocao = ({ }) => {
 
   const styleQTDInicio = useMemo(() => (mecanicaSelecionada == 1 ? { display: "none" } : {}), [mecanicaSelecionada]);
   const styleQTDFim = useMemo(() => (mecanicaSelecionada == 1 ? { display: "none" } : {}), [mecanicaSelecionada]);
-  const styleVrInicio = useMemo(() => (mecanicaSelecionada == 1 ? { display: "block" } : {display: "none"}), [mecanicaSelecionada]);
+  const styleVrInicio = useMemo(() => (mecanicaSelecionada == 1 ? (tipoDescontoSelecionado == 2 ? { display: "block" } : { display: "none" }) : {}), [mecanicaSelecionada]);
   const styleVrFim = useMemo(() => (mecanicaSelecionada == 2 ? { display: "block" } : {display: "none"}), [mecanicaSelecionada]);
-  const styleDesconto2 = useMemo(() => (mecanicaSelecionada == 2 ? { display: "block" } : {display: "none"}), [mecanicaSelecionada]);
+  const styleDesconto2 = useMemo(() => (mecanicaSelecionada == 2 ? (tipoDescontoSelecionado == 1 ? { display: "block" } : {display: "none"}) : {}), [mecanicaSelecionada]);
   
 
   
@@ -111,12 +111,23 @@ export const ActionPesquisaPromocao = ({ }) => {
 }, [mecanicaSelecionada, setMecanicaSelecionada, setAplicacaoDestinoSelecionada, setTipoDescontoSelecionado, ]);
 
   const styleDesconto1 = useMemo(() => (mecanicaSelecionada == 2 && aplicacaoDestinoSelecionada == 1 && tipoDescontoSelecionado == 2 ? { display: "none" } : {}), [mecanicaSelecionada]);
-console.log(mecanicaSelecionada, aplicacaoDestinoSelecionada, tipoDescontoSelecionado);
+console.log(mecanicaSelecionada);
+  // se mecanicaSelecionada for igual a 2 e tipoDescontoSelecionado for igual a 2 
+  // limpar os campos de precoProduto, vrDesconto, valorInicio
 
-
+  useEffect(() => {
+    if (mecanicaSelecionada === 2 && tipoDescontoSelecionado === 2) {
+      setPrecoProduto(0);
+      setVrDesconto(0);
+      setValorInicio(0);
+    } else if(mecanicaSelecionada == 1 && tipoDescontoSelecionado == 2) {
+      setQtdInicio(0);
+      setPorcentoDesconto(0)
+      setValorInicio(0);
+    }
+  }, [mecanicaSelecionada, tipoDescontoSelecionado, setPrecoProduto, setVrDesconto, setValorInicio]);
   const handleCadastrar = () => {
-      onSubmit();
-    
+    onSubmit();
   }
 
   const empresasFiltradas = useMemo(() => {
@@ -157,20 +168,20 @@ console.log(mecanicaSelecionada, aplicacaoDestinoSelecionada, tipoDescontoSeleci
         labelInputQTDFim={"Preço Produto"}
         valueInputFieldQTDFim={precoPrdouto}
         onChangeInputFieldQTDFim={(e) => setPrecoProduto(e.target.value)}
-        readOnlyQTDFim={mecanicaSelecionada == 2 ? true : false}
+        readOnlyQTDFim={tipoDescontoSelecionado == 0  ? false : true}
 
         InputFieldDescontoComponent1={InputFieldAction}
         labelInputFieldDesconto1={"Valor Desconto "}
         valueInputFieldDesconto1={vrDesconto}
         onChangeInputFieldDesconto1={(e) => setVrDesconto(e.target.value)}
-        readOnlyDesconto1={mecanicaSelecionada == 2 ? true : false}
+        readOnlyDesconto1={tipoDescontoSelecionado == 1 ? false : true}
         // styleDesconto1={styleDesconto1}
 
         InputFieldDescontoComponent2={InputFieldAction}
         labelInputFieldDesconto2={"Desconto %"}
         valueInputFieldDesconto2={porcentoDesconto}
         onChangeInputFieldDesconto2={(e) => setPorcentoDesconto(e.target.value)}
-        readOnlyDesconto2={mecanicaSelecionada == 1 ? true : false}
+        readOnlyDesconto2={tipoDescontoSelecionado  == 2 ?  false : true}
         // styleDesconto2={styleDesconto2}
 
         InputFieldVrInicio={InputFieldAction}
@@ -178,6 +189,7 @@ console.log(mecanicaSelecionada, aplicacaoDestinoSelecionada, tipoDescontoSeleci
         valueInputFieldVrInicio={valorInicio}
         onChangeInputFieldVrInicio={(e) => setValorInicio(e.target.value)}
         readOnlyVrInicio={mecanicaSelecionada == 2 ? true : false}
+        // readOnlyVrInicio={styleVrInicio}
         // styleVrInicio={styleVrInicio}
 
         
