@@ -111,7 +111,7 @@ export const ActionPesquisaPromocao = ({ }) => {
 }, [mecanicaSelecionada, setMecanicaSelecionada, setAplicacaoDestinoSelecionada, setTipoDescontoSelecionado, ]);
 
   const styleDesconto1 = useMemo(() => (mecanicaSelecionada == 2 && aplicacaoDestinoSelecionada == 1 && tipoDescontoSelecionado == 2 ? { display: "none" } : {}), [mecanicaSelecionada]);
-console.log(mecanicaSelecionada);
+// console.log(mecanicaSelecionada);
   // se mecanicaSelecionada for igual a 2 e tipoDescontoSelecionado for igual a 2 
   // limpar os campos de precoProduto, vrDesconto, valorInicio
 
@@ -160,7 +160,7 @@ console.log(mecanicaSelecionada);
         InputFieldQTDInicioComponent={InputFieldAction}
         labelInputQTDInicio={"QTD Aparti de"}
         valueInputFieldQTDInicio={qtdInicio}
-        onChangeInputFieldQTDInicio={(e) => setQtdInicio(e.target.value)}
+        onChangeInputFieldQTDInicio={(e) => setQtdInicio(Number(e.target.value))}
         readOnlyQTDInicio={mecanicaSelecionada == 1 ? true : false}
         // styleQTDInicio={styleQTDInicio}
 
@@ -180,7 +180,7 @@ console.log(mecanicaSelecionada);
         InputFieldDescontoComponent2={InputFieldAction}
         labelInputFieldDesconto2={"Desconto %"}
         valueInputFieldDesconto2={porcentoDesconto}
-        onChangeInputFieldDesconto2={(e) => setPorcentoDesconto(e.target.value)}
+        onChangeInputFieldDesconto2={(e) => setPorcentoDesconto(Number(e.target.value))}
         readOnlyDesconto2={tipoDescontoSelecionado  == 2 ?  false : true}
         // styleDesconto2={styleDesconto2}
 
@@ -189,8 +189,7 @@ console.log(mecanicaSelecionada);
         valueInputFieldVrInicio={valorInicio}
         onChangeInputFieldVrInicio={(e) => setValorInicio(e.target.value)}
         readOnlyVrInicio={mecanicaSelecionada == 2 ? true : false}
-        // readOnlyVrInicio={styleVrInicio}
-        // styleVrInicio={styleVrInicio}
+
 
         
         InputFieldDTInicioComponent={InputFieldAction}
@@ -335,3 +334,4 @@ IDVOUCHER 978141
 devolver contra loja 
 
 */
+
