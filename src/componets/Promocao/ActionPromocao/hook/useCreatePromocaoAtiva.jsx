@@ -32,9 +32,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
   const [marcaDestino, setMarcaDestino] = useState(-1)
   const [descricao, setDescricao] = useState('')
   const [precoPrdouto, setPrecoProduto] = useState(0)
-
-
-
+ 
   useEffect(() => {
     const dataInicial = getDataAtual()
     const dataFinal = getDataAtual()
