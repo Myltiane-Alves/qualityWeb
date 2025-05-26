@@ -300,7 +300,7 @@ export const ActionMainPromocao = ({
                       {InputFieldQTDInicioComponent && (
                         <InputFieldQTDInicioComponent
                           label={labelInputQTDInicio}
-                          type="text"
+                          type="number"
                           id={id}
                           value={valueInputFieldQTDInicio}
                           onChange={onChangeInputFieldQTDInicio}
@@ -345,7 +345,7 @@ export const ActionMainPromocao = ({
                       {InputFieldDescontoComponent2 && (
                         <InputFieldDescontoComponent2
                           label={labelInputFieldDesconto2}
-                          type="text"
+                          type="number"
                           value={valueInputFieldDesconto2}
                           onChange={onChangeInputFieldDesconto2}
                           readOnly={readOnlyDesconto2}
@@ -358,7 +358,7 @@ export const ActionMainPromocao = ({
                       {InputFieldVrInicio && (
                         <InputFieldVrInicio
                           label={labelInputFieldVrInicio}
-                          type="text"
+                          type="number"
                           value={valueInputFieldVrInicio}
                           onChange={onChangeInputFieldVrInicio}
                           readOnly={readOnlyVrInicio}
