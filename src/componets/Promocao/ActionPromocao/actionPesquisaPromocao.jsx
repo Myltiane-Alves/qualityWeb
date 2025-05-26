@@ -310,5 +310,16 @@ na tabela de DETALHEPROMOCAO, se existir, não pode cadastrar a promoção, se n
 */
 
 
-// RODOVIA DF-128 KM 7 - ASSOCIAÇÃO DOS PRODUTORES RURAIS DO VALE VERDE - APROVALE
-// n 105
+/* 
+
+IDVOUCHER 982678
+devolver contra loja 
+
+IDVOUCHER 976975
+devolver contra loja 
+endereço está errado, e não consigo fazer integração do cliente
+
+IDVOUCHER 978141
+devolver contra loja 
+
+*/
