@@ -5,22 +5,20 @@ import { useReactToPrint } from "react-to-print";
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import HeaderTable from "../../Tables/headerTable";
-import { toFloat } from "../../../utils/toFloat";
-import { formatMoeda } from "../../../utils/formatMoeda";
-import { dataFormatada, dataHoraFormatada } from "../../../utils/dataFormatada";
-import { ButtonTable } from "../../ButtonsTabela/ButtonTable";
+import HeaderTable from "../../../Tables/headerTable";
+
+import { formatMoeda } from "../../../../utils/formatMoeda";
+import { dataFormatada, dataHoraFormatada } from "../../../../utils/dataFormatada";
 import { InputText } from 'primereact/inputtext'; 
 import { CiEdit } from "react-icons/ci";
-import { useUpdatePromocao } from "./hook/useUpdatePromocao";
 import Swal from "sweetalert2";
 
 
 
-export const ActionListaPromocoesAtivas = ({ dadosListaPromocao, usuarioLogado, optionsModulos }) => {
+export const ActionListaPromocoesAtivas = ({ dadosPromocoesAtivas, usuarioLogado, optionsModulos }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [editingRows, setEditingRows] = useState({});
-  const { onSubmit } = useUpdatePromocao({usuarioLogado, optionsModulos});
+  
   const dataTableRef = useRef();
  
 
@@ -68,7 +66,7 @@ export const ActionListaPromocoesAtivas = ({ dadosListaPromocao, usuarioLogado, 
 
 
 
-  const dados = dadosListaPromocao.map((item, index) => {
+  const dados = dadosPromocoesAtivas.map((item, index) => {
     let contador = index + 1;
     return {
       contador,

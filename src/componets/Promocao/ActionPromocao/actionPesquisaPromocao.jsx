@@ -12,6 +12,7 @@ import { MultSelectAction } from "../../Select/MultSelectAction";
 import Swal from "sweetalert2";
 import { GrView } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
+import { ActionPromocaoModal } from "./ActionCadastrarPromocao/actionCadastrarPromocaoModal";
 
 
 export const ActionPesquisaPromocao = ({ }) => {
@@ -68,6 +69,9 @@ export const ActionPesquisaPromocao = ({ }) => {
     optionsMecanica,
     handleFileUpload, 
     mostrarProdutosSelecionados,
+    dadosPromocoesAtivas,
+    modalVisivel,
+    setModalVisivel,
     onSubmit
   } = useCreatePromocaoAtiva({  });
 
@@ -311,9 +315,16 @@ export const ActionPesquisaPromocao = ({ }) => {
         corSearch={"primary"}
         IconSearch={IoIosSend}
       />
+      
+      <ActionPromocaoModal  
+        dadosPromocoesAtivas={dadosPromocoesAtivas}
+        show={modalVisivel}
+        handleClose={() => setModalVisivel(false)}  
+      />
     </Fragment>
   )
 }
+
 
 /* 
 regra para filtrar uma promoção ativa será por dataFim, se a dataFim for maior que a data atual, a promoção estará ativa.

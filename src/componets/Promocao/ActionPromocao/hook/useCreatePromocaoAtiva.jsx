@@ -6,6 +6,7 @@ import Swal from "sweetalert2"
 import { getDataAtual } from "../../../../utils/dataAtual"
 import * as XLSX from 'xlsx';
 import { optionsMecanica } from "../../../../../mecanica"
+import { set } from "react-hook-form"
 
 export const useCreatePromocaoAtiva = ({  }) => {
   const [mecanicaSelecionada, setMecanicaSelecionada] = useState(0)
@@ -33,6 +34,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
   const [descricao, setDescricao] = useState('')
   const [precoPrdouto, setPrecoProduto] = useState(0)
   const [dadosPromocoesAtivas, setDadosPromocoesAtivas] = useState([])
+  const [modalVisivel, setModalVisivel] = useState(false)
  
   useEffect(() => {
     const dataInicial = getDataAtual()
@@ -254,10 +256,10 @@ export const useCreatePromocaoAtiva = ({  }) => {
       setDadosPromocoesAtivas(promocoesAtivas);
       const promocoesValidas = promocoesAtivas.filter(promo => {
         const dataFimPromo = new Date(promo.DTHORAFIM);
-
         return dataFimPromo >= dataFim;
       })
-
+      
+      setModalVisivel(true);
       if (promocoesValidas.length >= 3) {
         Swal.fire({
           icon: 'warning',
@@ -476,6 +478,10 @@ export const useCreatePromocaoAtiva = ({  }) => {
     optionsMecanica,
     mostrarProdutosSelecionados,
     handleFileUpload,
+    dadosPromocoesAtivas,
+    modalVisivel,
+    setModalVisivel,
     onSubmit
   }
 }
+
