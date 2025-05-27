@@ -84,7 +84,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
             },
             // O axios não permite 'mode: cors', pois CORS é controlado pelo servidor.
             // Se precisar enviar credenciais:
-            // withCredentials: true,
+            withCredentials: true,
           }
         );
         return response.data.data;
