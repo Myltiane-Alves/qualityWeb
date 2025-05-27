@@ -74,10 +74,20 @@ export const useCreatePromocaoAtiva = ({  }) => {
     ['listaEmpresaComercial', marcaSelecionada],
     async () => {
       if (marcaSelecionada) {
-        const response = await axios.get(`http://164.152.245.77:8000/quality/concentrador/api/comercial/empresa.xsjs?idmarca=${marcaSelecionada}`);
- 
+        const response = await axios.get(
+          `http://164.152.245.77:8000/quality/concentrador/api/comercial/empresa.xsjs?idmarca=${marcaSelecionada}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              // Adicione outros headers necessários aqui
+            },
+            // O axios não permite 'mode: cors', pois CORS é controlado pelo servidor.
+            // Se precisar enviar credenciais:
+            // withCredentials: true,
+          }
+        );
         return response.data.data;
-
       } else {
         return [];
       }
