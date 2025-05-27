@@ -3,10 +3,10 @@ import { useCallback, useEffect, useState } from "react"
 import { get, post } from "../../../../api/funcRequest"
 import { useQuery } from "react-query"
 import Swal from "sweetalert2"
-import { getDataAtual, getDataDoisMesesAtras, getDataTresMesesAtras } from "../../../../utils/dataAtual"
+import { getDataAtual, getDataTresMesesAtras } from "../../../../utils/dataAtual"
 import * as XLSX from 'xlsx';
 import { optionsMecanica } from "../../../../../mecanica"
-import { set } from "react-hook-form"
+
 
 export const useCreatePromocaoAtiva = ({  }) => {
   const [mecanicaSelecionada, setMecanicaSelecionada] = useState(0)
@@ -324,21 +324,23 @@ export const useCreatePromocaoAtiva = ({  }) => {
 
     const produtosOrigem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
     const produtosDestino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
-
-    if(dadosPromocoesAtivas.length) {
-      const produtoDestinoArray = Array.isArray(produtosDestino) ? produtosDestino[0] : produtosDestino;
+    if(dadosPromocoesAtivas.length > 0) {
+     
+      const produtoDestinoArray = Array.isArray(produtosDestino) ? produtosDestino : [produtosDestino];
 
       for(const promocao of dadosPromocoesAtivas) {
-        const idResumoPromocao = promocao.IDRESUMOPROMOCAO;
+       
+        const idResumoPromocao = promocao.IDRESUMOPROMOCAOMARKETING;
+      
         if(!idResumoPromocao) continue;
         
         try {
-          const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao${idResumoPromocao}`) 
+          const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao=${idResumoPromocao}`) 
           const produtosExistentes = responseProdutoExistente.data;
 
-          const existeProduto = produtosExistentes.some(produto => {
+          const existeProduto = produtosExistentes.some(produto => 
             produtoDestinoArray.includes(produto.IDPRODUTO)
-          })
+          )
 
           if (existeProduto) {
               Swal.fire({
@@ -348,7 +350,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
                 customClass: { container: 'custom-swal' },
                 confirmButtonText: 'OK'
               });
-              return; // Interrompe o cadastro
+              return; 
             }
         } catch {
           Swal.fire({
@@ -429,7 +431,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
 
       
     try {
-      // const response = await post('/criar-promocoes-ativas', postData);
+      const response = await post('/criar-promocoes-ativas', postData);
       // Swal.close()
 
       Swal.fire({
