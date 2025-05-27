@@ -75,7 +75,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
     async () => {
       if (marcaSelecionada) {
         const response = await axios.get(
-          `http://164.152.245.77:8000/quality/concentrador/api/comercial/empresa.xsjs?idmarca=${marcaSelecionada}`,
+          `https://164.152.245.77:8000/quality/concentrador/api/comercial/empresa.xsjs?idmarca=${marcaSelecionada}`,
           {
             headers: {
               'Content-Type': 'application/json',
