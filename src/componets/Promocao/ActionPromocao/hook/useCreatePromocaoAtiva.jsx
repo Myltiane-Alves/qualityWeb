@@ -279,9 +279,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
       return;
     }  
 
-    if(dadosPromocoesAtivas.length) {
-      const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao`) 
-    }
+  
     if (!mecanicaSelecionada) {
       Swal.fire({
         position: 'center',
@@ -327,7 +325,43 @@ export const useCreatePromocaoAtiva = ({  }) => {
     const produtosOrigem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
     const produtosDestino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
 
-    
+    if(dadosPromocoesAtivas.length) {
+      const produtoDestinoArray = Array.isArray(produtosDestino) ? produtosDestino[0] : produtosDestino;
+
+      for(const promocao of dadosPromocoesAtivas) {
+        const idResumoPromocao = promocao.IDRESUMOPROMOCAO;
+        if(!idResumoPromocao) continue;
+        
+        try {
+          const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao${idResumoPromocao}`) 
+          const produtosExistentes = responseProdutoExistente.data;
+
+          const existeProduto = produtosExistentes.some(produto => {
+            produtoDestinoArray.includes(produto.IDPRODUTO)
+          })
+
+          if (existeProduto) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Produto já está em uma promoção ativa!',
+                text: 'Um dos produtos destino já está vinculado a uma promoção ativa.',
+                customClass: { container: 'custom-swal' },
+                confirmButtonText: 'OK'
+              });
+              return; // Interrompe o cadastro
+            }
+        } catch {
+          Swal.fire({
+            icon: 'error',
+            title: 'Erro ao verificar produtos existentes!',
+            text: 'Tente novamente.',
+            customClass: { container: 'custom-swal' },
+            confirmButtonText: 'OK'
+          });
+          return;
+        }
+      }
+    }
 
     const postData = ({
 
