@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react"
 import { get, post } from "../../../../api/funcRequest"
 import { useQuery } from "react-query"
 import Swal from "sweetalert2"
-import { getDataAtual } from "../../../../utils/dataAtual"
+import { getDataAtual, getDataDoisMesesAtras, getDataTresMesesAtras } from "../../../../utils/dataAtual"
 import * as XLSX from 'xlsx';
 import { optionsMecanica } from "../../../../../mecanica"
 import { set } from "react-hook-form"
@@ -37,7 +37,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
   const [modalVisivel, setModalVisivel] = useState(false)
  
   useEffect(() => {
-    const dataInicial = getDataAtual()
+    const dataInicial = getDataTresMesesAtras()
     const dataFinal = getDataAtual()
     setDataInicio(dataInicial)
     setDataFim(dataFinal)
@@ -254,12 +254,9 @@ export const useCreatePromocaoAtiva = ({  }) => {
       const responsePromocao = await get(`/promocoes-ativas?dataPesquisaInicio=${dataInicio}&dataPesquisaFim=${dataFim}`);
       const promocoesAtivas = responsePromocao.data;  
       setDadosPromocoesAtivas(promocoesAtivas);
-      const promocoesValidas = promocoesAtivas.filter(promo => {
-        const dataFimPromo = new Date(promo.DTHORAFIM);
-        return dataFimPromo >= dataFim;
-      })
       
-      setModalVisivel(true);
+      const promocoesValidas = promocoesAtivas;
+      
       if (promocoesValidas.length >= 3) {
         Swal.fire({
           icon: 'warning',
@@ -271,6 +268,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
         return;
       }
     } catch (error) {
+      setModalVisivel(true);
       Swal.fire({
         icon: 'error',
         title: 'Erro ao verificar promoções ativas!',
@@ -281,6 +279,9 @@ export const useCreatePromocaoAtiva = ({  }) => {
       return;
     }  
 
+    if(dadosPromocoesAtivas.length) {
+      const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao`) 
+    }
     if (!mecanicaSelecionada) {
       Swal.fire({
         position: 'center',
@@ -394,7 +395,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
 
       
     try {
-      const response = await post('/criar-promocoes-ativas', postData);
+      // const response = await post('/criar-promocoes-ativas', postData);
       // Swal.close()
 
       Swal.fire({

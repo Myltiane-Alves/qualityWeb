@@ -64,6 +64,15 @@ export function  getDataDoisMesesAtras() {
   return `${ano}-${mes}-${dia}`; 
 }
 
+export function  getDataTresMesesAtras() {
+  const data = new Date();
+  const dataTresMesesAtras = subMonths(data, 3);
+  const ano = dataTresMesesAtras.getFullYear();
+  const mes = (dataTresMesesAtras.getMonth() + 1).toString().padStart(2, "0"); 
+  const dia = dataTresMesesAtras.getDate().toString().padStart(2, "0"); 
+  return `${ano}-${mes}-${dia}`; 
+}
+
 
 export function getUmdiaAntes() {
   const data = new Date();

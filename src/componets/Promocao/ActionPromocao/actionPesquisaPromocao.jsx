@@ -145,6 +145,10 @@ export const ActionPesquisaPromocao = ({ }) => {
     return empresasArray.filter(empresa => empresa.IDGRUPOEMPRESARIAL === marcaSelecionada);
   }, [optionsEmpresas, marcaSelecionada]);
 
+  const handlePorcentoDesconto = (value) => {
+    const val = Math.max(0, Math.min(Number(value), 99));
+    setPorcentoDesconto(val);
+  }
 
   return (
     <Fragment>
@@ -185,7 +189,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         InputFieldDescontoComponent2={InputFieldAction}
         labelInputFieldDesconto2={"Desconto %"}
         valueInputFieldDesconto2={porcentoDesconto}
-        onChangeInputFieldDesconto2={(e) => setPorcentoDesconto(Number(e.target.value))}
+        onChangeInputFieldDesconto2={(e) => handlePorcentoDesconto(Number(e.target.value))}
         readOnlyDesconto2={tipoDescontoSelecionado  == 2 ?  false : true}
         // styleDesconto2={styleDesconto2}
 
