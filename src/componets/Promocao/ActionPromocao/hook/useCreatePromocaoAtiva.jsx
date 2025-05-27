@@ -14,7 +14,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
   const [fornecedorSelecionado, setFornecedorSelecionado] = useState(-1)
   const [subGrupoSelecionado, setSubGrupoSelecionado] = useState(-1)
   const [grupoSelecionado, setGrupoSelecionado] = useState(-1)
-  const [marcaSelecionada, setMarcaSelecionada] = useState(-1)
+  const [marcaSelecionada, setMarcaSelecionada] = useState('')
   const [empresaSelecionada, setEmpresaSelecionada] = useState([])
   const [dataInicio, setDataInicio] = useState('')
   const [dataFim, setDataFim] = useState('')
@@ -41,11 +41,14 @@ export const useCreatePromocaoAtiva = ({  }) => {
 
   }, [])
 
-
+// api/compras/fornecedor-produto.xsjs
+// api/compras/subgrupoestrutura.xsjs?idSubGrupoExt=${idSubGrupoEstrutura}&descSubGrupoExt=${descricao}
+// api/grupo-empresarial.xsjs
+// api/comercial/empresa.xsjs?idmarca=
   const { data: dadosFornecedorProduto = [], error: errorFornecedor, isLoading: isLoadingFornecedor, refetch: refetchFornecedor } = useQuery(
     'fornecedor-produto',
     async () => {
-      const response = await get(`/fornecedor-produto`);
+      const response = await axios.get(`http://164.152.245.77:8000/quality/concentrador/api/compras/fornecedor-produto.xsjs`);
       return response.data;
     },
     { staleTime: 1000 * 60 * 60, cacheTime: 1000 * 60 * 60, }
@@ -53,7 +56,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
   const { data: dadosGrupo = [], error: errorGrupo, isLoading: isLoadingGrupo, refetch: refetchGrupo } = useQuery(
     'subGrupoEstrutura',
     async () => {
-      const response = await get(`/subGrupoEstrutura`);
+      const response = await axios.get(`http://164.152.245.77:8000/quality/concentrador/api/compras/subgrupoestrutura.xsjs`);
       return response.data;
     },
     { staleTime: 1000 * 60 * 60, cacheTime: 1000 * 60 * 60, }
@@ -61,18 +64,20 @@ export const useCreatePromocaoAtiva = ({  }) => {
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas, refetch: refetchMarcas } = useQuery(
     'marcasLista',
     async () => {
-      const response = await get(`/marcasLista`);
-      return response.data;
+      const response = await axios.get(`http://164.152.245.77:8000/quality/concentrador/api/grupo-empresarial.xsjs`);
+      return response.data.data;
     },
-    { staleTime: 1000 * 60 * 60, cacheTime: 1000 * 60 * 60, }
+    { enabled: true, staleTime: 1000 * 60 * 60, cacheTime: 1000 * 60 * 60, }
   );
 
   const { data: optionsEmpresas = [], error: errorEmpresas, isLoading: isLoadingEmpresas, refetch: refetchEmpresas } = useQuery(
     ['listaEmpresaComercial', marcaSelecionada],
     async () => {
       if (marcaSelecionada) {
-        const response = await get(`/listaEmpresaComercial?idMarca=${marcaSelecionada}`);
-        return response.data;
+        const response = await axios.get(`http://164.152.245.77:8000/quality/concentrador/api/comercial/empresa.xsjs?idmarca=${marcaSelecionada}`);
+ 
+        return response.data.data;
+
       } else {
         return [];
       }
@@ -358,7 +363,8 @@ export const useCreatePromocaoAtiva = ({  }) => {
 
       
     try {
-      const response = await post('/criar-promocoes-ativas', postData);
+      // const response = await post('/criar-promocoes-ativas', postData);
+      const response = await post('/http://164.152.245.77:8000/quality/concentrador_homologacao/api/promocao-ativa.xsjs', postData);
       // Swal.close()
 
       Swal.fire({

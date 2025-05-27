@@ -131,13 +131,14 @@ export const ActionPesquisaPromocao = ({ }) => {
   }
 
   const empresasFiltradas = useMemo(() => {
-    if (!marcaSelecionada || marcaSelecionada === "all") return optionsEmpresas;
+    const empresasArray = Array.isArray(optionsEmpresas) ? optionsEmpresas : [];
+    if (!marcaSelecionada || marcaSelecionada === "all") return empresasArray;
     if (Array.isArray(marcaSelecionada)) {
-      return optionsEmpresas.filter(empresa =>
+      return empresasArray.filter(empresa =>
         marcaSelecionada.includes(empresa.IDGRUPOEMPRESARIAL)
       );
     }
-    return optionsEmpresas.filter(empresa => empresa.IDGRUPOEMPRESARIAL === marcaSelecionada);
+    return empresasArray.filter(empresa => empresa.IDGRUPOEMPRESARIAL === marcaSelecionada);
   }, [optionsEmpresas, marcaSelecionada]);
 
 
@@ -213,12 +214,17 @@ export const ActionPesquisaPromocao = ({ }) => {
         labelSelectMarcas={"Marca"}
         optionsMarcas={[
           { value: "all", label: "Selecionar Todas" },
-          ...optionsMarcas.map((marca) => ({ value: marca.IDGRUPOEMPRESARIAL, label: marca.DSGRUPOEMPRESARIAL }))
+          ...(Array.isArray(optionsMarcas)
+            ? optionsMarcas.map((marca) => ({
+                value: marca.IDGRUPOEMPRESARIAL,
+                label: marca.DSGRUPOEMPRESARIAL
+              }))
+            : [])
         ]}
         valueSelectMarca={marcaSelecionada}
         onChangeSelectMarcas={(e) => {
           if (e.value === "all") {
-          const allValues = optionsMarcas.map((marca) => marca.IDGRUPOEMPRESARIAL);
+          const allValues = optionsMarcas?.map((marca) => marca.IDGRUPOEMPRESARIAL);
           setMarcaSelecionada(allValues);
           } else {
           setMarcaSelecionada(e.value);
@@ -230,7 +236,7 @@ export const ActionPesquisaPromocao = ({ }) => {
           labelSelectEmpresaAsync={"Empresa"}
           optionsEmpresasAsync={[
             { value: "all", label: "Selecionar Todas" },
-            ...empresasFiltradas.map((empresa) => ({
+            ...empresasFiltradas?.map((empresa) => ({
               value: empresa.IDEMPRESA,
               label: empresa.NOFANTASIA
             }))
