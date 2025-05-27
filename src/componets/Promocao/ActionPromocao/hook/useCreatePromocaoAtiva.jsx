@@ -32,19 +32,16 @@ export const useCreatePromocaoAtiva = ({  }) => {
   const [marcaDestino, setMarcaDestino] = useState(-1)
   const [descricao, setDescricao] = useState('')
   const [precoPrdouto, setPrecoProduto] = useState(0)
+  const [dadosPromocoesAtivas, setDadosPromocoesAtivas] = useState([])
  
   useEffect(() => {
     const dataInicial = getDataAtual()
     const dataFinal = getDataAtual()
     setDataInicio(dataInicial)
     setDataFim(dataFinal)
-
   }, [])
 
-// api/compras/fornecedor-produto.xsjs
-// api/compras/subgrupoestrutura.xsjs?idSubGrupoExt=${idSubGrupoEstrutura}&descSubGrupoExt=${descricao}
-// api/grupo-empresarial.xsjs
-// api/comercial/empresa.xsjs?idmarca=
+
   const { data: dadosFornecedorProduto = [], error: errorFornecedor, isLoading: isLoadingFornecedor, refetch: refetchFornecedor } = useQuery(
     'fornecedor-produto',
     async () => {
@@ -53,6 +50,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
     },
     { staleTime: 1000 * 60 * 60, cacheTime: 1000 * 60 * 60, }
   );
+
   const { data: dadosGrupo = [], error: errorGrupo, isLoading: isLoadingGrupo, refetch: refetchGrupo } = useQuery(
     'subGrupoEstrutura',
     async () => {
@@ -61,6 +59,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
     },
     { staleTime: 1000 * 60 * 60, cacheTime: 1000 * 60 * 60, }
   );
+
   const { data: optionsMarcas = [], error: errorMarcas, isLoading: isLoadingMarcas, refetch: refetchMarcas } = useQuery(
     'marcasLista',
     async () => {
@@ -91,6 +90,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
   }, [marcaSelecionada, refetchEmpresas]);
 
 
+  
   const optionsFatorPromocao = [
     { value: 0, label: "Por Valor Final" },
     { value: 1, label: "Por Valor Desconto" },
@@ -161,7 +161,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
       }
     });
   };
-
+  
   const processCSV = (csvContent) => {
     const contentStr = typeof csvContent === 'string' ? csvContent : new TextDecoder().decode(csvContent);
     const lines = contentStr.split('\n');
@@ -178,7 +178,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
     }
     return result;
   }
-
+  
   const processXLSX = (xlsxContent) => {
     const workbook = XLSX.read(xlsxContent, { type: 'array' });
     const sheetName = workbook.SheetNames[0];
@@ -198,7 +198,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
     }
     return result;
   }
-
+  
   const mostrarProdutosSelecionados = useCallback((tipo) => {
     let produtos = [];
     let titulo = '';
@@ -245,10 +245,39 @@ export const useCreatePromocaoAtiva = ({  }) => {
       confirmButtonText: 'OK'
     });
   }, [fileProdutoOrigem, fileProdutoDestino, produtoOrigem, produtoDestino]);
-
+  
   
   const onSubmit = async (data) => {
+    try {
+      const responsePromocao = await get(`/promocoes-ativas?dataPesquisaInicio=${dataInicio}&dataPesquisaFim=${dataFim}`);
+      const promocoesAtivas = responsePromocao.data;  
+      setDadosPromocoesAtivas(promocoesAtivas);
+      const promocoesValidas = promocoesAtivas.filter(promo => {
+        const dataFimPromo = new Date(promo.DTHORAFIM);
 
+        return dataFimPromo >= dataFim;
+      })
+
+      if (promocoesValidas.length >= 3) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Limite atingido',
+          text: 'Já existem 3 promoções ativas neste período.',
+          customClass: { container: 'custom-swal' },
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro ao verificar promoções ativas!',
+        text: 'Tente novamente.',
+        customClass: { container: 'custom-swal' },
+        confirmButtonText: 'OK'
+      });
+      return;
+    }  
 
     if (!mecanicaSelecionada) {
       Swal.fire({
@@ -294,6 +323,8 @@ export const useCreatePromocaoAtiva = ({  }) => {
 
     const produtosOrigem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
     const produtosDestino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
+
+    
 
     const postData = ({
 
