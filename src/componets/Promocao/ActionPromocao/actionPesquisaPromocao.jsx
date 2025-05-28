@@ -328,7 +328,7 @@ export const ActionPesquisaPromocao = ({ }) => {
     </Fragment>
   )
 }
-
+// quando for por pares o valor qtdInicio sempre será 1 e o input tem quer ser readonly
 
 /* 
 regra para filtrar uma promoção ativa será por dataFim, se a dataFim for maior que a data atual, a promoção estará ativa.
