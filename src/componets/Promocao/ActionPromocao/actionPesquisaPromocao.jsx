@@ -60,7 +60,7 @@ export const ActionPesquisaPromocao = ({ }) => {
     setFileProdutoDestino,
     descricao,
     setDescricao,
-    precoPrdouto,
+    precoProduto,
     setPrecoProduto,
     dadosFornecedorProduto,
     dadosGrupo,
@@ -129,7 +129,7 @@ export const ActionPesquisaPromocao = ({ }) => {
       setPorcentoDesconto(0)
       setValorInicio(0);
     }
-  }, [mecanicaSelecionada, tipoDescontoSelecionado, setPrecoProduto, setVrDesconto, setValorInicio]);
+  }, [mecanicaSelecionada, tipoDescontoSelecionado, precoProduto, vrDesconto, valorInicio]);
   const handleCadastrar = () => {
     onSubmit();
   }
@@ -171,34 +171,34 @@ export const ActionPesquisaPromocao = ({ }) => {
         labelInputQTDInicio={"QTD Aparti de"}
         valueInputFieldQTDInicio={qtdInicio}
         onChangeInputFieldQTDInicio={(e) => setQtdInicio(Number(e.target.value))}
-        // readOnlyQTDInicio={mecanicaSelecionada == 1 ? true : false}
+        readOnlyQTDInicio={mecanicaSelecionada == 1 ? true : false}
         // styleQTDInicio={styleQTDInicio}
 
         InputFieldQTDFimComponent={InputFieldAction}
         labelInputQTDFim={"Preço Produto"}
-        valueInputFieldQTDFim={precoPrdouto}
+        valueInputFieldQTDFim={precoProduto}
         onChangeInputFieldQTDFim={(e) => setPrecoProduto(Number(e.target.value))}
-        // readOnlyQTDFim={tipoDescontoSelecionado == 0  ? false : true}
+        readOnlyQTDFim={tipoDescontoSelecionado == 0  ? false : true}
 
         InputFieldDescontoComponent1={InputFieldAction}
         labelInputFieldDesconto1={"Valor Desconto "}
         valueInputFieldDesconto1={vrDesconto}
         onChangeInputFieldDesconto1={(e) => setVrDesconto(Number(e.target.value))}
-        // readOnlyDesconto1={tipoDescontoSelecionado == 1 ? false : true}
+        readOnlyDesconto1={tipoDescontoSelecionado == 1 ? false : true}
         // styleDesconto1={styleDesconto1}
 
         InputFieldDescontoComponent2={InputFieldAction}
         labelInputFieldDesconto2={"Desconto %"}
         valueInputFieldDesconto2={porcentoDesconto}
         onChangeInputFieldDesconto2={(e) => setPorcentoDesconto(Number(e.target.value))}
-        // readOnlyDesconto2={tipoDescontoSelecionado  == 2 ?  false : true}
+        readOnlyDesconto2={tipoDescontoSelecionado  == 2 ?  false : true}
         // styleDesconto2={styleDesconto2}
 
         InputFieldVrInicio={InputFieldAction}
         labelInputFieldVrInicio={"Vr Apartir de"}
         valueInputFieldVrInicio={valorInicio}
         onChangeInputFieldVrInicio={(e) => setValorInicio(Number(e.target.value))}
-        // readOnlyVrInicio={mecanicaSelecionada == 2 ? true : false}
+        readOnlyVrInicio={mecanicaSelecionada == 2 ? true : false}
 
 
         

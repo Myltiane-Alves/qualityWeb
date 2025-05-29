@@ -32,7 +32,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
   const [fileProdutoDestino, setFileProdutoDestino] = useState([])
   const [marcaDestino, setMarcaDestino] = useState(-1)
   const [descricao, setDescricao] = useState('')
-  const [precoPrdouto, setPrecoProduto] = useState(0)
+  const [precoProduto, setPrecoProduto] = useState(0)
   const [dadosPromocoesAtivas, setDadosPromocoesAtivas] = useState([])
   const [modalVisivel, setModalVisivel] = useState(false)
  
@@ -407,7 +407,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
       })
       return;
     }
-    
+
     const postData = ({
 
       TPAPARTIRDE: aplicacaoDestinoSelecionada,
@@ -419,7 +419,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
       FATORPROMOVLR: vrDesconto,
       FATORPROMOPERC: porcentoDesconto,
 
-      VLPRECOPRODUTO: precoPrdouto,
+      VLPRECOPRODUTO: precoProduto,
       
       
       
@@ -549,7 +549,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
     setFileProdutoDestino,
     descricao,
     setDescricao,
-    precoPrdouto,
+    precoProduto,
     setPrecoProduto,
     dadosFornecedorProduto,
     dadosGrupo,
