@@ -521,4 +521,17 @@ export const useCreatePromocaoAtiva = ({  }) => {
     onSubmit
   }
 }
+//  TPAPARTIRDE = 2 // aplicação destino no ultimo após entrada da promoção
+
+//  TPAPARTIRDE = 0 // aplicação destino por pares SÓ FUNCIONA SE FOR O MESMO PRODUTO NA ORIGEM E DESTINO
+//  TPAPARTIRDE = 1 // aplicação destino em todos os produtos
+//  TPAPARTIRDE = 3 // aplicação destino menos na primeira SÓ FUNCIONA SE FOR O MESMO PRODUTO NA ORIGEM E DESTINO
+//  TPAPARTIRDE = 4 // aplicação destino em 1(um) produto SÓ PODE TER UM IDPRODUTO OU SEJA APENAS UM PRODUTO
+
+// TABELAS RESUMOPROMOCAOMARKETING
+// TPAPLICADOA = 1->APLICADO A VALOR // 2-> APLICADO A QUANTIDADE
+// TPFATORPROMO = USADO PARA O PDV IDENTIFICAR A PROMOCAO
+// 	TPFATORPROMO = 0 // por valor final
+//  TPFATORPROMO = 1 // por valor desconto
+// 	TPFATORPROMO = 2 // por percentual desconto
 
