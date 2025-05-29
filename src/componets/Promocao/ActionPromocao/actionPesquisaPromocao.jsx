@@ -182,14 +182,14 @@ export const ActionPesquisaPromocao = ({ }) => {
         InputFieldDescontoComponent1={InputFieldAction}
         labelInputFieldDesconto1={"Valor Desconto "}
         valueInputFieldDesconto1={vrDesconto}
-        onChangeInputFieldDesconto1={(e) => setVrDesconto(e.target.value)}
+        onChangeInputFieldDesconto1={(e) => setVrDesconto(Number(e.target.value))}
         readOnlyDesconto1={tipoDescontoSelecionado == 1 ? false : true}
         // styleDesconto1={styleDesconto1}
 
         InputFieldDescontoComponent2={InputFieldAction}
         labelInputFieldDesconto2={"Desconto %"}
         valueInputFieldDesconto2={porcentoDesconto}
-        onChangeInputFieldDesconto2={(e) => handlePorcentoDesconto(Number(e.target.value))}
+        onChangeInputFieldDesconto2={(e) => setPorcentoDesconto(Number(e.target.value))}
         readOnlyDesconto2={tipoDescontoSelecionado  == 2 ?  false : true}
         // styleDesconto2={styleDesconto2}
 
