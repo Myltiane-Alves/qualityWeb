@@ -176,7 +176,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         InputFieldQTDFimComponent={InputFieldAction}
         labelInputQTDFim={"Preço Produto"}
         valueInputFieldQTDFim={precoPrdouto}
-        onChangeInputFieldQTDFim={(e) => setPrecoProduto(e.target.value)}
+        onChangeInputFieldQTDFim={(e) => setPrecoProduto(Number(e.target.value))}
         readOnlyQTDFim={tipoDescontoSelecionado == 0  ? false : true}
 
         InputFieldDescontoComponent1={InputFieldAction}
