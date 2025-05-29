@@ -32,6 +32,7 @@
             tipoDesconto: 2,
             color: "purple"
         },
+
         {
             value: 5,
             label: "PROMOÇÃO POR PARES // VALOR // PERCENTUAL DESCONTO",
@@ -64,6 +65,7 @@
             tipoDesconto: 2,
             color: "gray"
         },
+
         {
             value: 9,
             label: "PROMOÇÃO POR PARES // VALOR // VALOR DESCONTO",
@@ -96,6 +98,7 @@
             tipoDesconto: 1,
             color: "olive"
         },
+
         {
             value: 13,
             label: "PROMOÇÃO POR PARES // QUANTIDADE // VALOR FINAL",
@@ -128,6 +131,7 @@
             tipoDesconto: 0,
             color: "coral"
         },
+
         {
             value: 17,
             label: "PROMOÇÃO POR PARES // QUANTIDADE // VALOR DESCONTO",

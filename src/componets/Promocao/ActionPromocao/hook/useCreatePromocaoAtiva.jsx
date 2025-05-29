@@ -365,6 +365,49 @@ export const useCreatePromocaoAtiva = ({  }) => {
       }
     }
 
+    if(aplicacaoDestinoSelecionada == 0 && produtoOrigem && produtoDestino) {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Erro Produtos Origem e Destino',
+        text: 'Para Mecânica por pares, os produtos de origem e destino devem ser iguais.',
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 3000,
+      })
+    }
+
+    if(aplicacaoDestinoSelecionada == 3 && produtoOrigem && produtoDestino) {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Erro Produtos Origem e Destino',
+        text: 'Para Mecânica menos na primeira, os produtos de origem e destino devem ser iguais.',
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 3000,
+      })
+    }
+
+    if (aplicacaoDestinoSelecionada == 4 && produtosDestino.length > 1) {
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Erro Aplicação Destino',
+        text: 'Para Mecânica em um produto, apenas um produto pode ser selecionado.',
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 3000,
+      })
+      return;
+    }
+    
     const postData = ({
 
       TPAPARTIRDE: aplicacaoDestinoSelecionada,
