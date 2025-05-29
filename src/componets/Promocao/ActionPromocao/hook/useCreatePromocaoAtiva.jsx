@@ -364,46 +364,39 @@ export const useCreatePromocaoAtiva = ({  }) => {
         }
       }
     }
-
-    if(aplicacaoDestinoSelecionada == 0 && produtoOrigem && produtoDestino) {
+    if (aplicacaoDestinoSelecionada == 0 || aplicacaoDestinoSelecionada == 3) {
+      // Para "por pares" ou "menos na primeira", produtos de origem e destino devem ser iguais
+      const origem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
+      const destino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
+      const iguais = origem.length === destino.length && origem.every((v, i) => v === destino[i]);
+      if (!iguais) {
       Swal.fire({
         position: 'center',
         icon: 'error',
         title: 'Erro Produtos Origem e Destino',
-        text: 'Para Mecânica por pares, os produtos de origem e destino devem ser iguais.',
+        text: 'Para Mecânica por pares ou menos na primeira, os produtos de origem e destino devem ser iguais.',
         customClass: {
-          container: 'custom-swal',
+        container: 'custom-swal',
         },
         showConfirmButton: false,
-        timer: 3000,
-      })
+        timer: 5000,
+      });
+      return;
+      }
     }
 
-    if(aplicacaoDestinoSelecionada == 3 && produtoOrigem && produtoDestino) {
-      Swal.fire({
-        position: 'center',
-        icon: 'error',
-        title: 'Erro Produtos Origem e Destino',
-        text: 'Para Mecânica menos na primeira, os produtos de origem e destino devem ser iguais.',
-        customClass: {
-          container: 'custom-swal',
-        },
-        showConfirmButton: false,
-        timer: 3000,
-      })
-    }
 
-    if (aplicacaoDestinoSelecionada == 4 && produtosDestino.length > 1) {
+    if (aplicacaoDestinoSelecionada == 4 && (produtosDestino.length > 1 || produtosOrigem.length > 1)) {
       Swal.fire({
-        position: 'center',
-        icon: 'error',
-        title: 'Erro Aplicação Destino',
-        text: 'Para Mecânica em um produto, apenas um produto pode ser selecionado.',
-        customClass: {
-          container: 'custom-swal',
-        },
-        showConfirmButton: false,
-        timer: 3000,
+      position: 'center',
+      icon: 'error',
+      title: 'Erro Aplicação Destino',
+      text: 'Para Mecânica em um produto, apenas um produto pode ser enviado tanto na origem quanto no destino.',
+      customClass: {
+        container: 'custom-swal',
+      },
+      showConfirmButton: false,
+      timer: 8000,
       })
       return;
     }
@@ -564,6 +557,8 @@ export const useCreatePromocaoAtiva = ({  }) => {
     onSubmit
   }
 }
+
+
 //  TPAPARTIRDE = 2 // aplicação destino no ultimo após entrada da promoção
 
 //  TPAPARTIRDE = 0 // aplicação destino por pares SÓ FUNCIONA SE FOR O MESMO PRODUTO NA ORIGEM E DESTINO
