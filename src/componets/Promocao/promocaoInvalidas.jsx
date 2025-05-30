@@ -166,7 +166,6 @@
 
 
 /*
-
  2.1 COMBO  Nenhuma das 3 podem rodar juntas:
     PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // PERCENTUAL DESCONTO  IDRESUMOPROMOCAOMARKETING = 2
     Quantidade apartir de 1
@@ -187,6 +186,32 @@
     desconto valor final 2
     IDPRODUTO
     1_330231250
-
     
+*/
+
+/*
+
+ 3.1 COMBO  Funcionam juntas: POR TODOS OS PRODUTOS --> POR EM UM PRODUTO;
+    Não Funciona com nenhuma das duas: POR MENOS NA PRIMEIRA
+    
+    PROMOÇÃO POR MENOS NA PRIMEIRA // QUANTIDADE // PERCENTUAL DESCONTO   IDRESUMOPROMOCAOMARKETING = 3
+    Quantidade apartir de 1
+    Porcentagem % 5
+    IDPRODUTO
+    2_390141095
+    2_390141094
+       
+    PROMOÇÃO POR TODOS OS PRODUTOS // VALOR // VALOR DESCONTO  IDRESUMOPROMOCAOMARKETING = 10
+    apartir do valor 1
+    valor desconto 5
+    IDPRODUTO
+    2_390140960
+    2_390140975
+    
+    PROMOÇÃO POR EM UM PRODUTO // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 16
+    Quantidade apartir de 1
+    desconto valor final 2
+    IDPRODUTO
+    1_330231250
+
 */
