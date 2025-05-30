@@ -316,9 +316,198 @@
     
 */
 
-// PROMOÇÃO POR EM UM PRODUTO  QUANTIDADE VALOR FINAL 33 IDRESUMOPROMOCAOMARKETING = 33
-// Quantidade apartir de 1
-// Valor Final 3
-// IDPRODUTO
-// 1_330238010
-// 1_330250038
+
+
+/*
+
+ 1.1 COMBO
+    PROMOÇÃO POR PARES // QUANTIDADE // PERCENTUAL DESCONTO IDRESUMOPROMOCAOMARKETING = 1
+    Quantidade apartir de 1
+    Porcentagem % 4
+    IDPRODUTO
+    1_330231104
+    2_390141096
+
+    PROMOÇÃO POR TODOS OS PRODUTOS // VALOR // PERCENTUAL DESCONTO   IDRESUMOPROMOCAOMARKETING = 6
+    apartir do valor 1
+    Porcentagem % 7
+    IDPRODUTO
+    2_390141085
+    2_390140959
+
+    PROMOÇÃO POR MENOS NA PRIMEIRA // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 15
+    Quantidade apartir de 1
+    desconto valor final 3
+    IDPRODUTO
+    1_330257844
+    1_330257885
+    
+*/
+
+/*
+
+ 2.1 COMBO
+    PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // PERCENTUAL DESCONTO  IDRESUMOPROMOCAOMARKETING = 2
+    Quantidade apartir de 1
+    Porcentagem % 4
+    IDPRODUTO
+    2_390139342
+    2_390139341
+       
+    PROMOÇÃO POR PARES // VALOR // PERCENTUAL DESCONTO   IDRESUMOPROMOCAOMARKETING = 5
+    apartir do valor 1
+    Porcentagem % 5
+    IDPRODUTO
+    2_390140958
+    2_390140957
+
+    PROMOÇÃO POR MENOS NA PRIMEIRA // VALOR // VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 11
+    apartir do valor 1
+    valor desconto 5
+    IDPRODUTO
+    2_390140974
+    2_390140973
+    
+*/
+
+
+  /*
+
+    1.1 LISTA DE PROMOÇÕES
+        PROMOÇÃO POR PARES // QUANTIDADE // PERCENTUAL DESCONTO IDRESUMOPROMOCAOMARKETING = 1
+        Quantidade apartir de 1
+        Porcentagem % 4
+        IDPRODUTO
+        1_330231104
+        2_390141096
+
+        PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // PERCENTUAL DESCONTO  IDRESUMOPROMOCAOMARKETING = 2
+        Quantidade apartir de 1
+        Porcentagem % 4
+        IDPRODUTO
+        2_390139342
+        2_390139341
+       
+        PROMOÇÃO POR MENOS NA PRIMEIRA // QUANTIDADE // PERCENTUAL DESCONTO   IDRESUMOPROMOCAOMARKETING = 3
+        Quantidade apartir de 1
+        Porcentagem % 5
+        IDPRODUTO
+        2_390141095
+        2_390141094
+       
+        PROMOÇÃO POR EM UM PRODUTO // QUANTIDADE // PERCENTUAL DESCONTO    IDRESUMOPROMOCAOMARKETING = 4
+        Quantidade apartir de 1
+        Porcentagem % 3
+        IDPRODUTO
+        2_390136794
+
+        PROMOÇÃO POR PARES // VALOR // PERCENTUAL DESCONTO   IDRESUMOPROMOCAOMARKETING = 5
+        apartir do valor 1
+        Porcentagem % 5
+        IDPRODUTO
+        2_390140958
+        2_390140957
+       
+        PROMOÇÃO POR TODOS OS PRODUTOS // VALOR // PERCENTUAL DESCONTO   IDRESUMOPROMOCAOMARKETING = 6
+        apartir do valor 1
+        Porcentagem % 7
+        IDPRODUTO
+        2_390141085
+        2_390140959
+       
+        PROMOÇÃO POR MENOS NA PRIMEIRA // VALOR // PERCENTUAL DESCONTO   IDRESUMOPROMOCAOMARKETING = 7
+        apartir do valor 1
+        Porcentagem % 5
+        IDPRODUTO
+        2_390140960
+        2_390140975
+       
+        PROMOÇÃO POR EM UM PRODUTO // VALOR // PERCENTUAL DESCONTO   IDRESUMOPROMOCAOMARKETING = 8
+        apartir do valor 1
+        Porcentagem % 5
+        IDPRODUTO
+        2_390136795
+        
+        PROMOÇÃO POR PARES // VALOR // VALOR DESCONTO  IDRESUMOPROMOCAOMARKETING = 9
+        apartir do valor 1
+        valor desconto 10
+        IDPRODUTO
+        1_330258548
+        
+        PROMOÇÃO POR TODOS OS PRODUTOS // VALOR // VALOR DESCONTO  IDRESUMOPROMOCAOMARKETING = 10
+        apartir do valor 1
+        valor desconto 5
+        IDPRODUTO
+        2_390140960
+        2_390140975
+       
+        PROMOÇÃO POR MENOS NA PRIMEIRA // VALOR // VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 11
+        apartir do valor 1
+        valor desconto 5
+        IDPRODUTO
+        2_390140974
+        2_390140973
+        
+        PROMOÇÃO POR EM UM PRODUTO // VALOR // VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 12
+        apartir do valor 1
+        valor desconto 2
+        IDPRODUTO
+        1_330231310
+       
+    
+        PROMOÇÃO POR PARES // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 13
+        Quantidade apartir de 1
+        desconto valor final 5
+        IDPRODUTO
+        1_330257954
+        1_330257953
+       
+        PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 14
+        Quantidade apartir de 1
+        desconto valor final 4
+        IDPRODUTO
+        2_390139337
+        1_330257843
+       
+        PROMOÇÃO POR MENOS NA PRIMEIRA // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 15
+        Quantidade apartir de 1
+        desconto valor final 3
+        IDPRODUTO
+        1_330257844
+        1_330257885
+        
+        PROMOÇÃO POR EM UM PRODUTO // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 16
+        Quantidade apartir de 1
+        desconto valor final 2
+        IDPRODUTO
+        1_330231250
+        
+        PROMOÇÃO POR PARES // QUANTIDADE // VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 17
+        Quantidade apartir de 1
+        valor desconto 6
+        IDPRODUTO
+        1_330257884
+        1_330257811
+        
+        PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 18
+        Quantidade apartir de 1
+        valor desconto 5
+        IDPRODUTO
+        1_330257812
+        1_330257810
+
+        PROMOÇÃO POR MENOS NA PRIMEIRA // QUANTIDADE // VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 19
+        Quantidade apartir de 1
+        valor desconto 4
+        IDPRODUTO
+        1_330257809
+        1_330257807
+        
+        PROMOÇÃO POR EM UM PRODUTO // QUANTIDADE // VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 20
+        Quantidade apartir de 1
+        valor desconto 3
+        IDPRODUTO
+        1_330269295
+       
+    
+*/

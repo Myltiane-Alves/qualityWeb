@@ -129,7 +129,7 @@ export const ActionPesquisaPromocao = ({ }) => {
       setPorcentoDesconto(0)
       setValorInicio(0);
     }
-  }, [mecanicaSelecionada, tipoDescontoSelecionado, precoProduto, vrDesconto, valorInicio]);
+  }, [mecanicaSelecionada, tipoDescontoSelecionado, setPrecoProduto, setVrDesconto, setValorInicio]);
   const handleCadastrar = () => {
     onSubmit();
   }
