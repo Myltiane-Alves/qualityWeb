@@ -372,7 +372,9 @@
 
 /*
 
- 3.1 COMBO
+ 3.1 COMBO  Funcionam juntas: POR TODOS OS PRODUTOS --> POR EM UM PRODUTO;
+    Não Funciona com nenhuma das duas: POR MENOS NA PRIMEIRA
+    
     PROMOÇÃO POR MENOS NA PRIMEIRA // QUANTIDADE // PERCENTUAL DESCONTO   IDRESUMOPROMOCAOMARKETING = 3
     Quantidade apartir de 1
     Porcentagem % 5
@@ -538,3 +540,4 @@
        
     
 */
+
