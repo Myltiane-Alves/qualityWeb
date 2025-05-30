@@ -27,28 +27,32 @@
 
 /*
 
-    1. COMBO FUNCIONANDO
+     Não podem rodar juntas: POR PARES; MENOS NA PRIMEIRA
+    1.1 COMBO funciona porém a por pares e menos na primeira não funcionam juntas
+    precisa ser criada uma lógica para não serem usadas em conjunto.
+    
+    PROMOÇÃO POR PARES // QUANTIDADE // PERCENTUAL DESCONTO IDRESUMOPROMOCAOMARKETING = 1
+    Quantidade apartir de 1
+    Porcentagem % 4
+    IDPRODUTO
+    1_330231104
+    2_390141096
 
-    PROMOÇÃO POR EM UM PRODUTO VALOR PERCENTUAL DESCONTO  IDRESUMOPROMOCAOMARKETING = 15
-    Valor Desconto 10
-    Porcentagem % 20
+    PROMOÇÃO POR TODOS OS PRODUTOS // VALOR // PERCENTUAL DESCONTO   IDRESUMOPROMOCAOMARKETING = 21
+    apartir do valor 1
+    Porcentagem % 6
+    IDPRODUTO
+    1_330257809
+    1_330257807
+
+    PROMOÇÃO POR MENOS NA PRIMEIRA // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 15
+    Quantidade apartir de 1
+    desconto valor final 3
     IDPRODUTO
     1_330257844
     1_330257885
-
-
-    PROMOÇÃO POR  TODOS OS PRODUTOS VALOR VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 16
-    Apartir do Valor 2
-    valor desconto 1
-    IDPRODUTO
-    1_330257884
-    1_330257811
-
-    PROMOÇÃO POR ÚLTIMO APÓS ENTRADA DA PROMOÇÃO  QUANTIDADE VALOR FINAL IDRESUMOPROMOCAOMARKETING = 21
-    Quantidade apartir de 1
-    Valor Final 5
-    IDPRODUTO
-    1_330257793
-    1_330257818
-
+    2_390140957
+    
 */
+
+

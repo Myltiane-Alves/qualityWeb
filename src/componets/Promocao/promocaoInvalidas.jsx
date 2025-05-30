@@ -165,3 +165,28 @@
 */
 
 
+/*
+
+ 2.1 COMBO  Nenhuma das 3 podem rodar juntas:
+    PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // PERCENTUAL DESCONTO  IDRESUMOPROMOCAOMARKETING = 2
+    Quantidade apartir de 1
+    Porcentagem % 4
+    IDPRODUTO
+    2_390139342
+    2_390139341
+       
+    PROMOÇÃO POR MENOS NA PRIMEIRA // VALOR // VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 11
+    apartir do valor 1
+    valor desconto 5
+    IDPRODUTO
+    2_390140974
+    2_390140973
+    
+    PROMOÇÃO POR EM UM PRODUTO // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 16
+    Quantidade apartir de 1
+    desconto valor final 2
+    IDPRODUTO
+    1_330231250
+
+    
+*/

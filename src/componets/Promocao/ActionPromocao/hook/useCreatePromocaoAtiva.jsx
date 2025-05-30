@@ -562,7 +562,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
 //  TPAPARTIRDE = 2 // aplicação destino no ultimo após entrada da promoção
 
 //  TPAPARTIRDE = 0 // aplicação destino por pares SÓ FUNCIONA SE FOR O MESMO PRODUTO NA ORIGEM E DESTINO
-//  TPAPARTIRDE = 1 // aplicação destino em todos os produtos
+//  TPAPARTIRDE = 1 // aplicação destino em todos os produtos SÓ FUNCIONA SE FOR O MESMO PRODUTO NA ORIGEM E DESTINO
 //  TPAPARTIRDE = 3 // aplicação destino menos na primeira SÓ FUNCIONA SE FOR O MESMO PRODUTO NA ORIGEM E DESTINO
 //  TPAPARTIRDE = 4 // aplicação destino em 1(um) produto SÓ PODE TER UM IDPRODUTO OU SEJA APENAS UM PRODUTO
 
