@@ -1,5 +1,5 @@
 import { Fragment } from "react"
-import { FooterModal } from "../../../Modais/FooterModal/FooterModal"
+import { FooterModal } from "../../../Modais/FooterModal/footerModal"
 import { ButtonTypeModal } from "../../../Buttons/ButtonTypeModal"
 import { InputFieldModal } from "../../../Buttons/InputFieldModal"
 import Select from "react-select"
