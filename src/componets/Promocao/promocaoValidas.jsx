@@ -56,3 +56,21 @@
 */
 
 
+/*
+
+ 3.3 COMBO  funciona corretamente, com tipo de desconto diferente.
+    
+        PROMOÇÃO POR PARES // QUANTIDADE // PERCENTUAL DESCONTO IDRESUMOPROMOCAOMARKETING = 1
+        Quantidade apartir de 1
+        Porcentagem % 4
+        IDPRODUTO
+        1_330231104
+        2_390141096
+
+          PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 14
+        Quantidade apartir de 1
+        desconto valor final 4
+        IDPRODUTO
+        2_390139337
+        1_330257843
+*/

@@ -259,37 +259,37 @@ export const useCreatePromocaoAtiva = ({  }) => {
       const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0)
       const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3)
 
-      if (promocaoPorParesAtiva) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Promoção por pares já existente!',
-          text: 'Já existe uma promoção ativa com aplicação destino por pares. Não é permitido cadastrar outra.',
-          customClass: { container: 'custom-swal' },
-          confirmButtonText: 'OK'
-        });
-        return;
-      }
+      // if (promocaoPorParesAtiva) {
+      //   Swal.fire({
+      //     icon: 'warning',
+      //     title: 'Promoção por pares já existente!',
+      //     text: 'Já existe uma promoção ativa com aplicação destino por pares. Não é permitido cadastrar outra.',
+      //     customClass: { container: 'custom-swal' },
+      //     confirmButtonText: 'OK'
+      //   });
+      //   return;
+      // }
 
-      if (promocaoPorMenosNaPrimeira) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Promoção menos na primeira já existente!',
-          text: 'Já existe uma promoção ativa com aplicação destino menos na primeira. Não é permitido cadastrar outra.',
-          customClass: { container: 'custom-swal' },
-          confirmButtonText: 'OK'
-        });
-        return;
-      }
-      if (promocoesValidas.length >= 3) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Limite atingido',
-          text: 'Já existem 3 promoções ativas neste período.',
-          customClass: { container: 'custom-swal' },
-          confirmButtonText: 'OK'
-        });
-        return;
-      }
+      // if (promocaoPorMenosNaPrimeira) {
+      //   Swal.fire({
+      //     icon: 'warning',
+      //     title: 'Promoção menos na primeira já existente!',
+      //     text: 'Já existe uma promoção ativa com aplicação destino menos na primeira. Não é permitido cadastrar outra.',
+      //     customClass: { container: 'custom-swal' },
+      //     confirmButtonText: 'OK'
+      //   });
+      //   return;
+      // }
+      // if (promocoesValidas.length >= 3) {
+      //   Swal.fire({
+      //     icon: 'warning',
+      //     title: 'Limite atingido',
+      //     text: 'Já existem 3 promoções ativas neste período.',
+      //     customClass: { container: 'custom-swal' },
+      //     confirmButtonText: 'OK'
+      //   });
+      //   return;
+      // }
     } catch (error) {
       setModalVisivel(true);
       Swal.fire({
@@ -364,7 +364,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
           const existeProduto = produtosExistentes.some(produto => 
             produtoDestinoArray.includes(produto.IDPRODUTO)
           )
-          
+
 
           if (existeProduto) {
               Swal.fire({

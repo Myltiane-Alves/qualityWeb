@@ -397,6 +397,78 @@
 
 */
 
+/*
+
+ 3.2 COMBO  
+    
+        PROMOÇÃO POR PARES // QUANTIDADE // PERCENTUAL DESCONTO IDRESUMOPROMOCAOMARKETING = 1
+        Quantidade apartir de 1
+        Porcentagem % 4
+        IDPRODUTO
+        1_330231104
+        2_390141096
+
+        PROMOÇÃO POR EM UM PRODUTO // QUANTIDADE // PERCENTUAL DESCONTO    IDRESUMOPROMOCAOMARKETING = 4
+        Quantidade apartir de 1
+        Porcentagem % 3
+        IDPRODUTO
+        2_390136794
+*/
+
+/*
+
+ 3.2 COMBO  
+    
+        PROMOÇÃO POR PARES // QUANTIDADE // PERCENTUAL DESCONTO IDRESUMOPROMOCAOMARKETING = 1
+        Quantidade apartir de 1
+        Porcentagem % 4
+        IDPRODUTO
+        1_330231104
+        2_390141096
+
+        PROMOÇÃO POR MENOS NA PRIMEIRA // VALOR // VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 11
+        valor desconto 5
+        IDPRODUTO
+        2_390140974
+        2_390140973
+*/
+/*
+
+ 3.3 COMBO  
+    
+        PROMOÇÃO POR PARES // QUANTIDADE // PERCENTUAL DESCONTO IDRESUMOPROMOCAOMARKETING = 1
+        Quantidade apartir de 1
+        Porcentagem % 4
+        IDPRODUTO
+        1_330231104
+        2_390141096
+
+          PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 14
+        Quantidade apartir de 1
+        desconto valor final 4
+        IDPRODUTO
+        2_390139337
+        1_330257843
+*/
+
+/*
+
+ 3.4 COMBO  funciona corretamente, com tipo de desconto diferente.
+    
+        PROMOÇÃO POR PARES // QUANTIDADE // PERCENTUAL DESCONTO IDRESUMOPROMOCAOMARKETING = 24
+        Quantidade apartir de 1
+        Porcentagem % 4
+        IDPRODUTO
+        1_330231114
+        1_330230079
+
+          PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // VALOR FINAL IDRESUMOPROMOCAOMARKETING = 23
+        Quantidade apartir de 1
+        desconto valor final 4
+        IDPRODUTO
+        1_330254766
+        1_330254912
+*/
 
   /*
 
