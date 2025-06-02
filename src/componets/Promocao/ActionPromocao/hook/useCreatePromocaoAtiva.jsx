@@ -364,6 +364,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
           const existeProduto = produtosExistentes.some(produto => 
             produtoDestinoArray.includes(produto.IDPRODUTO)
           )
+          
 
           if (existeProduto) {
               Swal.fire({
