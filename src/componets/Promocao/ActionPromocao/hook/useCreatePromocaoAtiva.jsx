@@ -1,4 +1,3 @@
-import axios from "axios"
 import { useCallback, useEffect, useState } from "react"
 import { get, post } from "../../../../api/funcRequest"
 import { useQuery } from "react-query"
@@ -251,12 +250,36 @@ export const useCreatePromocaoAtiva = ({  }) => {
   
   const onSubmit = async (data) => {
     try {
-      const responsePromocao = await get(`/promocoes-ativas?dataPesquisaInicio=${dataInicio}&dataPesquisaFim=${dataFim}`);
+      const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
       const promocoesAtivas = responsePromocao.data;  
       setDadosPromocoesAtivas(promocoesAtivas);
       
       const promocoesValidas = promocoesAtivas;
       
+      const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0)
+      const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3)
+
+      if (promocaoPorParesAtiva) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Promoção por pares já existente!',
+          text: 'Já existe uma promoção ativa com aplicação destino por pares. Não é permitido cadastrar outra.',
+          customClass: { container: 'custom-swal' },
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+
+      if (promocaoPorMenosNaPrimeira) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Promoção menos na primeira já existente!',
+          text: 'Já existe uma promoção ativa com aplicação destino menos na primeira. Não é permitido cadastrar outra.',
+          customClass: { container: 'custom-swal' },
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
       if (promocoesValidas.length >= 3) {
         Swal.fire({
           icon: 'warning',
@@ -573,3 +596,5 @@ export const useCreatePromocaoAtiva = ({  }) => {
 //  TPFATORPROMO = 1 // por valor desconto
 // 	TPFATORPROMO = 2 // por percentual desconto
 
+// a verificação de promoção ativa será também pela empresa não será será apenas por dataFim,
+// pois poderá ter promoções ativas em empresas diferentes,
