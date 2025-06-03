@@ -388,11 +388,11 @@ export const useCreatePromocaoAtiva = ({  }) => {
           const countEmpresa = promocoesValidasNaEmpresaSelecionada.filter(empresa => empresa.IDEMPRESA == empresaSelecionada).length;
             if (countEmpresa >= 2) {
               Swal.fire({
-              icon: 'warning',
-              title: 'Promoção já existente nesta empresa!',
-              text: 'Já existem 2 promoções ativas nesta empresa. Não é permitido cadastrar outra.',
-              customClass: { container: 'custom-swal' },
-              confirmButtonText: 'OK'
+                icon: 'warning',
+                title: 'Promoção já existente nesta empresa!',
+                text: 'Já existem 2 promoções ativas nesta empresa. Não é permitido cadastrar outra.',
+                customClass: { container: 'custom-swal' },
+                confirmButtonText: 'OK'
               });
               return;
             }
