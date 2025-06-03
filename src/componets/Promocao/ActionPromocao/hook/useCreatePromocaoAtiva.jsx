@@ -378,9 +378,24 @@ export const useCreatePromocaoAtiva = ({  }) => {
           }
 
           const promocoesValidas = responseProdutoExistente.data;
+          const promocoesValidasNaEmpresaSelecionada = responseProdutoExistente.data?.empresaPromocaoMarketing;
           const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0)
           const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3)
 
+          if(empresaSelecionada) {
+            const empresaPromocaoAtiva = promocoesValidasNaEmpresaSelecionada?.find(empresa => empresa.IDEMPRESA == empresaSelecionada);
+            if(empresaPromocaoAtiva >= 2) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Promoção já existente nesta empresa!',
+                text: 'Já existe uma promoção ativa nesta empresa. Não é permitido cadastrar outra.',
+                customClass: { container: 'custom-swal' },
+                confirmButtonText: 'OK'
+              });
+              return;
+            }
+          }
+          
           if (promocaoPorParesAtiva) {
             Swal.fire({
               icon: 'warning',
@@ -450,15 +465,15 @@ export const useCreatePromocaoAtiva = ({  }) => {
 
     if (aplicacaoDestinoSelecionada == 4 && (produtosDestino.length > 1 || produtosOrigem.length > 1)) {
       Swal.fire({
-      position: 'center',
-      icon: 'error',
-      title: 'Erro Aplicação Destino',
-      text: 'Para Mecânica em um produto, apenas um produto pode ser enviado tanto na origem quanto no destino.',
-      customClass: {
-        container: 'custom-swal',
-      },
-      showConfirmButton: false,
-      timer: 8000,
+        position: 'center',
+        icon: 'error',
+        title: 'Erro Aplicação Destino',
+        text: 'Para Mecânica em um produto, apenas um produto pode ser enviado tanto na origem quanto no destino.',
+        customClass: {
+          container: 'custom-swal',
+        },
+        showConfirmButton: false,
+        timer: 8000,
       })
       return;
     }
