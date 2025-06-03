@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 import { optionsMecanica } from "../../../../../mecanica"
 
 
+
 export const useCreatePromocaoAtiva = ({  }) => {
   const [mecanicaSelecionada, setMecanicaSelecionada] = useState(0)
   const [aplicacaoDestinoSelecionada, setAplicacaoDestinoSelecionada] = useState('')
@@ -247,49 +248,14 @@ export const useCreatePromocaoAtiva = ({  }) => {
     });
   }, [fileProdutoOrigem, fileProdutoDestino, produtoOrigem, produtoDestino]);
   
-  
+        // console.log(empresaSelecionada, 'empresaSelecionada:');
   const onSubmit = async (data) => {
     try {
       const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
       const promocoesAtivas = responsePromocao.data;  
       setDadosPromocoesAtivas(promocoesAtivas);
-      
-      const promocoesValidas = promocoesAtivas;
-      
-      const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0)
-      const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3)
+            // console.log(empresaSelecionada, 'empresaSelecionada:');
 
-      // if (promocaoPorParesAtiva) {
-      //   Swal.fire({
-      //     icon: 'warning',
-      //     title: 'Promoção por pares já existente!',
-      //     text: 'Já existe uma promoção ativa com aplicação destino por pares. Não é permitido cadastrar outra.',
-      //     customClass: { container: 'custom-swal' },
-      //     confirmButtonText: 'OK'
-      //   });
-      //   return;
-      // }
-
-      // if (promocaoPorMenosNaPrimeira) {
-      //   Swal.fire({
-      //     icon: 'warning',
-      //     title: 'Promoção menos na primeira já existente!',
-      //     text: 'Já existe uma promoção ativa com aplicação destino menos na primeira. Não é permitido cadastrar outra.',
-      //     customClass: { container: 'custom-swal' },
-      //     confirmButtonText: 'OK'
-      //   });
-      //   return;
-      // }
-      // if (promocoesValidas.length >= 3) {
-      //   Swal.fire({
-      //     icon: 'warning',
-      //     title: 'Limite atingido',
-      //     text: 'Já existem 3 promoções ativas neste período.',
-      //     customClass: { container: 'custom-swal' },
-      //     confirmButtonText: 'OK'
-      //   });
-      //   return;
-      // }
     } catch (error) {
       setModalVisivel(true);
       Swal.fire({
@@ -350,17 +316,17 @@ export const useCreatePromocaoAtiva = ({  }) => {
     if(dadosPromocoesAtivas.length > 0) {
      
       const produtoDestinoArray = Array.isArray(produtosDestino) ? produtosDestino : [produtosDestino];
-
+      // console.log(dadosPromocoesAtivas, 'dadosPromocoesAtivas:');
       for(const promocao of dadosPromocoesAtivas) {
-       
+      //  console.log(promocao, 'promocao:');
         const idResumoPromocao = promocao.IDRESUMOPROMOCAOMARKETING;
-      
+        // console.log('ID Resumo Promoção:', idResumoPromocao);
         if(!idResumoPromocao) continue;
         
         try {
           const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao=${idResumoPromocao}&dataPesquisaFim=${dataFim}`); 
-          const produtosExistentes = responseProdutoExistente.data;
-
+          const produtosExistentes = responseProdutoExistente.data?.detalhePromo;
+          // console.log('Produtos Existentes:', produtosExistentes.data?.detalhePromo);
           const existeProduto = produtosExistentes.some(produto => 
             produtoDestinoArray.includes(produto.IDPRODUTO)
           )
@@ -382,10 +348,14 @@ export const useCreatePromocaoAtiva = ({  }) => {
           const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3)
           
             
+          // console.log(empresaSelecionada, 'empresaSelecionada:');
           const promocoesValidasNaEmpresaSelecionada = responseProdutoExistente.data?.empresaPromocaoMarketing;
+          console.log(responseProdutoExistente.data.empresaPromocaoMarketing, 'empresaPromocaoMarketing:');
+          console.log(promocoesValidasNaEmpresaSelecionada, 'promocoesValidasNaEmpresaSelecionada:');
           if (empresaSelecionada && Array.isArray(promocoesValidasNaEmpresaSelecionada)) {
-          
+          console.log(empresaSelecionada, 'empresaSelecionada:');
           const countEmpresa = promocoesValidasNaEmpresaSelecionada.filter(empresa => empresa.IDEMPRESA == empresaSelecionada).length;
+          console.log(countEmpresa >= 2, 'countEmpresa:');
             if (countEmpresa >= 2) {
               Swal.fire({
                 icon: 'warning',
@@ -398,6 +368,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
             }
           }
 
+          console.log(promocaoPorParesAtiva, 'promocaoPorParesAtiva:');
           if (promocaoPorParesAtiva) {
             Swal.fire({
               icon: 'warning',
@@ -409,6 +380,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
             return;
           }
 
+          console.log(promocaoPorMenosNaPrimeira, 'promocaoPorMenosNaPrimeira:');
           if (promocaoPorMenosNaPrimeira) {
             Swal.fire({
               icon: 'warning',
@@ -420,7 +392,8 @@ export const useCreatePromocaoAtiva = ({  }) => {
             return;
           }
 
-          if (promocoesValidas.length >= 3) {
+          console.log(promocoesValidas.length, 'promocoesValidas.length:');
+          if (promocoesValidas.length >= 2) {
             Swal.fire({
               icon: 'warning',
               title: 'Limite atingido',
