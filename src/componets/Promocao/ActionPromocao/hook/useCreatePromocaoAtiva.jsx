@@ -443,6 +443,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
         }
       }
     }
+    
     if (aplicacaoDestinoSelecionada == 0 || aplicacaoDestinoSelecionada == 3) {
       
       const origem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
