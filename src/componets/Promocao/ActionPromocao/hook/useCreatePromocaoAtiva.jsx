@@ -91,28 +91,6 @@ export const useCreatePromocaoAtiva = ({  }) => {
     refetchMarcas()
   }, [marcaSelecionada, refetchEmpresas]);
 
-
-  
-  const optionsFatorPromocao = [
-    { value: 0, label: "Por Valor Final" },
-    { value: 1, label: "Por Valor Desconto" },
-    { value: 2, label: "Por Percentual Desconto" },
-  ]
-
-  const optionsTPapartide = [
-    { value: 0, label: "aplicação destino por pares" },
-    { value: 1, label: "aplicação destino em todos os produtos" },
-    { value: 2, label: "aplicação destino no ultimo após entrada da promoção" },
-    { value: 3, label: "aplicação destino menos na primeira" },
-    { value: 4, label: "aplicação destino em (um) produto" },
-  ]
-
-  const opcoesPromocao = [
-    { value: 1, label: "VALOR" },
-    { value: 2, label: "QUANTIDADE" }
-  ];
-
-
   const handleFileUpload = async (file, isOrigem) => {
     try {
       const data = await processFile(file);
@@ -248,27 +226,13 @@ export const useCreatePromocaoAtiva = ({  }) => {
     });
   }, [fileProdutoOrigem, fileProdutoDestino, produtoOrigem, produtoDestino]);
   
-        // console.log(empresaSelecionada, 'empresaSelecionada:');
-  const onSubmit = async (data) => {
-    try {
-      const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
-      const promocoesAtivas = responsePromocao.data;  
-      setDadosPromocoesAtivas(promocoesAtivas);
-            // console.log(empresaSelecionada, 'empresaSelecionada:');
-
-    } catch (error) {
-      setModalVisivel(true);
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro ao verificar promoções ativas!',
-        text: 'Tente novamente.',
-        customClass: { container: 'custom-swal' },
-        confirmButtonText: 'OK'
-      });
-      return;
-    }  
-
   
+  const onSubmit = async (data) => {
+   try {
+    const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
+    const promocoesAtivas = responsePromocao.data;  
+    setDadosPromocoesAtivas(promocoesAtivas);
+    console.log(promocoesAtivas, 'promocoesAtivas:');
     if (!mecanicaSelecionada) {
       Swal.fire({
         position: 'center',
@@ -313,20 +277,19 @@ export const useCreatePromocaoAtiva = ({  }) => {
 
     const produtosOrigem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
     const produtosDestino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
-    if(dadosPromocoesAtivas.length > 0) {
+
+    console.log(dadosPromocoesAtivas.length > 0, 'dadosPromocoesAtivas.length > 0:');
+    console.log(dadosPromocoesAtivas, 'dadosPromocoesAtivas:');
+    if( promocoesAtivas && dadosPromocoesAtivas.length > 0) {
      
       const produtoDestinoArray = Array.isArray(produtosDestino) ? produtosDestino : [produtosDestino];
-      // console.log(dadosPromocoesAtivas, 'dadosPromocoesAtivas:');
-      for(const promocao of dadosPromocoesAtivas) {
-      //  console.log(promocao, 'promocao:');
-        const idResumoPromocao = promocao.IDRESUMOPROMOCAOMARKETING;
-        // console.log('ID Resumo Promoção:', idResumoPromocao);
-        if(!idResumoPromocao) continue;
-        
-        try {
-          const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao=${idResumoPromocao}&dataPesquisaFim=${dataFim}`); 
+      const idsResumo = dadosPromocoesAtivas.map(p => p.IDRESUMOPROMOCAOMARKETING).filter(Boolean);
+
+      if(idsResumo) {
+    
+          const idResumo = idsResumo.join(',');
+          const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao=${idResumo}&dataPesquisaFim=${dataFim}`); 
           const produtosExistentes = responseProdutoExistente.data?.detalhePromo;
-          // console.log('Produtos Existentes:', produtosExistentes.data?.detalhePromo);
           const existeProduto = produtosExistentes.some(produto => 
             produtoDestinoArray.includes(produto.IDPRODUTO)
           )
@@ -404,16 +367,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
             return;
           }
 
-        } catch {
-          Swal.fire({
-            icon: 'error',
-            title: 'Erro ao verificar produtos existentes!',
-            text: 'Tente novamente.',
-            customClass: { container: 'custom-swal' },
-            confirmButtonText: 'OK'
-          });
-          return;
-        }
+      
       }
     }
     
@@ -517,9 +471,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
         clearInterval(timerInterval);
       }
     });
-
-      
-    try {
+ 
       const response = await post('/criar-promocoes-ativas', postData);
       // Swal.close()
 
