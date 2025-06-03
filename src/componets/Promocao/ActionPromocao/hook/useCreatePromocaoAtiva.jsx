@@ -250,7 +250,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
   
   const onSubmit = async (data) => {
     try {
-      const responsePromocao = await get(`/detalhe-promocoes-ativas?dataPesquisaFim=${dataFim}`);
+      const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
       const promocoesAtivas = responsePromocao.data;  
       setDadosPromocoesAtivas(promocoesAtivas);
       
@@ -358,7 +358,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
         if(!idResumoPromocao) continue;
         
         try {
-          const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao=${idResumoPromocao}`) 
+          const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao=${idResumoPromocao}&dataPesquisaFim=${dataFim}`); 
           const produtosExistentes = responseProdutoExistente.data;
 
           const existeProduto = produtosExistentes.some(produto => 
@@ -367,15 +367,53 @@ export const useCreatePromocaoAtiva = ({  }) => {
 
 
           if (existeProduto) {
-              Swal.fire({
-                icon: 'warning',
-                title: 'Produto já está em uma promoção ativa!',
-                text: 'Um dos produtos destino já está vinculado a uma promoção ativa.',
-                customClass: { container: 'custom-swal' },
-                confirmButtonText: 'OK'
-              });
-              return; 
-            }
+            Swal.fire({
+              icon: 'warning',
+              title: 'Produto já está em uma promoção ativa!',
+              text: 'Um dos produtos destino já está vinculado a uma promoção ativa.',
+              customClass: { container: 'custom-swal' },
+              confirmButtonText: 'OK'
+            });
+            return; 
+          }
+
+          const promocoesValidas = responseProdutoExistente.data;
+          const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0)
+          const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3)
+          
+          if (promocaoPorParesAtiva) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Promoção por pares já existente!',
+              text: 'Já existe uma promoção ativa com aplicação destino por pares. Não é permitido cadastrar outra.',
+              customClass: { container: 'custom-swal' },
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+
+          if (promocaoPorMenosNaPrimeira) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Promoção menos na primeira já existente!',
+              text: 'Já existe uma promoção ativa com aplicação destino menos na primeira. Não é permitido cadastrar outra.',
+              customClass: { container: 'custom-swal' },
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+
+          if (promocoesValidas.length >= 3) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Limite atingido',
+              text: 'Já existem 3 promoções ativas neste período.',
+              customClass: { container: 'custom-swal' },
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+
         } catch {
           Swal.fire({
             icon: 'error',
