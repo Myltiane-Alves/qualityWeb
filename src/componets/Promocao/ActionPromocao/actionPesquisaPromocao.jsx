@@ -1,15 +1,10 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ButtonType } from "../../Buttons/ButtonType";
-import { get } from "../../../api/funcRequest";
-import { MdAdd, MdMenu } from "react-icons/md";
-import { useQuery } from "react-query";
 import { ActionMainPromocao } from "../../Actions/ActionMainPromocao";
-import { InputSelectAction } from "../../Inputs/InputSelectAction";
 import { InputFieldAction } from "../../Buttons/InputAction";
 import { InputSelectActionPromocao } from "../../Inputs/InputSelectActionPromocao";
 import { useCreatePromocaoAtiva } from "./hook/useCreatePromocaoAtiva";
 import { MultSelectAction } from "../../Select/MultSelectAction";
-import Swal from "sweetalert2";
 import { GrView } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
 import { ActionPromocaoModal } from "./ActionCadastrarPromocao/actionCadastrarPromocaoModal";
@@ -105,7 +100,6 @@ export const ActionPesquisaPromocao = ({ }) => {
   const selectedOption = optionsMecanica.find(option => option.value === selectedValue);
   
   if (selectedOption) {
-
     setMecanicaSelecionada(selectedOption.mecanica);
     setAplicacaoDestinoSelecionada(selectedOption.aplicacaoDestino);
     setTipoDescontoSelecionado(selectedOption.tipoDesconto);
@@ -115,9 +109,7 @@ export const ActionPesquisaPromocao = ({ }) => {
 }, [mecanicaSelecionada, setMecanicaSelecionada, setAplicacaoDestinoSelecionada, setTipoDescontoSelecionado, ]);
 
   const styleDesconto1 = useMemo(() => (mecanicaSelecionada == 2 && aplicacaoDestinoSelecionada == 1 && tipoDescontoSelecionado == 2 ? { display: "none" } : {}), [mecanicaSelecionada]);
-// console.log(mecanicaSelecionada);
-  // se mecanicaSelecionada for igual a 2 e tipoDescontoSelecionado for igual a 2 
-  // limpar os campos de precoProduto, vrDesconto, valorInicio
+
 
   useEffect(() => {
     if (tipoDescontoSelecionado == 0) {
@@ -137,7 +129,7 @@ export const ActionPesquisaPromocao = ({ }) => {
     if(mecanicaSelecionada == 1) {
       setQtdInicio(0);
     }
-    
+
   }, [mecanicaSelecionada, tipoDescontoSelecionado, setPrecoProduto, setVrDesconto, setValorInicio, setPorcentoDesconto]);
   const handleCadastrar = () => {
     onSubmit();
@@ -160,7 +152,6 @@ export const ActionPesquisaPromocao = ({ }) => {
     setPorcentoDesconto(val);
   }
 
-  console.log(tipoDescontoSelecionado, 'tipoDescontoSelecionado')
 
   return (
     <Fragment>
@@ -201,7 +192,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         InputFieldDescontoComponent2={InputFieldAction}
         labelInputFieldDesconto2={"Desconto %"}
         valueInputFieldDesconto2={porcentoDesconto}
-        onChangeInputFieldDesconto2={(e) => setPorcentoDesconto(Number(e.target.value))}
+        onChangeInputFieldDesconto2={(e) => handlePorcentoDesconto(Number(e.target.value))}
         readOnlyDesconto2={tipoDescontoSelecionado  == 2 ?  false : true}
         // styleDesconto2={styleDesconto2}
 
