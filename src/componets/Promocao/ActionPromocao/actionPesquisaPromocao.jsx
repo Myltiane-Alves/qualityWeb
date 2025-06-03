@@ -120,16 +120,25 @@ export const ActionPesquisaPromocao = ({ }) => {
   // limpar os campos de precoProduto, vrDesconto, valorInicio
 
   useEffect(() => {
-    if (mecanicaSelecionada === 2 && tipoDescontoSelecionado === 2) {
-      setPrecoProduto(0);
+    if (tipoDescontoSelecionado == 0) {
       setVrDesconto(0);
       setValorInicio(0);
-    } else if(mecanicaSelecionada == 1 && tipoDescontoSelecionado == 2) {
-      setQtdInicio(0);
       setPorcentoDesconto(0)
+    } else if(tipoDescontoSelecionado == 1) {
+      setPorcentoDesconto(0)
+      setPrecoProduto(0);
+      setValorInicio(0);
+    } else if(tipoDescontoSelecionado == 2) {
+      setVrDesconto(0);
+      setPrecoProduto(0);
       setValorInicio(0);
     }
-  }, [mecanicaSelecionada, tipoDescontoSelecionado, setPrecoProduto, setVrDesconto, setValorInicio]);
+
+    if(mecanicaSelecionada == 1) {
+      setQtdInicio(0);
+    }
+    
+  }, [mecanicaSelecionada, tipoDescontoSelecionado, setPrecoProduto, setVrDesconto, setValorInicio, setPorcentoDesconto]);
   const handleCadastrar = () => {
     onSubmit();
   }
@@ -150,6 +159,8 @@ export const ActionPesquisaPromocao = ({ }) => {
     const val = Math.max(0, Math.min(Number(value), 99));
     setPorcentoDesconto(val);
   }
+
+  console.log(tipoDescontoSelecionado, 'tipoDescontoSelecionado')
 
   return (
     <Fragment>
@@ -329,31 +340,5 @@ export const ActionPesquisaPromocao = ({ }) => {
     </Fragment>
   )
 }
-// quando for por pares o valor qtdInicio sempre será 1 e o input tem quer ser readonly
 
-/* 
-regra para filtrar uma promoção ativa será por dataFim, se a dataFim for maior que a data atual, a promoção estará ativa.
-se a dataFim for menor que a data atual, a promoção estará inativa.
-quando for cadastrar uma promoção, IDPRODUTODESTINO e IDPRODUTOORIGEM, não pode está em uma promoção ativa
-que será pesquisado na DETALHEPROMOCAO, no IDPRODUTO, ou seja IDRESUMOPROMOCAOMARKETING
-vai na tabela de DETALHEPROMOCAO, e pesquisa se o IDPRODUTOORIGEM ou IDPRODUTODESTINO já existe
-na tabela de DETALHEPROMOCAO, se existir, não pode cadastrar a promoção, se não existir, pode cadastrar a promoção.
-
-
-*/
-
-
-/* 
-
-IDVOUCHER 982678
-devolver contra loja 
-
-IDVOUCHER 976975
-devolver contra loja 
-endereço está errado, e não consigo fazer integração do cliente
-
-IDVOUCHER 978141
-devolver contra loja 
-
-*/
 
