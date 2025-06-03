@@ -378,24 +378,26 @@ export const useCreatePromocaoAtiva = ({  }) => {
           }
 
           const promocoesValidas = responseProdutoExistente.data;
-          const promocoesValidasNaEmpresaSelecionada = responseProdutoExistente.data?.empresaPromocaoMarketing;
           const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0)
           const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3)
-
-          if(empresaSelecionada) {
-            const empresaPromocaoAtiva = promocoesValidasNaEmpresaSelecionada?.find(empresa => empresa.IDEMPRESA == empresaSelecionada);
-            if(empresaPromocaoAtiva >= 2) {
+          
+            
+          const promocoesValidasNaEmpresaSelecionada = responseProdutoExistente.data?.empresaPromocaoMarketing;
+          if (empresaSelecionada && Array.isArray(promocoesValidasNaEmpresaSelecionada)) {
+          
+          const countEmpresa = promocoesValidasNaEmpresaSelecionada.filter(empresa => empresa.IDEMPRESA == empresaSelecionada).length;
+            if (countEmpresa >= 2) {
               Swal.fire({
-                icon: 'warning',
-                title: 'Promoção já existente nesta empresa!',
-                text: 'Já existe uma promoção ativa nesta empresa. Não é permitido cadastrar outra.',
-                customClass: { container: 'custom-swal' },
-                confirmButtonText: 'OK'
+              icon: 'warning',
+              title: 'Promoção já existente nesta empresa!',
+              text: 'Já existem 2 promoções ativas nesta empresa. Não é permitido cadastrar outra.',
+              customClass: { container: 'custom-swal' },
+              confirmButtonText: 'OK'
               });
               return;
             }
           }
-          
+
           if (promocaoPorParesAtiva) {
             Swal.fire({
               icon: 'warning',
