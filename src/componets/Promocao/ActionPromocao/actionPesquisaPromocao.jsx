@@ -177,10 +177,10 @@ export const ActionPesquisaPromocao = ({ }) => {
         // styleQTDInicio={styleQTDInicio}
 
         InputFieldQTDFimComponent={InputFieldAction}
-        labelInputQTDFim={"Preço Produto"}
-        valueInputFieldQTDFim={precoProduto}
-        onChangeInputFieldQTDFim={(e) => setPrecoProduto(Number(e.target.value))}
-        readOnlyQTDFim={tipoDescontoSelecionado == 0  ? false : true}
+        labelInputQTDFim={"Vr Apartir de"}
+        valueInputFieldQTDFim={valorInicio}
+        onChangeInputFieldQTDFim={(e) => setValorInicio(Number(e.target.value))}
+        readOnlyQTDFim={mecanicaSelecionada == 1  ? false : true}
 
         InputFieldDescontoComponent1={InputFieldAction}
         labelInputFieldDesconto1={"Valor Desconto "}
@@ -197,10 +197,10 @@ export const ActionPesquisaPromocao = ({ }) => {
         // styleDesconto2={styleDesconto2}
 
         InputFieldVrInicio={InputFieldAction}
-        labelInputFieldVrInicio={"Vr Apartir de"}
-        valueInputFieldVrInicio={valorInicio}
-        onChangeInputFieldVrInicio={(e) => setValorInicio(Number(e.target.value))}
-        readOnlyVrInicio={mecanicaSelecionada == 2 ? true : false}
+        labelInputFieldVrInicio={"Desconto Vr Final"}
+        valueInputFieldVrInicio={precoProduto}
+        onChangeInputFieldVrInicio={(e) => setPrecoProduto(Number(e.target.value))}
+        readOnlyVrInicio={tipoDescontoSelecionado == 0  ? false : true}
 
 
         
