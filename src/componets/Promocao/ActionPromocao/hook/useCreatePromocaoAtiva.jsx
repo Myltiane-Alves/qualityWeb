@@ -380,7 +380,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
           const promocoesValidas = responseProdutoExistente.data;
           const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0)
           const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3)
-          
+
           if (promocaoPorParesAtiva) {
             Swal.fire({
               icon: 'warning',
@@ -427,23 +427,23 @@ export const useCreatePromocaoAtiva = ({  }) => {
       }
     }
     if (aplicacaoDestinoSelecionada == 0 || aplicacaoDestinoSelecionada == 3) {
-      // Para "por pares" ou "menos na primeira", produtos de origem e destino devem ser iguais
+      
       const origem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
       const destino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
       const iguais = origem.length === destino.length && origem.every((v, i) => v === destino[i]);
       if (!iguais) {
-      Swal.fire({
-        position: 'center',
-        icon: 'error',
-        title: 'Erro Produtos Origem e Destino',
-        text: 'Para Mecânica por pares ou menos na primeira, os produtos de origem e destino devem ser iguais.',
-        customClass: {
-        container: 'custom-swal',
-        },
-        showConfirmButton: false,
-        timer: 5000,
-      });
-      return;
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Erro Produtos Origem e Destino',
+          text: 'Para Mecânica por pares ou menos na primeira, os produtos de origem e destino devem ser iguais.',
+          customClass: {
+          container: 'custom-swal',
+          },
+          showConfirmButton: false,
+          timer: 5000,
+        });
+        return;
       }
     }
 
