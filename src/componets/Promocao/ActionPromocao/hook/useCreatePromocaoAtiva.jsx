@@ -228,72 +228,74 @@ export const useCreatePromocaoAtiva = ({  }) => {
   
   
   const onSubmit = async (data) => {
-   try {
-    const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
-    const promocoesAtivas = responsePromocao.data;  
-    setDadosPromocoesAtivas(promocoesAtivas);
-    console.log(promocoesAtivas, 'promocoesAtivas:');
-    if (!mecanicaSelecionada) {
-      Swal.fire({
-        position: 'center',
-        icon: 'error',
-        title: 'Selecione uma mecânica!',
-        customClass: {
-          container: 'custom-swal',
-        },
-        showConfirmButton: false,
-        timer: 3000,
-      })
-      return;
-    }
+    try {
+      // Primeiro verificamos se há promoções ativas
+      const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
+      const promocoesAtivas = responsePromocao.data;  
+      setDadosPromocoesAtivas(promocoesAtivas);
+      
+      if (!mecanicaSelecionada) {
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Selecione uma mecânica!',
+          customClass: {
+            container: 'custom-swal',
+          },
+          showConfirmButton: false,
+          timer: 3000,
+        })
+        return;
+      }
 
-    if (empresaSelecionada == '') {
-      Swal.fire({
-        position: 'center',
-        icon: 'error',
-        title: 'Selecione uma empresa!',
-        customClass: {
-          container: 'custom-swal',
-        },
-        showConfirmButton: false,
-        timer: 3000,
-      })
-      return;
-    }
+      if (empresaSelecionada == '') {
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Selecione uma empresa!',
+          customClass: {
+            container: 'custom-swal',
+          },
+          showConfirmButton: false,
+          timer: 3000,
+        })
+        return;
+      }
 
-    if (descricao.length < 20 || descricao.length > 200) {
-      Swal.fire({
-        position: 'center',
-        icon: 'error',
-        title: 'Descrição deve ter entre 20 e 200 caracteres!',
-        customClass: {
-          container: 'custom-swal',
-        },
-        showConfirmButton: false,
-        timer: 3000,
-      })
-      return;
-    }
+      if (descricao.length < 20 || descricao.length > 200) {
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Descrição deve ter entre 20 e 200 caracteres!',
+          customClass: {
+            container: 'custom-swal',
+          },
+          showConfirmButton: false,
+          timer: 3000,
+        })
+        return;
+      }
 
-    const produtosOrigem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
-    const produtosDestino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
+      const produtosOrigem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
+      const produtosDestino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
 
-    console.log(dadosPromocoesAtivas.length > 0, 'dadosPromocoesAtivas.length > 0:');
-    console.log(dadosPromocoesAtivas, 'dadosPromocoesAtivas:');
-    if( promocoesAtivas && dadosPromocoesAtivas.length > 0) {
-     
-      const produtoDestinoArray = Array.isArray(produtosDestino) ? produtosDestino : [produtosDestino];
-      const idsResumo = dadosPromocoesAtivas.map(p => p.IDRESUMOPROMOCAOMARKETING).filter(Boolean);
+      // Verificação de promoções ativas e produtos existentes
+      if (promocoesAtivas && promocoesAtivas.length > 0) {
+        const produtoDestinoArray = Array.isArray(produtosDestino) ? produtosDestino : [produtosDestino];
+        const idsResumo = promocoesAtivas.map(p => p.IDRESUMOPROMOCAOMARKETING).filter(Boolean);
 
-      if(idsResumo) {
-    
+        if (idsResumo && idsResumo.length > 0) {
           const idResumo = idsResumo.join(',');
           const responseProdutoExistente = await get(`/detalhe-promocoes-ativas?idResumoPromocao=${idResumo}&dataPesquisaFim=${dataFim}`); 
-          const produtosExistentes = responseProdutoExistente.data?.detalhePromo;
+          
+          if (!responseProdutoExistente.data) {
+            throw new Error('Falha ao verificar produtos existentes');
+          }
+
+          const produtosExistentes = responseProdutoExistente.data.detalhePromo || [];
           const existeProduto = produtosExistentes.some(produto => 
             produtoDestinoArray.includes(produto.IDPRODUTO)
-          )
-
+          );
 
           if (existeProduto) {
             Swal.fire({
@@ -307,18 +309,14 @@ export const useCreatePromocaoAtiva = ({  }) => {
           }
 
           const promocoesValidas = responseProdutoExistente.data;
-          const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0)
-          const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3)
+          const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0);
+          const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3);
           
-            
-          // console.log(empresaSelecionada, 'empresaSelecionada:');
-          const promocoesValidasNaEmpresaSelecionada = responseProdutoExistente.data?.empresaPromocaoMarketing;
-          console.log(responseProdutoExistente.data.empresaPromocaoMarketing, 'empresaPromocaoMarketing:');
-          console.log(promocoesValidasNaEmpresaSelecionada, 'promocoesValidasNaEmpresaSelecionada:');
+          const promocoesValidasNaEmpresaSelecionada = responseProdutoExistente.data.empresaPromocaoMarketing || [];
+          
           if (empresaSelecionada && Array.isArray(promocoesValidasNaEmpresaSelecionada)) {
-          console.log(empresaSelecionada, 'empresaSelecionada:');
-          const countEmpresa = promocoesValidasNaEmpresaSelecionada.filter(empresa => empresa.IDEMPRESA == empresaSelecionada).length;
-          console.log(countEmpresa >= 2, 'countEmpresa:');
+            const countEmpresa = promocoesValidasNaEmpresaSelecionada.filter(empresa => empresa.IDEMPRESA == empresaSelecionada).length;
+            
             if (countEmpresa >= 2) {
               Swal.fire({
                 icon: 'warning',
@@ -331,7 +329,6 @@ export const useCreatePromocaoAtiva = ({  }) => {
             }
           }
 
-          console.log(promocaoPorParesAtiva, 'promocaoPorParesAtiva:');
           if (promocaoPorParesAtiva) {
             Swal.fire({
               icon: 'warning',
@@ -343,7 +340,6 @@ export const useCreatePromocaoAtiva = ({  }) => {
             return;
           }
 
-          console.log(promocaoPorMenosNaPrimeira, 'promocaoPorMenosNaPrimeira:');
           if (promocaoPorMenosNaPrimeira) {
             Swal.fire({
               icon: 'warning',
@@ -355,7 +351,6 @@ export const useCreatePromocaoAtiva = ({  }) => {
             return;
           }
 
-          console.log(promocoesValidas.length, 'promocoesValidas.length:');
           if (promocoesValidas.length >= 2) {
             Swal.fire({
               icon: 'warning',
@@ -366,115 +361,103 @@ export const useCreatePromocaoAtiva = ({  }) => {
             });
             return;
           }
-
-      
+        }
       }
-    }
-    
-    if (aplicacaoDestinoSelecionada == 0 || aplicacaoDestinoSelecionada == 3) {
       
-      const origem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
-      const destino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
-      const iguais = origem.length === destino.length && origem.every((v, i) => v === destino[i]);
-      if (!iguais) {
+      // Validações adicionais
+      if (aplicacaoDestinoSelecionada == 0 || aplicacaoDestinoSelecionada == 3) {
+        const origem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
+        const destino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
+        const iguais = origem.length === destino.length && origem.every((v, i) => v === destino[i]);
+        
+        if (!iguais) {
+          Swal.fire({
+            position: 'center',
+            icon: 'error',
+            title: 'Erro Produtos Origem e Destino',
+            text: 'Para Mecânica por pares ou menos na primeira, os produtos de origem e destino devem ser iguais.',
+            customClass: {
+              container: 'custom-swal',
+            },
+            showConfirmButton: false,
+            timer: 5000,
+          });
+          return;
+        }
+      }
+
+      if (aplicacaoDestinoSelecionada == 4 && (produtosDestino.length > 1 || produtosOrigem.length > 1)) {
         Swal.fire({
           position: 'center',
           icon: 'error',
-          title: 'Erro Produtos Origem e Destino',
-          text: 'Para Mecânica por pares ou menos na primeira, os produtos de origem e destino devem ser iguais.',
+          title: 'Erro Aplicação Destino',
+          text: 'Para Mecânica em um produto, apenas um produto pode ser enviado tanto na origem quanto no destino.',
           customClass: {
-          container: 'custom-swal',
+            container: 'custom-swal',
           },
           showConfirmButton: false,
-          timer: 5000,
-        });
+          timer: 8000,
+        })
         return;
       }
-    }
 
+      // Preparação dos dados para envio
+      const postData = {
+        TPAPARTIRDE: aplicacaoDestinoSelecionada,
+        TPAPLICADOA: mecanicaSelecionada,
+        TPFATORPROMO: tipoDescontoSelecionado,
+        APARTIRDEQTD: qtdInicio,
+        APARTIRDOVLR: valorInicio,
+        FATORPROMOVLR: vrDesconto,
+        FATORPROMOPERC: porcentoDesconto,
+        VLPRECOPRODUTO: precoProduto,
+        DTHORAINICIO: dataInicio,
+        DTHORAFIM: dataFim + ' 23:59:59',
+        DSPROMOCAOMARKETING: descricao.toUpperCase(),
+        STEMPRESAPROMO: "True",
+        STDETPROMOORIGEM: "True",
+        STDETPROMODESTINO: "True",
+        IDEMPRESA: empresaSelecionada,
+        IDGRUPOEMDESTINO: grupoSelecionado,
+        IDSUBGRUPOEMDESTINO: subGrupoSelecionado,
+        IDMARCAEMDESTINO: marcaDestino,
+        IDFORNECEDOREMDESTINO: fornecedorSelecionado,
+        IDPRODUTODESTINO: produtosDestino,
+        IDGRUPOEMORIGEM: grupoSelecionado,
+        IDSUBGRUPOEMORIGEM: subGrupoSelecionado,
+        IDMARCAEMORIGEM: marcaOrigem,
+        IDFORNECEDOREMORIGEM: fornecedorSelecionado,
+        IDPRODUTOORIGEM: produtosOrigem,
+        IDPRODUTO: produtosDestino,
+      };
 
-    if (aplicacaoDestinoSelecionada == 4 && (produtosDestino.length > 1 || produtosOrigem.length > 1)) {
+      // Exibir loading
+      let timerInterval;
       Swal.fire({
-        position: 'center',
-        icon: 'error',
-        title: 'Erro Aplicação Destino',
-        text: 'Para Mecânica em um produto, apenas um produto pode ser enviado tanto na origem quanto no destino.',
-        customClass: {
-          container: 'custom-swal',
-        },
-        showConfirmButton: false,
-        timer: 8000,
-      })
-      return;
-    }
-
-    const postData = ({
-
-      TPAPARTIRDE: aplicacaoDestinoSelecionada,
-      TPAPLICADOA: mecanicaSelecionada,
-      TPFATORPROMO: tipoDescontoSelecionado,
-
-      APARTIRDEQTD: qtdInicio,
-      APARTIRDOVLR: valorInicio,
-      FATORPROMOVLR: vrDesconto,
-      FATORPROMOPERC: porcentoDesconto,
-
-      VLPRECOPRODUTO: precoProduto,
-      
-      
-      
-      DTHORAINICIO: dataInicio,
-      DTHORAFIM: dataFim + ' 23:59:59',
-      DSPROMOCAOMARKETING: descricao.toUpperCase(),
-
-      STEMPRESAPROMO: "True",
-      STDETPROMOORIGEM: "True",
-      STDETPROMODESTINO: "True",
-
-      IDEMPRESA: empresaSelecionada,
-
-      IDGRUPOEMDESTINO: grupoSelecionado,
-      IDSUBGRUPOEMDESTINO: subGrupoSelecionado,
-      IDMARCAEMDESTINO: marcaDestino,
-      IDFORNECEDOREMDESTINO: fornecedorSelecionado,
-      IDPRODUTODESTINO: produtosDestino,
-      
-
-      IDGRUPOEMORIGEM: grupoSelecionado,
-      IDSUBGRUPOEMORIGEM: subGrupoSelecionado,
-      IDMARCAEMORIGEM: marcaOrigem,
-      IDFORNECEDOREMORIGEM: fornecedorSelecionado,
-      IDPRODUTOORIGEM: produtosOrigem,
-      IDPRODUTO: produtosDestino,
-
-    });
-
-    let timerInterval;
-     Swal.fire({
-      title: 'Processando sua promoção...',
-      html: 'Aguarde enquanto enviamos os dados <b></b>',
-      timerProgressBar: true,
-      timer: 20000,
-      didOpen: () => {
-        Swal.showLoading();
-        timerInterval = setInterval(() => {
-          const content = Swal.getHtmlContainer();
-          if (content) {
-            const b = content.querySelector('b');
-            if (b) {
-              b.textContent = `${Math.floor(Swal.getTimerLeft() / 1000)}s`;
+        title: 'Processando sua promoção...',
+        html: 'Aguarde enquanto enviamos os dados <b></b>',
+        timerProgressBar: true,
+        timer: 20000,
+        didOpen: () => {
+          Swal.showLoading();
+          timerInterval = setInterval(() => {
+            const content = Swal.getHtmlContainer();
+            if (content) {
+              const b = content.querySelector('b');
+              if (b) {
+                b.textContent = `${Math.floor(Swal.getTimerLeft() / 1000)}s`;
+              }
             }
-          }
-        }, 100);
-      },
-      willClose: () => {
-        clearInterval(timerInterval);
-      }
-    });
- 
-      const response = await post('/criar-promocoes-ativas', postData);
-      // Swal.close()
+          }, 100);
+        },
+        willClose: () => {
+          clearInterval(timerInterval);
+        }
+      });
 
+      // Enviar dados
+      const response = await post('/criar-promocoes-ativas', postData);
+      
       Swal.fire({
         position: 'center',
         icon: 'success',
@@ -485,20 +468,21 @@ export const useCreatePromocaoAtiva = ({  }) => {
         showConfirmButton: false,
         timer: 1500,
       });
+      
       return response.data;
     } catch (error) {
-     
+      console.error('Erro ao cadastrar promoção:', error);
       Swal.fire({
         position: 'top-end',
         icon: 'error',
         title: 'Erro ao Cadastrar Promoção!',
+        text: error.message || 'Ocorreu um erro durante o cadastro',
         customClass: {
           container: 'custom-swal',
         },
         showConfirmButton: false,
-        timer: 1500,
+        timer: 3000,
       });
-
       return null;
     }
   };
