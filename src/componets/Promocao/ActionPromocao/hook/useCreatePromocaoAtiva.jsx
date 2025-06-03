@@ -230,6 +230,9 @@ export const useCreatePromocaoAtiva = ({  }) => {
   const onSubmit = async (data) => {
     try {
       // Primeiro verificamos se há promoções ativas
+
+
+      //  VOLTAR AQUI E TESTAR NOVAMENTE DETALHES PROMOÇÕES ATIVAS
       const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
       const promocoesAtivas = responsePromocao.data;  
       setDadosPromocoesAtivas(promocoesAtivas);
