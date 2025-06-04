@@ -135,7 +135,7 @@ export const ActionPesquisaPromocao = ({ }) => {
     onSubmit();
   }
 
-  // console.log(mecanicaSelecionada, aplicacaoDestinoSelecionada, tipoDescontoSelecionado)
+  console.log(aplicacaoDestinoSelecionada)
   const empresasFiltradas = useMemo(() => {
     const empresasArray = Array.isArray(optionsEmpresas) ? optionsEmpresas : [];
     if (!marcaSelecionada || marcaSelecionada === "all") return empresasArray;

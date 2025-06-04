@@ -283,6 +283,18 @@ export const useCreatePromocaoAtiva = ({ }) => {
       if (promocoesAtivas && promocoesAtivas.length > 0) {
         const produtoDestinoArray = Array.isArray(produtosDestino) ? produtosDestino : [produtosDestino];
         const idsResumo = promocoesAtivas.map(p => p.IDRESUMOPROMOCAOMARKETING).filter(Boolean);
+        const existeAplicaoDestino = promocoesAtivas.some(ap => ap.TPAPARTIRDE == aplicacaoDestinoSelecionada);
+
+        if (existeAplicaoDestino) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Aplicação de destino já existe!',
+            text: `Já existe uma promoção ativa com a mesma aplicação de destino nesta Empresa. Não é permitido cadastrar outra.`,
+            customClass: { container: 'custom-swal' },
+            confirmButtonText: 'OK'
+          });
+          return;
+        }
 
         if (idsResumo && idsResumo.length > 0) {
           const idResumo = idsResumo.join(',');
@@ -418,6 +430,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
           return;
         }
       }
+
       // if (aplicacaoDestinoSelecionada == 4 && (produtosDestino.length > 1 || produtosOrigem.length > 1)) {
       //   Swal.fire({
       //     position: 'center',
