@@ -135,7 +135,6 @@ export const ActionPesquisaPromocao = ({ }) => {
     onSubmit();
   }
 
-  console.log(aplicacaoDestinoSelecionada)
   const empresasFiltradas = useMemo(() => {
     const empresasArray = Array.isArray(optionsEmpresas) ? optionsEmpresas : [];
     if (!marcaSelecionada || marcaSelecionada === "all") return empresasArray;
@@ -183,7 +182,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         readOnlyQTDFim={mecanicaSelecionada == 1  ? false : true}
 
         InputFieldDescontoComponent1={InputFieldAction}
-        labelInputFieldDesconto1={"Valor Desconto "}
+        labelInputFieldDesconto1={"Vr Desconto "}
         valueInputFieldDesconto1={vrDesconto}
         onChangeInputFieldDesconto1={(e) => setVrDesconto(Number(e.target.value))}
         readOnlyDesconto1={tipoDescontoSelecionado == 1 ? false : true}
@@ -197,7 +196,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         // styleDesconto2={styleDesconto2}
 
         InputFieldVrInicio={InputFieldAction}
-        labelInputFieldVrInicio={"Desconto Vr Final"}
+        labelInputFieldVrInicio={"Vr Desconto Final"}
         valueInputFieldVrInicio={precoProduto}
         onChangeInputFieldVrInicio={(e) => setPrecoProduto(Number(e.target.value))}
         readOnlyVrInicio={tipoDescontoSelecionado == 0  ? false : true}
