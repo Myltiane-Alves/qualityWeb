@@ -276,6 +276,8 @@ export const ActionPesquisaPromocao = ({ }) => {
           if (e.target.files && e.target.files[0]) {
             handleFileUpload(e.target.files[0], true); 
             setProdutoOrigem(''); 
+          } else {
+            setFileProdutoOrigem([]);
           }
         }}
         readOnlyFileProdutoOigem={produtoOrigem.length > 0 ? true : false}
@@ -302,6 +304,8 @@ export const ActionPesquisaPromocao = ({ }) => {
           if (e.target.files && e.target.files[0]) {
             handleFileUpload(e.target.files[0], false); 
             setProdutoDestino('')
+          } else {
+            setFileProdutoDestino([]);
           }
         } }
         readOnlyFileProdutoDestino={produtoDestino.length > 0 ? true : false}
