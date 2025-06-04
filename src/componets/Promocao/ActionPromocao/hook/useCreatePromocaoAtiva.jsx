@@ -315,29 +315,20 @@ export const useCreatePromocaoAtiva = ({  }) => {
           const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0);
           const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3);
           
-          const promocoesValidasNaEmpresaSelecionada = (responseProdutoExistente.data && responseProdutoExistente.data.empresaPromocaoMarketing) || [];
+          const promocoesValidasNaEmpresaSelecionada =  [];
+          responseProdutoExistente.data.forEach(item => {
+            if(Array.isArray(item.empresaPromocaoMarketing)) {
+              item.empresaPromocaoMarketing.forEach(empresa => {
+                if (empresa.det.IDEMPRESA == empresaSelecionada) {
+                  promocoesValidasNaEmpresaSelecionada.push(empresa.det.IDEMPRESA);
+                }
+              });
+            }
+          })          
+          // console.log(empresas)
           console.log(promocoesValidasNaEmpresaSelecionada, 'promocoesValidasNaEmpresaSelecionada');
           console.log(responseProdutoExistente.data, 'empresaPromocaoMarketing');
-          if (empresaSelecionada && Array.isArray(promocoesValidasNaEmpresaSelecionada)) {
-            
-            const countEmpresa = promocoesValidasNaEmpresaSelecionada.filter(empresa => empresa.IDEMPRESA == empresaSelecionada).length
-            console.log('Promoções na empresa selecionada:', {
-              empresaSelecionada,
-              promocoesNaEmpresa: promocoesValidasNaEmpresaSelecionada.filter(e => e.IDEMPRESA == empresaSelecionada),
-              count: promocoesValidasNaEmpresaSelecionada.filter(e => e.IDEMPRESA == empresaSelecionada).length
-          });
-            
-            if (countEmpresa >= 2) {
-              Swal.fire({
-                icon: 'warning',
-                title: 'Promoção já existente nesta empresa!',
-                text: 'Já existem 2 promoções ativas nesta empresa. Não é permitido cadastrar outra.',
-                customClass: { container: 'custom-swal' },
-                confirmButtonText: 'OK'
-              });
-              return;
-            }
-          }
+      
 
           if (promocaoPorParesAtiva) {
             Swal.fire({
@@ -365,7 +356,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
             Swal.fire({
               icon: 'warning',
               title: 'Limite atingido',
-              text: 'Já existem 2 promoções ativas neste período.',
+              text: 'Já existem 2 promoções ativas nesta empresa. Não é permitido cadastrar outra..',
               customClass: { container: 'custom-swal' },
               confirmButtonText: 'OK'
             });
