@@ -131,6 +131,7 @@ export const ActionPesquisaPromocao = ({ }) => {
     }
 
   }, [mecanicaSelecionada, tipoDescontoSelecionado, setPrecoProduto, setVrDesconto, setValorInicio, setPorcentoDesconto]);
+  
   const handleCadastrar = () => {
     onSubmit();
   }

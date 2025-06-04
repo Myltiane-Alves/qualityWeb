@@ -325,6 +325,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
           const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3 && promo.TPAPARTIRDE == 0);
           const promocaoPorParesEmUmProduto = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0 && promo.TPAPARTIRDE == 4);
           const descontoAtivoPromocaoPorEmpresa = promocoesValidas.some(promo => promo.TPFATORPROMO == tipoDescontoSelecionado)
+          
           if (promocaoPorParesEmUmProduto) {
             Swal.fire({
               icon: 'warning',
@@ -346,7 +347,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
             });
             return;
           }
-          
+
           const promocoesValidasNaEmpresaSelecionada = [];
           responseProdutoExistente.data.forEach(item => {
             if (Array.isArray(item.empresaPromocaoMarketing)) {
@@ -415,7 +416,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
       }
 
       if (aplicacaoDestinoSelecionada == 4) {
-        
+
         if (produtosDestino.length !== 1 || produtosOrigem.length !== 1) {
           Swal.fire({
             position: 'center',
@@ -428,7 +429,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
           });
           return;
         }
-       
+
         if (produtosDestino[0] !== produtosOrigem[0]) {
           Swal.fire({
             position: 'center',
@@ -443,20 +444,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
         }
       }
 
-      // if (aplicacaoDestinoSelecionada == 4 && (produtosDestino.length > 1 || produtosOrigem.length > 1)) {
-      //   Swal.fire({
-      //     position: 'center',
-      //     icon: 'error',
-      //     title: 'Erro Aplicação Destino',
-      //     text: 'Para Mecânica em um produto, apenas um produto pode ser enviado tanto na origem quanto no destino.',
-      //     customClass: {
-      //       container: 'custom-swal',
-      //     },
-      //     showConfirmButton: false,
-      //     timer: 8000,
-      //   })
-      //   return;
-      // }
+
 
       const postData = {
         TPAPARTIRDE: aplicacaoDestinoSelecionada,
