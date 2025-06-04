@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { Fragment, useCallback, useEffect, useMemo } from "react"
 import { ButtonType } from "../../Buttons/ButtonType";
 import { ActionMainPromocao } from "../../Actions/ActionMainPromocao";
 import { InputFieldAction } from "../../Buttons/InputAction";
@@ -70,14 +70,6 @@ export const ActionPesquisaPromocao = ({ }) => {
     onSubmit
   } = useCreatePromocaoAtiva({  });
 
-  const styleQTDInicio = useMemo(() => (mecanicaSelecionada == 1 ? { display: "none" } : {}), [mecanicaSelecionada]);
-  const styleQTDFim = useMemo(() => (mecanicaSelecionada == 1 ? { display: "none" } : {}), [mecanicaSelecionada]);
-  const styleVrInicio = useMemo(() => (mecanicaSelecionada == 1 ? (tipoDescontoSelecionado == 2 ? { display: "block" } : { display: "none" }) : {}), [mecanicaSelecionada]);
-  const styleVrFim = useMemo(() => (mecanicaSelecionada == 2 ? { display: "block" } : {display: "none"}), [mecanicaSelecionada]);
-  const styleDesconto2 = useMemo(() => (mecanicaSelecionada == 2 ? (tipoDescontoSelecionado == 1 ? { display: "block" } : {display: "none"}) : {}), [mecanicaSelecionada]);
-  
-
-  
   const customStyles = {
     option: (provided, state) => ({
       ...provided,
