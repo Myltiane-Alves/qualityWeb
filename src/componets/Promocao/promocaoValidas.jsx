@@ -74,3 +74,19 @@
         2_390139337
         1_330257843
 */
+
+/*
+
+Combinações Inválidas (para comparação):
+❌ PROMOÇÃO POR PARES // QUANTIDADE // PERCENTUAL DESCONTO (1)
+PROMOÇÃO POR PARES // VALOR // PERCENTUAL DESCONTO (5)
+(Inválido - mesma aplicação destino "Pares")
+
+❌ PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // VALOR FINAL (14)
+PROMOÇÃO POR TODOS OS PRODUTOS // VALOR // VALOR DESCONTO (10)
+(Inválido - mesma aplicação destino "Todos")
+
+❌ PROMOÇÃO POR EM UM PRODUTO // QUANTIDADE // PERCENTUAL DESCONTO (4)
+PROMOÇÃO POR EM UM PRODUTO // VALOR // PERCENTUAL DESCONTO (8)
+(Inválido - mesma aplicação destino "Em um produto")
+*/
