@@ -324,5 +324,3 @@ export const ActionPesquisaPromocao = ({ }) => {
     </Fragment>
   )
 }
-
-
