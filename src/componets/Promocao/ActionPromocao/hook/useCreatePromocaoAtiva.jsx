@@ -315,11 +315,17 @@ export const useCreatePromocaoAtiva = ({  }) => {
           const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0);
           const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3);
           
-          const promocoesValidasNaEmpresaSelecionada = responseProdutoExistente.data.empresaPromocaoMarketing || [];
-          
+          const promocoesValidasNaEmpresaSelecionada = (responseProdutoExistente.data && responseProdutoExistente.data.empresaPromocaoMarketing) || [];
+          console.log(promocoesValidasNaEmpresaSelecionada, 'promocoesValidasNaEmpresaSelecionada');
+          console.log(responseProdutoExistente.data, 'empresaPromocaoMarketing');
           if (empresaSelecionada && Array.isArray(promocoesValidasNaEmpresaSelecionada)) {
-            const countEmpresa = promocoesValidasNaEmpresaSelecionada.filter(empresa => empresa.IDEMPRESA == empresaSelecionada)
-            console.log(countEmpresa, 'countEmpresa');
+            
+            const countEmpresa = promocoesValidasNaEmpresaSelecionada.filter(empresa => empresa.IDEMPRESA == empresaSelecionada).length
+            console.log('Promoções na empresa selecionada:', {
+              empresaSelecionada,
+              promocoesNaEmpresa: promocoesValidasNaEmpresaSelecionada.filter(e => e.IDEMPRESA == empresaSelecionada),
+              count: promocoesValidasNaEmpresaSelecionada.filter(e => e.IDEMPRESA == empresaSelecionada).length
+          });
             
             if (countEmpresa >= 2) {
               Swal.fire({
