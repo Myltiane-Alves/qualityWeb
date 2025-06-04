@@ -324,7 +324,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
           const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0);
           const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3 && promo.TPAPARTIRDE == 0);
           const promocaoPorParesEmUmProduto = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0 && promo.TPAPARTIRDE == 4);
-
+          const descontoAtivoPromocaoPorEmpresa = promocoesValidas.some(promo => promo.TPFATORPROMO == tipoDescontoSelecionado)
           if (promocaoPorParesEmUmProduto) {
             Swal.fire({
               icon: 'warning',
@@ -335,6 +335,18 @@ export const useCreatePromocaoAtiva = ({ }) => {
             });
             return;
           }
+
+          if (descontoAtivoPromocaoPorEmpresa) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Tipo Desconto já ativo nesta empresa!',
+              text: 'Já existe um desconto ativo com o mesmo tipo de desconto nesta empresa. Não é permitido cadastrar outro.',
+              customClass: { container: 'custom-swal' },
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+          
           const promocoesValidasNaEmpresaSelecionada = [];
           responseProdutoExistente.data.forEach(item => {
             if (Array.isArray(item.empresaPromocaoMarketing)) {
