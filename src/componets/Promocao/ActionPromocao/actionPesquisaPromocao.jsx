@@ -108,9 +108,6 @@ export const ActionPesquisaPromocao = ({ }) => {
   }
 }, [mecanicaSelecionada, setMecanicaSelecionada, setAplicacaoDestinoSelecionada, setTipoDescontoSelecionado, ]);
 
-  const styleDesconto1 = useMemo(() => (mecanicaSelecionada == 2 && aplicacaoDestinoSelecionada == 1 && tipoDescontoSelecionado == 2 ? { display: "none" } : {}), [mecanicaSelecionada]);
-
-
   useEffect(() => {
     if (tipoDescontoSelecionado == 0) {
       setVrDesconto(0);
@@ -131,7 +128,7 @@ export const ActionPesquisaPromocao = ({ }) => {
     }
 
   }, [mecanicaSelecionada, tipoDescontoSelecionado, setPrecoProduto, setVrDesconto, setValorInicio, setPorcentoDesconto]);
-  
+
   const handleCadastrar = () => {
     onSubmit();
   }
