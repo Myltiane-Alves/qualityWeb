@@ -311,7 +311,18 @@ export const useCreatePromocaoAtiva = ({  }) => {
           const promocoesValidas = responseProdutoExistente.data;
           const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0);
           const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3);
-          
+          // por pares e por em um produto não podem ser usadas juntas 
+          const promocaoPorParesEmUmProduto = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0 && promo.TPAPARTIRDE == 4);
+          if (promocaoPorParesEmUmProduto) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Promoção por pares e em um produto não podem ser usadas juntas!',
+              text: 'Não é permitido cadastrar uma promoção por pares e em um produto ao mesmo tempo.',
+              customClass: { container: 'custom-swal' },
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
           const promocoesValidasNaEmpresaSelecionada =  [];
           responseProdutoExistente.data.forEach(item => {
             if(Array.isArray(item.empresaPromocaoMarketing)) {
