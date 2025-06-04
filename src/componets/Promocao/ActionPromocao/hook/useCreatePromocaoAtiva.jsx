@@ -322,9 +322,9 @@ export const useCreatePromocaoAtiva = ({ }) => {
 
           const promocoesValidas = responseProdutoExistente.data;
           const promocaoPorParesAtiva = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0);
-          const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3);
-          // por pares e por em um produto não podem ser usadas juntas 
+          const promocaoPorMenosNaPrimeira = promocoesValidas.some(promo => promo.TPAPARTIRDE == 3 && promo.TPAPARTIRDE == 0);
           const promocaoPorParesEmUmProduto = promocoesValidas.some(promo => promo.TPAPARTIRDE == 0 && promo.TPAPARTIRDE == 4);
+
           if (promocaoPorParesEmUmProduto) {
             Swal.fire({
               icon: 'warning',
@@ -403,7 +403,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
       }
 
       if (aplicacaoDestinoSelecionada == 4) {
-        // Garante que só tem um produto em cada array
+        
         if (produtosDestino.length !== 1 || produtosOrigem.length !== 1) {
           Swal.fire({
             position: 'center',
@@ -416,7 +416,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
           });
           return;
         }
-        // Garante que o produto é o mesmo na origem e no destino
+       
         if (produtosDestino[0] !== produtosOrigem[0]) {
           Swal.fire({
             position: 'center',
