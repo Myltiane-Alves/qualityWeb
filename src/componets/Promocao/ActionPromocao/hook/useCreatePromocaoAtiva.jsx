@@ -236,7 +236,7 @@ export const useCreatePromocaoAtiva = ({  }) => {
       const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
       const promocoesAtivas = responsePromocao.data;  
       setDadosPromocoesAtivas(promocoesAtivas);
-      
+      console.log(promocoesAtivas, 'promocoesAtivas');
       if (!mecanicaSelecionada) {
         Swal.fire({
           position: 'center',
@@ -318,7 +318,8 @@ export const useCreatePromocaoAtiva = ({  }) => {
           const promocoesValidasNaEmpresaSelecionada = responseProdutoExistente.data.empresaPromocaoMarketing || [];
           
           if (empresaSelecionada && Array.isArray(promocoesValidasNaEmpresaSelecionada)) {
-            const countEmpresa = promocoesValidasNaEmpresaSelecionada.filter(empresa => empresa.IDEMPRESA == empresaSelecionada).length;
+            const countEmpresa = promocoesValidasNaEmpresaSelecionada.filter(empresa => empresa.IDEMPRESA == empresaSelecionada)
+            console.log(countEmpresa, 'countEmpresa');
             
             if (countEmpresa >= 2) {
               Swal.fire({
@@ -353,12 +354,12 @@ export const useCreatePromocaoAtiva = ({  }) => {
             });
             return;
           }
-
-          if (promocoesValidas.length >= 2) {
+          console.log(promocoesValidasNaEmpresaSelecionada, 'promocoesValidasNaEmpresaSelecionada');
+          if (promocoesValidasNaEmpresaSelecionada.length >= 2) {
             Swal.fire({
               icon: 'warning',
               title: 'Limite atingido',
-              text: 'Já existem 3 promoções ativas neste período.',
+              text: 'Já existem 2 promoções ativas neste período.',
               customClass: { container: 'custom-swal' },
               confirmButtonText: 'OK'
             });
