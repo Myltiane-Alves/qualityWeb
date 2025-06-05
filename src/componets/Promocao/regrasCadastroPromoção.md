@@ -1,3 +1,9 @@
+  ## LINK VERCEL
+  https://quality-web.vercel.app/
+
+  ## LINK HOMOLOGAÇÃO ABA PROMOÇÃO
+  http://164.152.245.77:8000/quality/concentrador_homologacao/dashboardinformatica.html
+ 
 
   ## Regras Para Cadastro de Promoções:
 
