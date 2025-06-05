@@ -10,6 +10,7 @@
   ## Validações de promoções ativas
   6. verifica se existem promoções ativas.
   7. se já existe uma promoção ativa com a mesma aplicação de destino na empresa Selecionada não será cadastrado uma nova.
+
   8.verifica se o produto destino já está vinculado a uma promoção ativa.
   9.se aplicação destino for por pares e já existir uma promoção ativa com a aplicação destino em um produto, não poderá cadastrar juntas.
   10.se aplicação destino for por pares ou menos na primeira, os produtos de origem e   destino devem ser iguais.   
@@ -17,6 +18,6 @@
   12.verificar se já existe uma promoção ativa com a mesma mecânica e aplicação destino.
   13.verificar se já existe uma promoção ativa com a mesma empresa e mecânica.
   14.verificar se já existem 2 promoções ativas na empresa selecionada.
-
+  14 se aplicação destinos for por todos os produtos, os produtos origem e destino precisam ser o mesmos. 
 
   

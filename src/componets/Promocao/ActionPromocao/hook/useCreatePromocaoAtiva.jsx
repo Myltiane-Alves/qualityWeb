@@ -414,7 +414,8 @@ export const useCreatePromocaoAtiva = ({ }) => {
           return;
         }
       }
-
+      // regra para ser criada
+      // POR TODOS TODOS OS PRODUTOS PRECISAM SER OS MESMO PRODUTOS ORIGEM E DESTINO
       if (aplicacaoDestinoSelecionada == 4) {
 
         if (produtosDestino.length !== 1 || produtosOrigem.length !== 1) {
