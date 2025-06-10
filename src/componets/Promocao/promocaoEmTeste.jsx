@@ -722,20 +722,62 @@
 */
 
 /* 
-    3.8 COMBO
-    PROMOÇÃO POR TODOS OS PRODUTOS // QUANTIDADE // PERCENTUAL DESCONTO  IDRESUMOPROMOCAOMARKETING = 23
-    Quantidade apartir de 1
-    Porcentagem % 4
-    IDPRODUTO
-     2_390145854
-    2_390145855
-
-    PROMOÇÃO POR MENOS NA PRIMEIRA // QUANTIDADE // VALOR DESCONTO IDRESUMOPROMOCAOMARKETING = 19
-    Quantidade apartir de 1
-    valor desconto 4
-    IDPRODUTO
-    1_330257809
-    1_330257807
-        
     
+    COMBO TESOURA  DIA DOS NAMORADOS BLUSA  = 2
+    Quantidade apartir de 1
+    Valor Final 49.99
+    IDPRODUTO
+    15072
+    13616
+    15074
+    15073
+    13613
+    13633
+    15070
+    13615
+    13561
+    15069
+    13588
+    13563
+    15068
+    13614
+    13724
+    13564
+    13562
+    13587
+    13586
+    13585
+
+    COMBO TESOURA  DIA DOS NAMORADOS CALÇA  = 1
+    Quantidade apartir de 1
+    valor Final 49.99
+    IDPRODUTO
+    13667
+    13710
+    13711
+    13666
+    13664
+    13708
+    13709
+    13665
+    13759
+    13760
+    13761
+    13763
+    13764
+    13765
+    13766
+    13767
+    13768
+    13769
+    13770
+    13771
+    13772
+    13773
+        
+    COMBO TESOURA  DIA DOS NAMORADOS CALÇA  = 3
+    Quantidade apartir de 1
+    valor Final 49.99
+    IDPRODUTO
+    11021
 */

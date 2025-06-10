@@ -189,6 +189,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         labelInputFieldVrInicio={"Vr Desconto Final"}
         valueInputFieldVrInicio={precoProduto}
         onChangeInputFieldVrInicio={(e) => setPrecoProduto(Number(e.target.value))}
+        
         readOnlyVrInicio={tipoDescontoSelecionado == 0  ? false : true}
 
 
@@ -242,12 +243,11 @@ export const ActionPesquisaPromocao = ({ }) => {
             }))
           ]}
           valueSelectEmpresaAsync={[empresaSelecionada]}
-          defaultValueSelectEmpresa={empresaSelecionada}
           onChangeSelectEmpresaAsync={(selectedOptions) => {
             if (selectedOptions.some((option) => option.value === "all")) {
              
               const allValues = empresasFiltradas.map((empresa) => empresa.IDEMPRESA);
-              setEmpresaSelecionada(console.log(allValues));
+              setEmpresaSelecionada(allValues);
             } else {
               handleEmpresaChange(selectedOptions);
             }
