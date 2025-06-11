@@ -381,11 +381,11 @@ export const useCreatePromocaoAtiva = ({ }) => {
             return;
           }
 
-          if (promocoesValidasNaEmpresaSelecionada.length >= 2) {
+          if (promocoesValidasNaEmpresaSelecionada.length >= 3) {
             Swal.fire({
               icon: 'warning',
               title: 'Limite atingido',
-              text: 'Já existem 2 promoções ativas nesta empresa. Não é permitido cadastrar outra..',
+              text: 'Já existem 3 promoções ativas nesta empresa. Não é permitido cadastrar outra..',
               customClass: { container: 'custom-swal' },
               confirmButtonText: 'OK'
             });
@@ -418,7 +418,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
       // POR TODOS TODOS OS PRODUTOS PRECISAM SER OS MESMO PRODUTOS ORIGEM E DESTINO
       
       if(aplicacaoDestinoSelecionada == 1) {
-        if (produtosDestino !== produtosOrigem.length) {
+       if (produtosDestino.length !== produtosOrigem.length) {
           Swal.fire({
             position: 'center',
             icon: 'error',
@@ -471,7 +471,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
         APARTIRDOVLR: valorInicio,
         FATORPROMOVLR: vrDesconto,
         FATORPROMOPERC: porcentoDesconto,
-        VLPRECOPRODUTO: precoProduto,
+        VLPRECOPRODUTO: Number(precoProduto),
         DTHORAINICIO: dataInicio,
         DTHORAFIM: dataFim + ' 23:59:59',
         DSPROMOCAOMARKETING: descricao.toUpperCase(),

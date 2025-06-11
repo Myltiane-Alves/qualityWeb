@@ -8,6 +8,9 @@ import { MultSelectAction } from "../../Select/MultSelectAction";
 import { GrView } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
 import { ActionPromocaoModal } from "./ActionCadastrarPromocao/actionCadastrarPromocaoModal";
+import { formatMoeda } from "../../../utils/formatMoeda";
+import { set } from "date-fns";
+import { mascaraValorAmericano } from "../../../utils/mascaraValor";
 
 
 export const ActionPesquisaPromocao = ({ }) => {
@@ -142,6 +145,8 @@ export const ActionPesquisaPromocao = ({ }) => {
   }
 
 
+  
+
   return (
     <Fragment>
       <ActionMainPromocao
@@ -149,7 +154,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         linkComponent={["Cadastro de Promoções"]}
         title="Cadastro de Promoções"
 
-        tituloPromocao={'Promoção'}
+
 
         InputSelectMecanicaComponent={InputSelectActionPromocao}
         labelSelectMecanica={"Mecanica"}
@@ -188,7 +193,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         InputFieldVrInicio={InputFieldAction}
         labelInputFieldVrInicio={"Vr Desconto Final"}
         valueInputFieldVrInicio={precoProduto}
-        onChangeInputFieldVrInicio={(e) => setPrecoProduto(Number(e.target.value))}
+        onChangeInputFieldVrInicio={(e) => setPrecoProduto(e.target.value)}
         
         readOnlyVrInicio={tipoDescontoSelecionado == 0  ? false : true}
 

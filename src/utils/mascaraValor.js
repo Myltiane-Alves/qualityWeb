@@ -44,3 +44,12 @@ export const maskValorEmDecimal = (valor, numMaxCasasDecimais = 2) => {
 	 maximumFractionDigits: numMaxCasasDecimais
  }).format(valor)
 }
+
+export const mascaraValorAmericano = (valor) => {
+  if (!valor) return '';
+  // Remove espaços
+  valor = valor.toString().trim();
+  // Remove pontos (milhar) e troca vírgula por ponto (decimal)
+  const valorConvertido = valor.replace(/\./g, '').replace(',', '.');
+  return valorConvertido;
+};

@@ -358,7 +358,7 @@ export const ActionMainPromocao = ({
                       {InputFieldVrInicio && (
                         <InputFieldVrInicio
                           label={labelInputFieldVrInicio}
-                          type="number"
+                          type="text"
                           value={valueInputFieldVrInicio}
                           onChange={onChangeInputFieldVrInicio}
                           readOnly={readOnlyVrInicio}
