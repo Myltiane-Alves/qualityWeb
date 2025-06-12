@@ -8,9 +8,7 @@ import { MultSelectAction } from "../../Select/MultSelectAction";
 import { GrView } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
 import { ActionPromocaoModal } from "./ActionCadastrarPromocao/actionCadastrarPromocaoModal";
-import { formatMoeda } from "../../../utils/formatMoeda";
-import { set } from "date-fns";
-import { mascaraValorAmericano } from "../../../utils/mascaraValor";
+
 
 
 export const ActionPesquisaPromocao = ({ }) => {
@@ -145,16 +143,12 @@ export const ActionPesquisaPromocao = ({ }) => {
   }
 
 
-  
-
   return (
     <Fragment>
       <ActionMainPromocao
         linkComponentAnterior={["Home"]}
         linkComponent={["Cadastro de Promoções"]}
         title="Cadastro de Promoções"
-
-
 
         InputSelectMecanicaComponent={InputSelectActionPromocao}
         labelSelectMecanica={"Mecanica"}
@@ -193,10 +187,11 @@ export const ActionPesquisaPromocao = ({ }) => {
         InputFieldVrInicio={InputFieldAction}
         labelInputFieldVrInicio={"Vr Desconto Final"}
         valueInputFieldVrInicio={precoProduto}
-        onChangeInputFieldVrInicio={(e) => setPrecoProduto(e.target.value)}
-        
+        onChangeInputFieldVrInicio={(e) => {
+          const valor = e.target.value.replace(/,/g, '.');
+          setPrecoProduto(valor);
+        }}
         readOnlyVrInicio={tipoDescontoSelecionado == 0  ? false : true}
-
 
         
         InputFieldDTInicioComponent={InputFieldAction}

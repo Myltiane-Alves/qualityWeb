@@ -6,8 +6,6 @@ import { getDataAtual, getDataTresMesesAtras } from "../../../../utils/dataAtual
 import * as XLSX from 'xlsx';
 import { optionsMecanica } from "../../../../../mecanica"
 
-
-
 export const useCreatePromocaoAtiva = ({ }) => {
   const [mecanicaSelecionada, setMecanicaSelecionada] = useState(0)
   const [aplicacaoDestinoSelecionada, setAplicacaoDestinoSelecionada] = useState('')
@@ -414,8 +412,6 @@ export const useCreatePromocaoAtiva = ({ }) => {
           return;
         }
       }
-      // regra para ser criada
-      // POR TODOS TODOS OS PRODUTOS PRECISAM SER OS MESMO PRODUTOS ORIGEM E DESTINO
       
       if(aplicacaoDestinoSelecionada == 1) {
        if (produtosDestino.length !== produtosOrigem.length) {
