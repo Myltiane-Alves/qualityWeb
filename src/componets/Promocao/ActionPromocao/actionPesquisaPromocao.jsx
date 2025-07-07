@@ -128,7 +128,7 @@ export const ActionPesquisaPromocao = ({ }) => {
 
   const empresasFiltradas = useMemo(() => {
     const empresasArray = Array.isArray(optionsEmpresas) ? optionsEmpresas : [];
-    if (!marcaSelecionada || marcaSelecionada === "all") return empresasArray;
+    if (!marcaSelecionada || marcaSelecionada == "all") return empresasArray;
     if (Array.isArray(marcaSelecionada)) {
       return empresasArray.filter(empresa =>
         marcaSelecionada.includes(empresa.IDGRUPOEMPRESARIAL)
@@ -141,7 +141,7 @@ export const ActionPesquisaPromocao = ({ }) => {
     const val = Math.max(0, Math.min(Number(value), 99));
     setPorcentoDesconto(val);
   }
-
+console.log(empresaSelecionada, 'empresaSelecionada')
 
   return (
     <Fragment>

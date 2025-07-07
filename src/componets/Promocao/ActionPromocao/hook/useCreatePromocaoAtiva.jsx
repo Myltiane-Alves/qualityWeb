@@ -225,7 +225,9 @@ export const useCreatePromocaoAtiva = ({ }) => {
   }, [fileProdutoOrigem, fileProdutoDestino, produtoOrigem, produtoDestino]);
 
 
+  console.log(empresaSelecionada, 'empresaSelecionada')
   const onSubmit = async (data) => {
+    console.log(empresaSelecionada, 'empresaSelecionada')
     try {
 
       const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
