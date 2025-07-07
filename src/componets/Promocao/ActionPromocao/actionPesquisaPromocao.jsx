@@ -7,7 +7,7 @@ import { useCreatePromocaoAtiva } from "./hook/useCreatePromocaoAtiva";
 import { MultSelectAction } from "../../Select/MultSelectAction";
 import { GrView } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
-import { ActionPromocaoModal } from "./ActionCadastrarPromocao/actionCadastrarPromocaoModal";
+import { ActionCadastrarPromocaoModal } from "./ActionCadastrarPromocao/actionCadastrarPromocaoModal";
 
 
 
@@ -316,7 +316,7 @@ console.log(empresaSelecionada, 'empresaSelecionada')
         IconSearch={IoIosSend}
       />
       
-      <ActionPromocaoModal  
+      <ActionCadastrarPromocaoModal
         dadosPromocoesAtivas={dadosPromocoesAtivas}
         show={modalVisivel}
         handleClose={() => setModalVisivel(false)}  
