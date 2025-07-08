@@ -165,3 +165,6 @@ export const optionsMecanica = [
         color: "darkslategray"
     }
 ]
+
+
+
