@@ -5,6 +5,8 @@ import Swal from "sweetalert2"
 import { getDataAtual, getDataTresMesesAtras } from "../../../../utils/dataAtual"
 import * as XLSX from 'xlsx';
 import { optionsMecanica } from "../../../../../mecanica"
+import { useNavigate } from "react-router-dom"
+import axios from "axios";
 
 export const useCreatePromocaoAtiva = ({ }) => {
   const [mecanicaSelecionada, setMecanicaSelecionada] = useState(0)
@@ -33,6 +35,42 @@ export const useCreatePromocaoAtiva = ({ }) => {
   const [precoProduto, setPrecoProduto] = useState(0)
   const [dadosPromocoesAtivas, setDadosPromocoesAtivas] = useState([])
   const [modalVisivel, setModalVisivel] = useState(false)
+  const [mecanicaSelecionadaEdicao, setMecanicaSelecionadaEdicao] = useState('');
+  const [isEditandoMecanica, setIsEditandoMecanica] = useState(false);
+  const [btnSalvar, setBtnSalvar] = useState(false);
+  const [ipUsuario, setIpUsuario] = useState('');
+  const [usuarioLogado, setUsuarioLogado] = useState(null);
+  const [dadosProdutosPesquisa, setDadosProdutosPesquisa] = useState([]);
+  const [modalProduto, setModalProduto] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const usuarioArmazenado = localStorage.getItem('usuario');
+
+    if (usuarioArmazenado) {
+      try {
+        const parsedUsuario = JSON.parse(usuarioArmazenado);
+        setUsuarioLogado(parsedUsuario);
+      } catch (error) {
+        console.error('Erro ao parsear o usuário do localStorage:', error);
+      }
+    } else {
+      navigate('/');
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    getIPUsuario();
+
+  }, [usuarioLogado]);
+
+  const getIPUsuario = async () => {
+    const response = await axios.get('http://ipwho.is/');
+    if (response.data) {
+      setIpUsuario(response.data.ip);
+    }
+    return response.data;
+  };
 
   useEffect(() => {
     const dataInicial = getDataTresMesesAtras()
@@ -41,6 +79,15 @@ export const useCreatePromocaoAtiva = ({ }) => {
     setDataFim(dataFinal)
   }, [])
 
+
+  const { data: dadosMecanicas = [], error: errorMecanicas, isLoading: isLoadingMecanica, refetch: refetchMecanica } = useQuery(
+    'fornecedor-produto',
+    async () => {
+      const response = await get(`/mecanicas-ativas`);
+      return response.data;
+    },
+    { staleTime: 1000 * 60 * 60, cacheTime: 1000 * 60 * 60, }
+  );
 
   const { data: dadosFornecedorProduto = [], error: errorFornecedor, isLoading: isLoadingFornecedor, refetch: refetchFornecedor } = useQuery(
     'fornecedor-produto',
@@ -224,10 +271,44 @@ export const useCreatePromocaoAtiva = ({ }) => {
     });
   }, [fileProdutoOrigem, fileProdutoDestino, produtoOrigem, produtoDestino]);
 
+  const handlePesquisarProdutoOrigem = useCallback(async (tipo) => {
+    const produtosOrigem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
+    const produtoOrigemArray = Array.isArray(produtosOrigem) ? produtosOrigem : [produtosOrigem];
 
-  console.log(empresaSelecionada, 'empresaSelecionada')
+    const termoPesquisa = produtoOrigemArray[0] || "";
+
+    if (/^\d+$/.test(termoPesquisa)) {
+      const response1 = await get(`/produto-promocao-ativa?idProduto=${termoPesquisa}&codBarras=${termoPesquisa}`);
+      setDadosProdutosPesquisa(response1.data);
+    } else if (termoPesquisa.length > 0) {
+      const response = await get(`/produto-promocao-ativa?dsProduto=${termoPesquisa}`);
+      setDadosProdutosPesquisa(response.data);
+    } else {
+      setDadosProdutosPesquisa([]);
+    }
+    setModalProduto(true);
+  }, [fileProdutoOrigem, produtoOrigem]);
+
+  const handlePesquisarProdutoDestino = useCallback(async (tipo) => {
+    const produtosDestino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
+    const produtoDestinoArray = Array.isArray(produtosDestino) ? produtosDestino : [produtosDestino];
+
+    const termoPesquisa = produtoDestinoArray[0] || "";
+
+    if (/^\d+$/.test(termoPesquisa)) {
+      const response1 = await get(`/produto-promocao-ativa?idProduto=${termoPesquisa}&codBarras=${termoPesquisa}`);
+      setDadosProdutosPesquisa(response1.data);
+    } else if (termoPesquisa.length > 0) {
+      const response = await get(`/produto-promocao-ativa?dsProduto=${termoPesquisa}`);
+      setDadosProdutosPesquisa(response.data);
+    } else {
+      setDadosProdutosPesquisa([]);
+    }
+    setModalProduto(true);
+  }, [fileProdutoOrigem, fileProdutoDestino, produtoOrigem, produtoDestino]);
+
   const onSubmit = async (data) => {
-    console.log(empresaSelecionada, 'empresaSelecionada')
+    
     try {
 
       const responsePromocao = await get(`/promocoes-ativas?dataPesquisaFim=${dataFim}`);
@@ -459,13 +540,11 @@ export const useCreatePromocaoAtiva = ({ }) => {
         }
       }
 
-      console.log(empresaSelecionada, 'empresaSelecionada')
-
       const postData = {
         TPAPARTIRDE: aplicacaoDestinoSelecionada,
         TPAPLICADOA: mecanicaSelecionada,
         TPFATORPROMO: tipoDescontoSelecionado,
-        APARTIRDEQTD: qtdInicio,
+        APARTIRDEQTD: Number(qtdInicio),
         APARTIRDOVLR: valorInicio,
         FATORPROMOVLR: vrDesconto,
         FATORPROMOPERC: porcentoDesconto,
@@ -545,6 +624,81 @@ export const useCreatePromocaoAtiva = ({ }) => {
   };
 
 
+  const handleSalvarMecanica = async () => {
+      // if(optionsModulos[0]?.ALTERAR == 'False') {
+      //     Swal.fire({
+      //     title: 'Acesso Negado',
+      //     text: 'Você não tem permissão para acessar esta funcionalidade.',
+      //     icon: 'warning',
+      //     timer: 3000,
+      //     customClass: {
+      //         container: 'custom-swal',
+      //     }
+      //     })
+      //     return;
+      // }
+      const putData = {  
+          DESCRICAO: mecanicaSelecionadaEdicao,  
+          APLICACAODESTINO: aplicacaoDestinoSelecionada,
+          MECANICA: mecanicaSelecionada,
+          TIPODESCONTO: tipoDescontoSelecionado
+      }
+    
+      try {
+          const response = await post('/criar-mecanica', putData)
+
+          const textDados = JSON.stringify(putData)
+          let textoFuncao = 'PROMOÇÃO/CRIANDO UM NOVA MECÂNICA';
+      
+          const postData = {  
+              IDFUNCIONARIO: String(usuarioLogado.id),
+              PATHFUNCAO:  textoFuncao,
+              DADOS: textDados,
+              IP: ipUsuario
+          }
+
+          Swal.fire({
+              title: 'Sucesso', 
+              text: `Mecânica ${mecanicaSelecionadaEdicao} criada com sucesso!`,
+              icon: 'success',
+              timer: 3000,
+              customClass: {
+                container: 'custom-swal',
+              }
+          })
+
+          const responsePost = await post('/log-web', postData)
+          refetchMecanica();
+          return response.data;
+
+      } catch (error) {
+
+          let textoFuncao = 'PROMOÇÃO/ERRO AO CRIAR UMA NOVA MECÂNICA';
+      
+          const postData = {  
+              IDFUNCIONARIO: String(usuarioLogado.id),
+              PATHFUNCAO:  textoFuncao,
+              DADOS: textDados,
+              IP: ipUsuario
+          }
+
+          const responsePost = await post('/log-web', postData)
+         
+          Swal.fire({
+              title: 'Erro',
+              text: `Erro ao Tentar criar a mecânica ${mecanicaSelecionadaEdicao}. Verifique os dados e tente novamente.`,
+              icon: 'error',
+              timer: 3000,
+              customClass: {
+                container: 'custom-swal',
+              }
+          })
+
+          return responsePost.data;
+      }
+  
+  }
+
   return {
     mecanicaSelecionada,
     setMecanicaSelecionada,
@@ -595,12 +749,28 @@ export const useCreatePromocaoAtiva = ({ }) => {
     optionsMarcas,
     optionsEmpresas,
     optionsMecanica,
+    dadosMecanicas,
     mostrarProdutosSelecionados,
     handleFileUpload,
     dadosPromocoesAtivas,
     modalVisivel,
     setModalVisivel,
-    onSubmit
+    mecanicaSelecionadaEdicao,
+    setMecanicaSelecionadaEdicao,
+    isEditandoMecanica, 
+    setIsEditandoMecanica,
+    btnSalvar,
+    setBtnSalvar,
+    ipUsuario,
+    usuarioLogado,
+    handleSalvarMecanica,
+    onSubmit,
+    dadosProdutosPesquisa,
+    handlePesquisarProdutoOrigem,
+    handlePesquisarProdutoDestino,
+    modalProduto,
+    setModalProduto,
+    dadosProdutosPesquisa,
+    
   }
 }
-
