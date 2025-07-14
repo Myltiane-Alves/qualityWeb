@@ -2,9 +2,8 @@ import { Fragment } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { FormularioCadatrarPromocao } from './formularioCadastrar';
 import { HeaderModal } from '../../../Modais/HeaderModal/HeaderModal';
-import { ActionListaPromocoesAtivas } from './actionListaPromocaoAtivas';
 
-export const ActionPromocaoModal = ({dadosPromocoesAtivas, show, handleClose }) => {
+export const ActionCadastrarPromocaoModal = ({ show, handleClose }) => {
 
   return (
     <Fragment>
@@ -24,7 +23,7 @@ export const ActionPromocaoModal = ({dadosPromocoesAtivas, show, handleClose }) 
         />
 
         <Modal.Body>
-          <ActionListaPromocoesAtivas dadosPromocoesAtivas={dadosPromocoesAtivas}/>
+          <FormularioCadatrarPromocao handleClose={handleClose} />
         </Modal.Body>
         
       </Modal>
