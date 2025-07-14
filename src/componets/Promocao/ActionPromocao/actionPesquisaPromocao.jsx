@@ -7,6 +7,8 @@ import { useCreatePromocaoAtiva } from "./hook/useCreatePromocaoAtiva";
 import { MultSelectAction } from "../../Select/MultSelectAction";
 import { GrView } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
+import { ActionCadastrarPromocaoModal } from "./ActionCadastrarPromocao/actionCadastrarPromocaoModal";
+import { ActionProdutoModal } from "../ActionPromocoesAtivas/ActionProdutos/actionProdutoModal";
 
 
 
@@ -62,14 +64,30 @@ export const ActionPesquisaPromocao = ({ }) => {
     optionsMarcas,
     optionsEmpresas,
     optionsMecanica,
+    dadosMecanicas,
+    mecanicaSelecionadaEdicao, 
+    setMecanicaSelecionadaEdicao,
+    isEditandoMecanica, 
+    setIsEditandoMecanica,
+    btnSalvar,
+    setBtnSalvar,
     handleFileUpload, 
     mostrarProdutosSelecionados,
     dadosPromocoesAtivas,
     modalVisivel,
     setModalVisivel,
+    handleSalvarMecanica,
+    mostrarProdutosPromocao,
+    handlePesquisarProdutoDestino,
+    handlePesquisarProdutoOrigem,
+    modalProduto,
+    setModalProduto,
+    dadosProdutosPesquisa,
     onSubmit
+ 
   } = useCreatePromocaoAtiva({  });
-
+  
+  
   const customStyles = {
     option: (provided, state) => ({
       ...provided,
@@ -89,16 +107,27 @@ export const ActionPesquisaPromocao = ({ }) => {
   const handleChangeMecanica = useCallback((selectedValue) => {
 
   
-  const selectedOption = optionsMecanica.find(option => option.value === selectedValue);
+  const selectedOption = dadosMecanicas.find(option => option.ID == selectedValue);
   
   if (selectedOption) {
-    setMecanicaSelecionada(selectedOption.mecanica);
-    setAplicacaoDestinoSelecionada(selectedOption.aplicacaoDestino);
-    setTipoDescontoSelecionado(selectedOption.tipoDesconto);
-  } else {
-    console.log('Nenhuma opção encontrada para o valor:', selectedValue);
+    setMecanicaSelecionada(selectedOption.MECANICA);
+    setMecanicaSelecionadaEdicao(selectedOption.DESCRICAO)
+    setAplicacaoDestinoSelecionada(selectedOption.APLICACAODESTINO);
+    setTipoDescontoSelecionado(selectedOption.TIPODESCONTO);
   }
-}, [mecanicaSelecionada, setMecanicaSelecionada, setAplicacaoDestinoSelecionada, setTipoDescontoSelecionado, ]);
+}, [dadosMecanicas, setMecanicaSelecionada, setAplicacaoDestinoSelecionada, setTipoDescontoSelecionado, ]);
+  
+
+const handleEditarMecanica = () => {
+  const selectedOption = dadosMecanicas.find(option => option.ID == mecanicaSelecionada);
+  
+  if (selectedOption) {
+    setMecanicaSelecionadaEdicao(selectedOption.DESCRICAO);
+    setIsEditandoMecanica(true);
+    setBtnSalvar(true);
+  }
+};
+
 
   useEffect(() => {
     if (tipoDescontoSelecionado == 0) {
@@ -134,16 +163,29 @@ export const ActionPesquisaPromocao = ({ }) => {
       );
     }
     return empresasArray.filter(empresa => empresa.IDGRUPOEMPRESARIAL === marcaSelecionada);
-  }, [optionsEmpresas, marcaSelecionada]);
-
+  }, [optionsEmpresas, marcaSelecionada, empresaSelecionada, setEmpresaSelecionada]);
+console.log(empresaSelecionada, "empresaSelecionada");
   const handlePorcentoDesconto = (value) => {
+    if(isNaN(value) || value == "" || typeof value !== "number") {
+      setPorcentoDesconto(0);
+      return;
+    }
     const val = Math.max(0, Math.min(Number(value), 99));
     setPorcentoDesconto(val);
   }
-console.log(empresaSelecionada, 'empresaSelecionada')
+
+  const handleValorInicio = (value) => {
+    if(isNaN(value) || value == "" || typeof value !== "number") {
+      setValorInicio('');
+      return value;
+    }
+
+  }
+
 
   return (
     <Fragment>
+
       <ActionMainPromocao
         linkComponentAnterior={["Home"]}
         linkComponent={["Cadastro de Promoções"]}
@@ -151,31 +193,94 @@ console.log(empresaSelecionada, 'empresaSelecionada')
 
         InputSelectMecanicaComponent={InputSelectActionPromocao}
         labelSelectMecanica={"Mecanica"}
-        optionsMecanica={optionsMecanica}
+        optionsMecanica={dadosMecanicas.map((item) => ({
+          value: item.ID,
+          label: item.DESCRICAO,
+          APLICAODESTINO: item.APLICAODESTINO,
+          TIPODESCONTO: item.TIPODESCONTO
+        }))}
         valueSelectMecanica={mecanicaSelecionada}
         onChangeSelectMecanica={(e) => handleChangeMecanica(e.value)}
         styleMecanica={customStyles}
+          // readOnlyMecanica={mecanicaSelecionada === 0 ? true : false}
+
+        InputFieldPrecoComponent={InputFieldAction}
+        labelInputPreco={"Criar Nova Mecânica"}
+        valueInputFieldPreco={mecanicaSelecionadaEdicao}
+        onChangeInputFieldPreco={(e) => setMecanicaSelecionadaEdicao(e.target.value)}
+        readOnlyPreco={!isEditandoMecanica}
+
+        ButtonTypeSalvarMecanica={ButtonType}
+        linkNomeSalvarMecanica={"Salvar Mecânica"}
+        onButtonClickSalvarMecanica={handleSalvarMecanica}
+        corSalvarMecanica={!btnSalvar ? "danger" : "success"}
+        IconSalvarMecanica={IoIosSend}
+        readOnlySalvarMecanica={!btnSalvar}
+
+        ButtonTypeEditarMecanica={ButtonType}
+        linkNomeEditarMecanica={"Editar Mecânica"}
+        onButtonClickEditarMecanica={handleEditarMecanica}
+        corEditarMecanica={mecanicaSelecionada == 1 ? "warning" : "info"}
+        IconEditarMecanica={GrView}
+        readOnlyEditarMecanica={mecanicaSelecionada == 1 ? true : false}
 
         InputFieldQTDInicioComponent={InputFieldAction}
         labelInputQTDInicio={"QTD Aparti de"}
         valueInputFieldQTDInicio={qtdInicio}
-        onChangeInputFieldQTDInicio={(e) => setQtdInicio(Number(e.target.value))}
+        onChangeInputFieldQTDInicio={(e) => {
+            let valor = e.target.value.replace(/,/g, '.');
+            valor = valor.replace(/[^0-9.]/g, '');
+            const parts = valor.split('.');
+            if (parts.length > 2) {
+              valor = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            if (valor.length > 1 && valor.startsWith('0') && !valor.startsWith('0.')) {
+              valor = valor.replace(/^0+/, '');
+            }
+            setQtdInicio(valor);
+        }}
         readOnlyQTDInicio={mecanicaSelecionada == 1 ? true : false}
         // styleQTDInicio={styleQTDInicio}
 
         InputFieldQTDFimComponent={InputFieldAction}
         labelInputQTDFim={"Vr Apartir de"}
         valueInputFieldQTDFim={valorInicio}
-        onChangeInputFieldQTDFim={(e) => setValorInicio(Number(e.target.value))}
+        onChangeInputFieldQTDFim={(e) => { 
+            let valor = e.target.value.replace(/,/g, '.');
+            valor = valor.replace(/[^0-9.]/g, '');
+            const parts = valor.split('.');
+            if (parts.length > 2) {
+              valor = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            if (valor.length > 1 && valor.startsWith('0') && !valor.startsWith('0.')) {
+              valor = valor.replace(/^0+/, '');
+            }
+            setValorInicio(Number(valor));
+        }}
         readOnlyQTDFim={mecanicaSelecionada == 1  ? false : true}
 
         InputFieldDescontoComponent1={InputFieldAction}
         labelInputFieldDesconto1={"Vr Desconto "}
         valueInputFieldDesconto1={vrDesconto}
-        onChangeInputFieldDesconto1={(e) => setVrDesconto(Number(e.target.value))}
+        onChangeInputFieldDesconto1={(e) => {
+          let valor = e.target.value.replace(/,/g, '.');
+          valor = valor.replace(/[^0-9.]/g, '');
+          const parts = valor.split('.');
+          if (parts.length > 2) {
+            valor = parts[0] + '.' + parts.slice(1).join('');
+          }
+          
+          if (valor.length > 1 && valor.startsWith('0') && !valor.startsWith('0.')) {
+            valor = valor.replace(/^0+/, '');
+          }
+          setVrDesconto(Number(valor));
+        }}
         readOnlyDesconto1={tipoDescontoSelecionado == 1 ? false : true}
         // styleDesconto1={styleDesconto1}
 
+        // aqui preciso ver um bug quando digito text ele fica nan
         InputFieldDescontoComponent2={InputFieldAction}
         labelInputFieldDesconto2={"Desconto %"}
         valueInputFieldDesconto2={porcentoDesconto}
@@ -187,8 +292,17 @@ console.log(empresaSelecionada, 'empresaSelecionada')
         labelInputFieldVrInicio={"Vr Desconto Final"}
         valueInputFieldVrInicio={precoProduto}
         onChangeInputFieldVrInicio={(e) => {
-          const valor = e.target.value.replace(/,/g, '.');
-          setPrecoProduto(valor);
+          let valor = e.target.value.replace(/,/g, '.');
+          valor = valor.replace(/[^0-9.]/g, '');
+          const parts = valor.split('.');
+          if (parts.length > 2) {
+            valor = parts[0] + '.' + parts.slice(1).join('');
+          }
+          
+          if (valor.length > 1 && valor.startsWith('0') && !valor.startsWith('0.')) {
+            valor = valor.replace(/^0+/, '');
+          }
+          setPrecoProduto(Number(valor));
         }}
         readOnlyVrInicio={tipoDescontoSelecionado == 0  ? false : true}
 
@@ -241,22 +355,36 @@ console.log(empresaSelecionada, 'empresaSelecionada')
               label: empresa.NOFANTASIA
             }))
           ]}
-          valueSelectEmpresaAsync={[empresaSelecionada]}
           onChangeSelectEmpresaAsync={(selectedOptions) => {
             if (selectedOptions.some((option) => option.value === "all")) {
-             
+              
               const allValues = empresasFiltradas.map((empresa) => empresa.IDEMPRESA);
               setEmpresaSelecionada(allValues);
             } else {
               handleEmpresaChange(selectedOptions);
             }
           }}
+          valueSelectEmpresaAsync={
+            empresasFiltradas
+              .filter(empresa => Array.isArray(empresaSelecionada) ? empresaSelecionada.includes(empresa.IDEMPRESA) : empresaSelecionada === empresa.IDEMPRESA)
+              .map(empresa => ({
+                value: empresa.IDEMPRESA,
+                label: empresa.NOFANTASIA
+              }))
+          }
+
 
           InputFieldProdutoOigem={InputFieldAction}
           labelInputFieldProdutoOigem={"Produto Origem"}
           valueInputFieldProdutoOigem={produtoOrigem}
           onChangeInputFieldProdutoOigem={(e) => setProdutoOrigem(e.target.value)}
           readOnlyProdutoOigem={fileProdutoOrigem.length > 0 ? true : false}
+
+          ButtonTypeProdutoPesquisadoOrigem={ButtonType}
+          linkNomeProdutoPesquisadoOrigem={"Visualizar Produto Pesquisado Origem"}
+          onButtonClickProdutoPesquisadoOrigem={handlePesquisarProdutoOrigem}
+          corProdutoPesquisadoOrigem={"warning"}
+          IconProdutoPesquisadoOrigem={GrView}
 
           InputFileProdutoOigem={InputFieldAction}
           labelInputFileProdutoOigem={"Produto Origem"}
@@ -285,6 +413,12 @@ console.log(empresaSelecionada, 'empresaSelecionada')
         valueInputFieldProdutoDestino={produtoDestino}
         onChangeInputFieldProdutoDestino={(e) => setProdutoDestino(e.target.value)}
         readOnlyProdutoDestino={fileProdutoDestino.length > 0 ? true : false}
+
+        ButtonTypeProdutoPesquisadoDestino={ButtonType}
+        linkNomeProdutoPesquisadoDestino={"Visualizar Produto Pesquisado Destino"}
+        onButtonClickProdutoPesquisadoDestino={handlePesquisarProdutoDestino}
+        corProdutoPesquisadoDestino={"secondary"}
+        IconProdutoPesquisadoDestino={GrView}
 
         InputFileProdutoDestino={InputFieldAction}
         labelInputFileProdutoDestino={"Produto Destino"}
@@ -315,7 +449,17 @@ console.log(empresaSelecionada, 'empresaSelecionada')
         IconSearch={IoIosSend}
       />
       
+      <ActionCadastrarPromocaoModal
+        dadosPromocoesAtivas={dadosPromocoesAtivas}
+        show={modalVisivel}
+        handleClose={() => setModalVisivel(false)}  
+      />
 
+       <ActionProdutoModal 
+        show={modalProduto}
+        handleClose={() => setModalProduto(false)}
+        dadosProdutosPesquisa={dadosProdutosPesquisa}
+      />
     </Fragment>
   )
 }
