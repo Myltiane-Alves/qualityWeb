@@ -10,19 +10,22 @@ import { toFloat } from "../../../utils/toFloat";
 import { formatMoeda } from "../../../utils/formatMoeda";
 import { dataFormatada, dataHoraFormatada } from "../../../utils/dataFormatada";
 import { ButtonTable } from "../../ButtonsTabela/ButtonTable";
-import { InputText } from 'primereact/inputtext'; 
+import { InputText } from 'primereact/inputtext';
 import { CiEdit } from "react-icons/ci";
-import { useUpdatePromocao } from "./hook/useUpdatePromocao";
 import Swal from "sweetalert2";
+import { ActionEditarPromocaoAtiva } from "./actionEditarPromocaoAtiva";
+import { get } from "../../../api/funcRequest";
 
 
 
-export const ActionListaPromocoesAtivas = ({ dadosListaPromocao, usuarioLogado, optionsModulos }) => {
+export const ActionListaPromocoesAtivas = ({ dadosListaPromocao, usuarioLogado, optionsModulos, actionPromocaoAtiva, setActionPromocaoAtiva }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [editingRows, setEditingRows] = useState({});
-  const { onSubmit } = useUpdatePromocao({usuarioLogado, optionsModulos});
+  const [modalVisivel, setModalVisivel] = useState(false);
+  const [tabelaVisivel, setTabelaVisivel] = useState(true);
+  const [dadosPromocao, setDadosPromocao] = useState([]);
   const dataTableRef = useRef();
- 
+
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -72,21 +75,22 @@ export const ActionListaPromocoesAtivas = ({ dadosListaPromocao, usuarioLogado, 
     let contador = index + 1;
     return {
       contador,
-      IDRESUMOPROMOCAOMARKETING: item.IDRESUMOPROMOCAOMARKETING, 
-      DSPROMOCAOMARKETING: item.DSPROMOCAOMARKETING, 
-      DTHORAINICIO: dataFormatada(item.DTHORAINICIO), 
-      DTHORAFIM: dataFormatada(item.DTHORAFIM), 
+      IDRESUMOPROMOCAOMARKETING: item.IDRESUMOPROMOCAOMARKETING,
+      DSPROMOCAOMARKETING: item.DSPROMOCAOMARKETING,
+      DTHORAINICIO: dataFormatada(item.DTHORAINICIO),
+      DTHORAFIM: dataFormatada(item.DTHORAFIM),
       TPAPLICADOA: item.TPAPLICADOA,
-      APARTIRDEQTD: item.APARTIRDEQTD, 
-      APARTIRDOVLR: item.APARTIRDOVLR, 
-      TPFATORPROMO: item.TPFATORPROMO, 
-      FATORPROMOVLR: item.FATORPROMOVLR, 
-      FATORPROMOPERC: item.FATORPROMOPERC, 
-      TPAPARTIRDE: item.TPAPARTIRDE, 
-      VLPRECOPRODUTO: formatMoeda(item.VLPRECOPRODUTO), 
-      STEMPRESAPROMO: item.STEMPRESAPROMO, 
-      STDETPROMOORIGEM: item.STDETPROMOORIGEM, 
+      APARTIRDEQTD: item.APARTIRDEQTD,
+      APARTIRDOVLR: item.APARTIRDOVLR,
+      TPFATORPROMO: item.TPFATORPROMO,
+      FATORPROMOVLR: item.FATORPROMOVLR,
+      FATORPROMOPERC: item.FATORPROMOPERC,
+      TPAPARTIRDE: item.TPAPARTIRDE,
+      VLPRECOPRODUTO: formatMoeda(item.VLPRECOPRODUTO),
+      STEMPRESAPROMO: item.STEMPRESAPROMO,
+      STDETPROMOORIGEM: item.STDETPROMOORIGEM,
       STDETPROMODESTINO: item.STDETPROMODESTINO,
+      STATIVO: item.STATIVO === 'True' ? 'ATIVO' : 'INATIVO',
     }
   });
 
@@ -127,64 +131,69 @@ export const ActionListaPromocoesAtivas = ({ dadosListaPromocao, usuarioLogado, 
       sortable: true,
     },
     {
-      rowEditor: true,
-      field: 'IDRESUMOPROMOCAOMARKETING',
-      headerStyle: { width: '10%', minWidth: '8rem' },
+      field: 'STATIVO',
+      header: 'Status',
+      body: row => <span className={row.STATIVO}>{row.STATIVO}</span>,
+      style: { width: '10%' },
       bodyStyle: { textAlign: 'center' },
-      // body: (row) => (
-      //   <div className="flex justify-content-center">
-      //     <ButtonTable
-      //       Icon={CiEdit}
-      //       iconSize={30}
-      //       width="35px"
-      //       height="35px"
-      //       cor="primary"
-      //       onClickButton={() => handleEdit(row)}
-      //     />
-      //   </div>
-      // ),
+      sortable: true,
+    },
+    {
+      field: 'TPAPARTIRDE',
+      header: 'Tipo Aplicação',
+      editor: (options) => textEditor(options),
+      style: { width: '20%' },
+      sortable: true,
+    },
+    {
+      field: 'IDRESUMOPROMOCAOMARKETING',
+      header: 'Opções',
+      width: "15%",
+      body: row => {
+
+        return (
+          <div >
+            <ButtonTable
+              titleButton={"Editar "}
+              onClickButton={() => handleEdit(row)}
+              Icon={CiEdit}
+              iconSize={25}
+              width="35px"
+              height="35px"
+              iconColor={"#fff"}
+              cor={"info"}
+
+            />
+          </div>
+        )
+      },
+      sortable: true,
     },
   ]
-   const textEditor = (options) => (
-    <InputText
-      type="text"
-      value={options.value}
-      onChange={(e) => options.editorCallback(e.target.value)}
-    />
-  );
 
-  const handleEdit = (row) => {
-    if(optionsModulos[0]?.ALTERAR == 'True') {
-      onSubmit(row.IDRESUMOPROMOCAOMARKETING, row.DTHORAFIM)
-    } else {
-      Swal.fire({
-        position: 'center',
-        icon: 'error',
-        title: 'Erro!',
-        text: 'Você não tem permissão para alterar a promoção!',
-        customClass: {
-          container: 'custom-swal',
-        },
-        showConfirmButton: false,
-        timer: 4000
-      });
+
+  const handleEdit = async (row) => {
+    try {
+      const response = await get(`/promocoes-ativas?idResumoPromocao=${row.IDRESUMOPROMOCAOMARKETING}`);
+      if (response.data && response.data.length > 0) {
+        setDadosPromocao(response.data);
+        setModalVisivel(true);
+        // setActionPromocaoAtiva(false);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar detalhes da venda: ', error);
     }
-  }
 
-  const onRowEditComplete = (e) => {
-    const { newData, index } = e;
-    const updatedData = [...dados];
-    updatedData[index] = newData;
-
-    setEditingRows({})
   }
 
   return (
     <Fragment>
+
       <div className="panel">
         <div className="panel-hdr mb-4">
           <h2>Lista de Promoções</h2>
-          
+
         </div>
         <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
           <HeaderTable
@@ -211,19 +220,14 @@ export const ActionListaPromocoesAtivas = ({ dadosListaPromocao, usuarioLogado, 
             filterDisplay="menu"
             showGridlines
             stripedRows
-            editMode="row"
-            editingRows={editingRows}
-            onRowEditComplete={onRowEditComplete}
-            onRowEditInit={(e) => setEditingRows({ [e.index]: true })}
-            onRowEditCancel={() => setEditingRows({})}
             emptyMessage={
               <div className="dataTables_empty">Nenhum resultado encontrado</div>
             }
           >
             {colunasListaPromocao.map((coluna, index) => (
               <Column
-              key={index}
-              {...coluna}
+                key={index}
+                {...coluna}
                 // key={coluna.field || 'selection'}
                 // field={coluna.field}
                 // header={coluna.header}
@@ -234,26 +238,20 @@ export const ActionListaPromocoesAtivas = ({ dadosListaPromocao, usuarioLogado, 
                 headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '1rem' }}
                 footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '1rem' }}
                 bodyStyle={{ fontSize: '1rem', border: '1px solid #e9e9e9' }}
-              /> 
-              
+              />
+
             ))}
 
           </DataTable>
         </div>
       </div>
+
+      <ActionEditarPromocaoAtiva
+        modalVisivel={modalVisivel}
+        setModalVisivel={setModalVisivel}
+        dadosPromocao={dadosPromocao}
+      />
+
     </Fragment>
   );
 }
-
-{/* <Column
-  key={coluna.field || 'selection'}
-  field={coluna.field}
-  header={coluna.header}
-  // selectionMode={coluna.selectionMode}
-  body={coluna.body}
-  footer={coluna.footer}
-  sortable={coluna.sortable}
-  headerStyle={{ color: 'white', backgroundColor: "#7a59ad", border: '1px solid #e9e9e9', fontSize: '0.8rem' }}
-  footerStyle={{ color: '#212529', backgroundColor: "#e9e9e9", border: '1px solid #ccc', fontSize: '0.8rem' }}
-  bodyStyle={{ fontSize: '0.8rem', border: '1px solid #e9e9e9' }}
-/> */}
