@@ -36,44 +36,44 @@ export const useCreatePromocaoAtiva = ({ }) => {
   const [dadosPromocoesAtivas, setDadosPromocoesAtivas] = useState([])
   const [modalVisivel, setModalVisivel] = useState(false)
   const [mecanicaSelecionadaEdicao, setMecanicaSelecionadaEdicao] = useState('');
-  const [isEditandoMecanica, setIsEditandoMecanica] = useState(false);
-  const [btnSalvar, setBtnSalvar] = useState(false);
+  const [isEditandoMecanica, setIsEditandoMecanica] = useState(true);
+  const [btnSalvar, setBtnSalvar] = useState(true);
   const [ipUsuario, setIpUsuario] = useState('');
   const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [dadosProdutosPesquisa, setDadosProdutosPesquisa] = useState([]);
   const [modalProduto, setModalProduto] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
+
+  // useEffect(() => {
+  //   const usuarioArmazenado = localStorage.getItem('usuario');
+
+  //   if (usuarioArmazenado) {
+  //     try {
+  //       const parsedUsuario = JSON.parse(usuarioArmazenado);
+  //       setUsuarioLogado(parsedUsuario);
+  //     } catch (error) {
+  //       console.error('Erro ao parsear o usuário do localStorage:', error);
+  //     }
+  //   } else {
+  //     navigate('/');
+  //   }
+  // }, [navigate]);
+
+  // useEffect(() => {
+  //   getIPUsuario();
+
+  // }, [usuarioLogado]);
+
+  // const getIPUsuario = async () => {
+  //   const response = await axios.get('http://ipwho.is/');
+  //   if (response.data) {
+  //     setIpUsuario(response.data.ip);
+  //   }
+  //   return response.data;
+  // };
 
   useEffect(() => {
-    const usuarioArmazenado = localStorage.getItem('usuario');
-
-    if (usuarioArmazenado) {
-      try {
-        const parsedUsuario = JSON.parse(usuarioArmazenado);
-        setUsuarioLogado(parsedUsuario);
-      } catch (error) {
-        console.error('Erro ao parsear o usuário do localStorage:', error);
-      }
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    getIPUsuario();
-
-  }, [usuarioLogado]);
-
-  const getIPUsuario = async () => {
-    const response = await axios.get('http://ipwho.is/');
-    if (response.data) {
-      setIpUsuario(response.data.ip);
-    }
-    return response.data;
-  };
-
-  useEffect(() => {
-    const dataInicial = getDataTresMesesAtras()
+    const dataInicial = getDataAtual()
     const dataFinal = getDataAtual()
     setDataInicio(dataInicial)
     setDataFim(dataFinal)

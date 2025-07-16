@@ -123,8 +123,8 @@ const handleEditarMecanica = () => {
   
   if (selectedOption) {
     setMecanicaSelecionadaEdicao(selectedOption.DESCRICAO);
-    setIsEditandoMecanica(true);
-    setBtnSalvar(true);
+    setIsEditandoMecanica(false);
+    setBtnSalvar(false);
   }
 };
 
@@ -208,21 +208,21 @@ console.log(empresaSelecionada, "empresaSelecionada");
         labelInputPreco={"Criar Nova Mecânica"}
         valueInputFieldPreco={mecanicaSelecionadaEdicao}
         onChangeInputFieldPreco={(e) => setMecanicaSelecionadaEdicao(e.target.value)}
-        readOnlyPreco={!isEditandoMecanica}
+        readOnlyPreco={isEditandoMecanica}
 
         ButtonTypeSalvarMecanica={ButtonType}
         linkNomeSalvarMecanica={"Salvar Mecânica"}
         onButtonClickSalvarMecanica={handleSalvarMecanica}
-        corSalvarMecanica={!btnSalvar ? "danger" : "success"}
+        corSalvarMecanica={btnSalvar ? "danger" : "success"}
         IconSalvarMecanica={IoIosSend}
-        readOnlySalvarMecanica={!btnSalvar}
+        readOnlySalvarMecanica={btnSalvar}
 
         ButtonTypeEditarMecanica={ButtonType}
         linkNomeEditarMecanica={"Editar Mecânica"}
         onButtonClickEditarMecanica={handleEditarMecanica}
-        corEditarMecanica={mecanicaSelecionada == 1 ? "warning" : "info"}
+        corEditarMecanica={mecanicaSelecionada <= 0 ? "warning" : "info"}
         IconEditarMecanica={GrView}
-        readOnlyEditarMecanica={mecanicaSelecionada == 1 ? true : false}
+        readOnlyEditarMecanica={mecanicaSelecionada <= 0}
 
         InputFieldQTDInicioComponent={InputFieldAction}
         labelInputQTDInicio={"QTD Aparti de"}
