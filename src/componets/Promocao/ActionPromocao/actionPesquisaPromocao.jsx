@@ -162,7 +162,7 @@ const handleEditarMecanica = () => {
     }
     return empresasArray.filter(empresa => empresa.IDGRUPOEMPRESARIAL === marcaSelecionada);
   }, [optionsEmpresas, marcaSelecionada, empresaSelecionada, setEmpresaSelecionada]);
-console.log(empresaSelecionada, "empresaSelecionada");
+
   const handlePorcentoDesconto = (value) => {
     if(isNaN(value) || value == "" || typeof value !== "number") {
       setPorcentoDesconto(0);
