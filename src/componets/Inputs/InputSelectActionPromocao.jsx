@@ -17,7 +17,6 @@ export const InputSelectActionPromocao = ({
   styles,
   isVisible,
 }) => {
-  // console.log(isVisible, 'isVisible')
   const customStyles = {
     menu: (provided) => ({
       ...provided,
@@ -36,13 +35,14 @@ export const InputSelectActionPromocao = ({
 
   return (
     <Fragment>
-      <div className="col-sm-6 col-md-6 col-xl-12">
+      <div className="col-sm-6 col-md-12 col-xl-12">
         <label className="form-label" htmlFor={id}>{label}</label>
         <div>
           <Select
             className="basic-multi-select"
             classNamePrefix="select"
             defaultValue={defaultValue}
+            value={value}
             isDisabled={isDisabled}
             isLoading={isLoading}
             isClearable={isClearable}
