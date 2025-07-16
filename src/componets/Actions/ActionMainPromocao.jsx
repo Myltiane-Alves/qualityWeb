@@ -79,6 +79,7 @@ export const ActionMainPromocao = ({
   InputSelectAplicacaoDestino,
   InputSelectTipoDesconto,
   InputSelectEmpresaComponentAync,
+  InputSelectStatus,
 
 
   labelSelectCategoria,
@@ -89,6 +90,7 @@ export const ActionMainPromocao = ({
   labelSelectAplicacaoDestino,
   labelSelectTipoDesconto,
   labelSelectEmpresaAsync,
+  labelSelectStatus,
 
   optionsCategorias,
   optionsMarcas,
@@ -98,6 +100,7 @@ export const ActionMainPromocao = ({
   optionsAplicacaoDestino,
   optionsTipoDesconto,
   optionsEmpresasAsync,
+  optionsStatus,
 
   valueSelectMarca,
   valueSelectFornecedor,
@@ -106,6 +109,8 @@ export const ActionMainPromocao = ({
   valueSelectAplicacaoDestino,
   valueSelectTipoDesconto,
   valueSelectEmpresaAsync,
+  valueSelectCategoria,
+  valueSelectStatus,
 
   onChangeSelectCategoria,
   onChangeSelectMarcas,
@@ -115,6 +120,7 @@ export const ActionMainPromocao = ({
   onChangeSelectAplicacaoDestino,
   onChangeSelectTipoDesconto,
   onChangeSelectEmpresaAsync,
+  onChangeSelectStatus,
 
   acceptFileProdutoOigem,
   acceptFileProdutoDestino,
@@ -124,30 +130,60 @@ export const ActionMainPromocao = ({
   ButtonTypeCancelar,
   ButtonTypePedido,
   ButtonTypeTXT,
+  ButtonTypeSalvarMecanica,
+  ButtonTypeEditarMecanica,
+  ButtonTypeEmpresa,
+  ButtonTypeVisualizarProduto,
+  ButtonTypeProdutoPesquisadoOrigem,
+  ButtonTypeProdutoPesquisadoDestino,
 
   linkNomeSearch,
   linkNome,
   linkCancelar,
   linkPedido,
   linkTXT,
+  linkNomeSalvarMecanica,
+  linkNomeEditarMecanica,
+  linkNomeEmpresa,
+  linkNomeVisualizarProduto,
+  linkNomeProdutoPesquisadoOrigem,
+  linkNomeProdutoPesquisadoDestino,
 
   onButtonClickSearch,
   onButtonClickCadastro,
   onButtonClickCancelar,
   onButtonClickPedido,
   onButtonClickTXT,
+  onButtonClickSalvarMecanica,
+  onButtonClickEditarMecanica,
+  onButtonClickEmpresa,
+  onButtonClickVisualizarProduto,
+  onButtonClickProdutoPesquisadoOrigem,
+  onButtonClickProdutoPesquisadoDestino,
 
   corSearch,
   corCadastro,
   corCancelar,
   corPedido,
   corTXT,
+  corEditarMecanica,
+  corSalvarMecanica,
+  corEmpresa,
+  corVisualizarProduto,
+  corProdutoPesquisadoOrigem,
+  corProdutoPesquisadoDestino,
 
   IconSearch,
   IconCadastro,
   IconCancelar,
   IconPedido,
   IconTXT,
+  IconSalvarMecanica,
+  IconEditarMecanica,
+  IconEmpresa,
+  IconVisualizarProduto,
+  IconProdutoPesquisadoOrigem,
+  IconProdutoPesquisadoDestino,
 
   readOnlyDTInicio,
   readOnlyDTFim,
@@ -170,6 +206,9 @@ export const ActionMainPromocao = ({
   readOnlyAplicacaoDestino,
   readOnlyPreco,
   readOnlyTipoDesconto,
+  readOnlySalvarMecanica,
+  readOnlyEditarMecanica,
+  readOnlyStatus,
 
   loadOptionsEmpresasAsync,
 
@@ -181,6 +220,7 @@ export const ActionMainPromocao = ({
   defaultValueSelectAplicacaoDestino,
   defaultValueSelectTipoDesconto,
   defaultOptionsEmpresasAsync,
+  defaultValueSelectStatus,
 
   styleQTDInicio,
   styleQTDFim,
@@ -213,7 +253,7 @@ export const ActionMainPromocao = ({
                 <div className="panel-tag">
                   <h2>{tituloPromocao}</h2>
                   {/* INICIO MECANICA */}
-                  <div className="row mt-3">
+                  <div className="row mt-3 mb-5">
                       {InputSelectMecanicaComponent && (
                         <InputSelectMecanicaComponent
                           label={labelSelectMecanica}
@@ -224,10 +264,24 @@ export const ActionMainPromocao = ({
                           value={valueSelectMecanica}
                           defaultValue={defaultValueSelectMecanica}
                           styles={styleMecanica}
+                          isDisabled={readOnlyMecanica}
 
                         />
 
                       )}
+
+                      {InputFieldPrecoComponent && (
+                        <InputFieldPrecoComponent
+                          label={labelInputPreco}
+                          type="text"
+                          value={valueInputFieldPreco}
+                          onChange={onChangeInputFieldPreco}
+                          readOnly={readOnlyPreco}
+                          style={{width: '90%', padding: '10px'}}
+                        />
+                      )}
+
+                     
                     {/* <div className="col-sm-6 col-md-6 col-lg-6 col-xl-4">
                       {InputSelectMecanicaComponent && (
                         <InputSelectMecanicaComponent
@@ -246,7 +300,35 @@ export const ActionMainPromocao = ({
                     </div> */}
                   </div>
 
-                   <div className="row mt-3">
+                  <div className="row mt-3 mb-5">
+                       {ButtonTypeSalvarMecanica && (
+                        <ButtonTypeSalvarMecanica
+                          textButton={linkNomeSalvarMecanica}
+                          onClickButtonType={onButtonClickSalvarMecanica}
+                          cor={corSalvarMecanica}
+                          tipo="button"
+                          Icon={IconSalvarMecanica}
+                          iconColor="#fff"
+                          iconSize={16}
+                          disabledBTN={readOnlySalvarMecanica}
+                        />
+                      )}
+
+                      {ButtonTypeEditarMecanica && (
+                        <ButtonTypeEditarMecanica
+                        textButton={linkNomeEditarMecanica}
+                        onClickButtonType={onButtonClickEditarMecanica}
+                        cor={corEditarMecanica}
+                        tipo="button"
+                        Icon={IconEditarMecanica}
+                        iconColor="#fff"
+                        iconSize={16}
+                        disabledBTN={readOnlyEditarMecanica}
+                        />
+                      )}
+                  </div>
+
+                   <div className="row mt-5">
                     <div className="col-sm-6 col-md-12 col-xl-12 ">
                       {InputFieldDescription && (
                         <InputFieldProdutoDestino
@@ -300,7 +382,7 @@ export const ActionMainPromocao = ({
                       {InputFieldQTDInicioComponent && (
                         <InputFieldQTDInicioComponent
                           label={labelInputQTDInicio}
-                          type="number"
+                          type="text"
                           id={id}
                           value={valueInputFieldQTDInicio}
                           onChange={onChangeInputFieldQTDInicio}
@@ -345,7 +427,7 @@ export const ActionMainPromocao = ({
                       {InputFieldDescontoComponent2 && (
                         <InputFieldDescontoComponent2
                           label={labelInputFieldDesconto2}
-                          type="number"
+                          type="text"
                           value={valueInputFieldDesconto2}
                           onChange={onChangeInputFieldDesconto2}
                           readOnly={readOnlyDesconto2}
@@ -445,17 +527,6 @@ export const ActionMainPromocao = ({
                   
                   <div className="row mt-3" >
 
-
-                    {/* {InputSelectCategoriaComponent && (
-                      <InputSelectCategoriaComponent
-                        label={labelSelectCategoria}
-                        readOnly={readOnlyComprador}
-                        id={id}
-                        options={optionsCategorias}
-                        value={defaultValueSelectCategoria}
-                        onChange={onChangeSelectCategoria}
-                      />
-                    )} */}
                     <div className="col-sm-6 col-md-6 col-xl-6 ">
 
                       {InputSelectMarcasComponent && (
@@ -470,32 +541,54 @@ export const ActionMainPromocao = ({
                           type="select"
                         />
                       )}
+
+                
                     </div>
 
-                    {/* {InputSelectEmpresaComponent && (
-                      <InputSelectEmpresaComponent
-                        label={labelSelectEmpresa}
-                        type="select"
-                        id={id}
-                        readOnly={readOnlyEmpresa}
-                        options={optionsSelectEmpresa}
-                        value={valueSelectEmpresa}
-                        onChange={onChangeSelectEmpresa}
-                        defaultValue={defaultValueSelectEmpresa}
+                    {InputSelectEmpresaComponentAync && (
+                      <InputSelectEmpresaComponentAync
+                      label={labelSelectEmpresaAsync}
+                      // defaultValue={defaultOptionsEmpresasAsync}
+                      value={valueSelectEmpresaAsync}
+                      optionsMultSelect={optionsEmpresasAsync}
+                      onChange={onChangeSelectEmpresaAsync}
+               
+                      isMulti={true}
                       />
-                    )} */}
+                    )}
+                     
+                  </div>
+                  <div className="row mt-3" >
 
-                      {InputSelectEmpresaComponentAync && (
-                        <InputSelectEmpresaComponentAync
-                          label={labelSelectEmpresaAsync}
-                          defaultValue={valueSelectEmpresaAsync}
-                          optionsMultSelect={optionsEmpresasAsync}
-                          onChange={onChangeSelectEmpresaAsync}
-                          // loadOptions={loadOptionsEmpresasAsync}
-                          // defaultOptionsAsync={defaultOptionsEmpresasAsync}
-                          isMulti={true}
+                    <div className="col-sm-6 col-md-6 col-xl-6 ">
+
+                      {InputSelectStatus && (
+                        <InputSelectStatus
+                          label={labelSelectStatus} 
+                          readOnly={readOnlyStatus}
+                          options={optionsStatus}
+                          onChange={onChangeSelectStatus}
+                          value={valueSelectStatus}
+                          defaultValue={defaultValueSelectStatus}
+                            
                         />
                       )}
+
+                    </div>
+                    <div className="col-sm-6 col-md-6 col-xl-6 ">
+                      {ButtonTypeEmpresa && (
+                        <ButtonTypeEmpresa
+                          textButton={linkNomeEmpresa}
+                          onClickButtonType={onButtonClickEmpresa}
+                          cor={corEmpresa}
+                          tipo="button"
+                          Icon={IconEmpresa}
+                          iconColor="#fff"
+                          iconSize={16}
+                        />
+                      )}
+                      
+                    </div>
                      
                   </div>
 
@@ -516,6 +609,21 @@ export const ActionMainPromocao = ({
                           readOnly={readOnlyProdutoOigem}
                         />
                       )}
+
+                      {ButtonTypeProdutoPesquisadoOrigem && (
+                        <ButtonTypeProdutoPesquisadoOrigem
+                          textButton={linkNomeProdutoPesquisadoOrigem}
+                          onClickButtonType={onButtonClickProdutoPesquisadoOrigem}
+                          cor={corProdutoPesquisadoOrigem}
+                          tipo="button"
+                          Icon={IconProdutoPesquisadoOrigem}
+                          iconColor="#fff"
+                          iconSize={16}
+                        />
+
+                      )}
+
+                     
                     </div>
                     <div className="col-sm-6 col-md-6 col-xl-6">
                       {InputFileProdutoOigem && (
@@ -562,6 +670,20 @@ export const ActionMainPromocao = ({
                           readOnly={readOnlyProdutoDestino}
                         />
                       )}
+
+                       {ButtonTypeProdutoPesquisadoDestino && (
+                        <ButtonTypeProdutoPesquisadoDestino
+                          textButton={linkNomeProdutoPesquisadoDestino}
+                          onClickButtonType={onButtonClickProdutoPesquisadoDestino}
+                          cor={corProdutoPesquisadoDestino}
+                          tipo="button"
+                          Icon={IconProdutoPesquisadoDestino}
+                          iconColor="#fff"
+                          iconSize={16}
+                        />
+                      )}
+
+                  
                     </div>
 
                     <div className="col-sm-6 col-md-6 col-xl-6 ">
@@ -594,7 +716,7 @@ export const ActionMainPromocao = ({
                   </div>
                   {/* FIM PRODUTO DESTINO */}
 
-                  <div className="row">
+                  <div className="row" style={{ marginTop: '3rem' }}>
 
                     {ButtonSearchComponent && (
                       <ButtonType
@@ -604,11 +726,21 @@ export const ActionMainPromocao = ({
                         tipo="button"
                         Icon={IconSearch}
                         iconColor="#fff"
-                        iconSize={16}
+                        iconSize={25}
                       />
                     )}
 
-
+                    {ButtonTypeVisualizarProduto && (
+                      <ButtonTypeVisualizarProduto
+                        textButton={linkNomeVisualizarProduto}
+                        onClickButtonType={onButtonClickVisualizarProduto}
+                        cor={corVisualizarProduto}
+                        tipo="button"
+                        Icon={IconVisualizarProduto}
+                        iconColor="#fff"
+                        iconSize={25}
+                      />
+                    )}
 
                     {ButtonTypePedido && (
                       <ButtonTypePedido
@@ -619,7 +751,7 @@ export const ActionMainPromocao = ({
                         tipo="button"
                         Icon={IconPedido}
                         iconColor="#fff"
-                        iconSize={16}
+                        iconSize={25}
                       />
                     )}
                     {ButtonTypeTXT && (
@@ -631,7 +763,7 @@ export const ActionMainPromocao = ({
                         tipo="button"
                         Icon={IconTXT}
                         iconColor="#000"
-                        iconSize={16}
+                        iconSize={25}
                         style={{ color: 'white' }}
                       />
                     )}
