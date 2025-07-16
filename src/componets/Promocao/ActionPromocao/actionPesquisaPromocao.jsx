@@ -197,9 +197,10 @@ console.log(empresaSelecionada, "empresaSelecionada");
           APLICAODESTINO: item.APLICAODESTINO,
           TIPODESCONTO: item.TIPODESCONTO
         }))}
-        valueSelectMecanica={mecanicaSelecionada}
-        onChangeSelectMecanica={(e) => handleChangeMecanica(e.value)}
-        styleMecanica={customStyles}
+         defaultValueSelectMecanica={mecanicaSelecionada}
+         onChangeSelectMecanica={(e) => handleChangeMecanica(e.value)}
+         styleMecanica={customStyles}
+        //  valueSelectMecanica={mecanicaSelecionada}
           // readOnlyMecanica={mecanicaSelecionada === 0 ? true : false}
 
         InputFieldPrecoComponent={InputFieldAction}
