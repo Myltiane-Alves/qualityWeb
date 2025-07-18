@@ -6,14 +6,10 @@ import { Fragment } from "react"
 import { ActionListaProdutosSelecionadoDestino } from "./actionListaProdutosSelecionadoDestino"
 import { ActionListaProdutosSelecionadoOrigem } from "./actionListaProdutosSelecionadoOrigem"
 export const ActionProdutoModalPromocaoSelecionadoDestino = ({ 
-    dadosProdutosPromocaoDaPromocao, 
     show, 
     handleClose,  
     produtoDestinoSelecionado,
     setProdutoDestinoSelecionado, 
-    produtoOrigemSelecionado,
-    setProdutoOrigemSelecionado, 
-    refetchProdutosPromocoes
 }) => {
     return (
         <Fragment>
@@ -36,7 +32,10 @@ export const ActionProdutoModalPromocaoSelecionadoDestino = ({
 
                 <Modal.Body>
 
-                    <ActionListaProdutosSelecionadoDestino produtoDestinoSelecionado={produtoDestinoSelecionado} />
+                    <ActionListaProdutosSelecionadoDestino 
+                        produtoDestinoSelecionado={produtoDestinoSelecionado} 
+                        setProdutoDestinoSelecionado={setProdutoDestinoSelecionado}
+                    />
                     <FooterModal
                         ButtonTypeFechar={ButtonTypeModal}
                         onClickButtonFechar={handleClose}

@@ -6,19 +6,16 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
+import { IoMdClose } from "react-icons/io";
+import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 
 
 export const ActionListaProdutosSelecionadoDestino = ({ 
-  dadosProdutosPesquisa,
-  novoProdutoDestino,
-  setNovoProdutoDestino,
   produtoDestinoSelecionado,
+  setProdutoDestinoSelecionado
 }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
-
-  
-  
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -97,10 +94,31 @@ export const ActionListaProdutosSelecionadoDestino = ({
       body: row => <th>{row.NUCODBARRAS}</th>,
       sortable: true,
     },
-
+    {
+      field: '',
+      header: 'Opções',
+      body: row => {
+        return (
+          <ButtonTable
+            titleButton={"Desativar Empresa"}
+            cor={"danger"}
+            Icon={IoMdClose}
+            iconSize={22}
+            onClickButton={() => handleRemoverProduto(row)}
+            width="40px"
+            height="40px"
+            disabledBTN={row.STATIVO === 'False'}
+          />
+        )
+      }
+    }
   ]
 
-
+  const handleRemoverProduto = (row) => {
+    setProdutoDestinoSelecionado(prevState =>
+      prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+    );
+  };
 
   return (
     <Fragment>

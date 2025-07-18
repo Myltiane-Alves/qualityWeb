@@ -36,19 +36,12 @@ export const ActionProdutoModalPromocaoSelecionado = ({
 
                 <Modal.Body>
 
-                    {/* <ActionListaProdutosPromocaoSelecionado
-                        dadosProdutosPromocaoDaPromocao={dadosProdutosPromocaoDaPromocao} 
-                        produtoDestinoSelecionado={produtoDestinoSelecionado}
-                        setProdutoDestinoSelecionado={setProdutoDestinoSelecionado} 
+                    <ActionListaProdutosSelecionadoOrigem 
                         produtoOrigemSelecionado={produtoOrigemSelecionado}
-                        setProdutoOrigemSelecionado={setProdutoOrigemSelecionado}
-                        refetchProdutosPromocoes={refetchProdutosPromocoes}
-                        handleClose={handleClose}
-                    /> */}
+                        setProdutoOrigemSelecionado={setProdutoOrigemSelecionado}    
+                    /> 
 
-                    <ActionListaProdutosSelecionadoOrigem produtoOrigemSelecionado={produtoOrigemSelecionado}/> 
-
-                    {/* <ActionListaProdutosSelecionadoDestino produtoDestinoSelecionado={produtoDestinoSelecionado} /> */}
+                   
                     <FooterModal
                         ButtonTypeFechar={ButtonTypeModal}
                         onClickButtonFechar={handleClose}

@@ -524,13 +524,14 @@ export const ActionPesquisaPromocao = ({ }) => {
         produtoOrigemSelecionado={produtoOrigemSelecionado}
         setProdutoOrigemSelecionado={setProdutoOrigemSelecionado}
       />
-
+      
       <ActionProdutoModalPromocaoSelecionadoDestino
         show={modalPodutoSelecionadoDestino}
         handleClose={() => setModalPodutoSelecionadoDestino(false)}
         produtoDestinoSelecionado={produtoDestinoSelecionado}
-
+        setProdutoDestinoSelecionado={setProdutoDestinoSelecionado}
       />
+  
     </Fragment>
   )
 }

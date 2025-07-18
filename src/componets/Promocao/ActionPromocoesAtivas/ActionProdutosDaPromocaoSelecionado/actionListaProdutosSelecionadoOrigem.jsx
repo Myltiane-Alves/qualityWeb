@@ -13,9 +13,11 @@ import { IoMdClose } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaCheck } from "react-icons/fa";
+import { set } from "react-hook-form";
 
 export const ActionListaProdutosSelecionadoOrigem = ({
   produtoOrigemSelecionado,
+  setProdutoOrigemSelecionado
 }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
@@ -61,7 +63,7 @@ export const ActionListaProdutosSelecionadoOrigem = ({
 
   const dados = produtoOrigemSelecionado.map((item, index) => {
     let contador = index + 1;
-    console.log(item, 'origem')
+  
     return {
       contador,
       IDPRODUTO: item.IDPRODUTO,
@@ -95,7 +97,32 @@ export const ActionListaProdutosSelecionadoOrigem = ({
       body: row => <th>{row.NUCODBARRAS}</th>,
       sortable: true,
     },
+    {
+      field: '',
+      header: 'Opções',
+      body: row => {
+        return (
+          <ButtonTable
+              titleButton={"Desativar Empresa"}
+              cor={"danger"}
+              Icon={IoMdClose}
+              iconSize={22}
+              onClickButton={() => handleRemoverProduto(row)}
+              width="40px"
+              height="40px"
+              disabledBTN={row.STATIVO === 'False'}
+            />
+        )
+      }
+    }
   ]
+
+  const handleRemoverProduto = (row) => {
+    setProdutoOrigemSelecionado(prevState =>
+      prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+    );
+    
+  }
   return (
     <Fragment>
 
