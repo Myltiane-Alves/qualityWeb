@@ -14,8 +14,7 @@ export const ActionListaProdutosOrigem = ({
   dadosProdutosPesquisa,
   novoProdutoOrigem,
   setNovoProdutoOrigem,
-  statusProdutoOrigem,
-  setStatusProdutoOrigem,
+
 }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();

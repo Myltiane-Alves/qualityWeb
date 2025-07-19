@@ -12,7 +12,9 @@ import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 
 export const ActionListaProdutosSelecionadoDestino = ({ 
   produtoDestinoSelecionado,
-  setProdutoDestinoSelecionado
+  setProdutoDestinoSelecionado,
+  novoProdutoDestino,
+  setNovoProdutoDestino
 }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
@@ -60,7 +62,7 @@ export const ActionListaProdutosSelecionadoDestino = ({
 
   const dados = produtoDestinoSelecionado.map((item, index) => {
     let contador = index + 1;
-    console.log(item, 'destino')
+   
     return {
       contador,
       IDPRODUTO: item.IDPRODUTO,
@@ -116,6 +118,9 @@ export const ActionListaProdutosSelecionadoDestino = ({
 
   const handleRemoverProduto = (row) => {
     setProdutoDestinoSelecionado(prevState =>
+      prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+    );
+    setNovoProdutoDestino(prevState =>
       prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
     );
   };

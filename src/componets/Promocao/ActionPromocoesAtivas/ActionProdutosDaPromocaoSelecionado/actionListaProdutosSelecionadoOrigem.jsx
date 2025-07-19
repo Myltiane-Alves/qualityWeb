@@ -17,7 +17,9 @@ import { set } from "react-hook-form";
 
 export const ActionListaProdutosSelecionadoOrigem = ({
   produtoOrigemSelecionado,
-  setProdutoOrigemSelecionado
+  setProdutoOrigemSelecionado,
+  novoProdutoOrigem,
+  setNovoProdutoOrigem,
 }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
@@ -61,7 +63,8 @@ export const ActionListaProdutosSelecionadoOrigem = ({
     XLSX.writeFile(workbook, 'produtos_promocoes.xlsx');
   };
 
-  const dados = produtoOrigemSelecionado.map((item, index) => {
+
+  const dados = produtoOrigemSelecionado?.map((item, index) => {
     let contador = index + 1;
   
     return {
@@ -120,9 +123,13 @@ export const ActionListaProdutosSelecionadoOrigem = ({
   const handleRemoverProduto = (row) => {
     setProdutoOrigemSelecionado(prevState =>
       prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+    ); 
+    setNovoProdutoOrigem(prevState =>
+      prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
     );
-    
   }
+
+ 
   return (
     <Fragment>
 

@@ -3,17 +3,15 @@ import { FooterModal } from "../../../Modais/FooterModal/footerModal"
 import { HeaderModal } from "../../../Modais/HeaderModal/HeaderModal"
 import { Modal } from "react-bootstrap"
 import { Fragment } from "react"
-import { ActionListaProdutosSelecionadoDestino } from "./actionListaProdutosSelecionadoDestino"
 import { ActionListaProdutosSelecionadoOrigem } from "./actionListaProdutosSelecionadoOrigem"
+
 export const ActionProdutoModalPromocaoSelecionado = ({ 
-    dadosProdutosPromocaoDaPromocao, 
     show, 
     handleClose,  
-    produtoDestinoSelecionado,
-    setProdutoDestinoSelecionado, 
     produtoOrigemSelecionado,
     setProdutoOrigemSelecionado, 
-    refetchProdutosPromocoes
+    novoProdutoOrigem,
+  setNovoProdutoOrigem,
 }) => {
     return (
         <Fragment>
@@ -39,6 +37,8 @@ export const ActionProdutoModalPromocaoSelecionado = ({
                     <ActionListaProdutosSelecionadoOrigem 
                         produtoOrigemSelecionado={produtoOrigemSelecionado}
                         setProdutoOrigemSelecionado={setProdutoOrigemSelecionado}    
+                        novoProdutoOrigem={novoProdutoOrigem}
+                        setNovoProdutoOrigem={setNovoProdutoOrigem}
                     /> 
 
                    
