@@ -523,6 +523,8 @@ export const ActionPesquisaPromocao = ({ }) => {
         handleClose={() => setModalPodutoSelecionadoOrigem(false)}
         produtoOrigemSelecionado={produtoOrigemSelecionado}
         setProdutoOrigemSelecionado={setProdutoOrigemSelecionado}
+        novoProdutoOrigem={novoProdutoOrigem}
+        setNovoProdutoOrigem={setNovoProdutoOrigem}
       />
       
       <ActionProdutoModalPromocaoSelecionadoDestino
@@ -530,6 +532,8 @@ export const ActionPesquisaPromocao = ({ }) => {
         handleClose={() => setModalPodutoSelecionadoDestino(false)}
         produtoDestinoSelecionado={produtoDestinoSelecionado}
         setProdutoDestinoSelecionado={setProdutoDestinoSelecionado}
+        novoProdutoDestino={novoProdutoDestino}
+        setNovoProdutoDestino={setNovoProdutoDestino}
       />
   
     </Fragment>
