@@ -444,7 +444,7 @@ export const useUpdatePromocaoAtiva = ({ dadosPromocao }) => {
 
     setModalPodutoSelecionadoDestino(true);
     setProdutoDestinoSelecionado(produtosUnicos);
-  }, [fileProdutoDestino, produtoDestino, novoProdutoDestino]);
+  }, [fileProdutoDestino, produtoDestino, novoProdutoDestino, setProdutoDestinoSelecionado]);
 
   // const mostrarEmpresasPromocao = useCallback(() => {
   //   Swal.fire({
@@ -764,8 +764,24 @@ export const useUpdatePromocaoAtiva = ({ dadosPromocao }) => {
         return;
       }
 
-      const produtosOrigem = fileProdutoOrigem && fileProdutoOrigem.length > 0 ? JSON.parse(fileProdutoOrigem) : produtoOrigem ? [produtoOrigem] : [];
-      const produtosDestino = fileProdutoDestino && fileProdutoDestino.length > 0 ? JSON.parse(fileProdutoDestino) : produtoDestino ? [produtoDestino] : [];
+      // Considera produtos de origem e destino vindos do arquivo, input ou seleção manual
+      const produtosOrigem = 
+        (fileProdutoOrigem && fileProdutoOrigem.length > 0)
+          ? JSON.parse(fileProdutoOrigem)
+          : produtoOrigem
+        ? [produtoOrigem]
+        : (produtoOrigemSelecionado && produtoOrigemSelecionado.length > 0)
+          ? produtoOrigemSelecionado
+          : [];
+
+      const produtosDestino = 
+        (fileProdutoDestino && fileProdutoDestino.length > 0)
+          ? JSON.parse(fileProdutoDestino)
+          : produtoDestino
+        ? [produtoDestino]
+        : (produtoDestinoSelecionado && produtoDestinoSelecionado.length > 0)
+          ? produtoDestinoSelecionado
+          : [];
 
 
       if (promocoesAtivas && promocoesAtivas.length > 0) {
@@ -921,7 +937,6 @@ export const useUpdatePromocaoAtiva = ({ dadosPromocao }) => {
       }
 
       if (aplicacaoDestinoSelecionada == 4) {
-
         if (produtosDestino.length !== 1 || produtosOrigem.length !== 1) {
           Swal.fire({
             position: 'center',
@@ -934,8 +949,12 @@ export const useUpdatePromocaoAtiva = ({ dadosPromocao }) => {
           });
           return;
         }
-
-        if (produtosDestino[0] !== produtosOrigem[0]) {
+        
+     
+        const origemId = typeof produtosOrigem[0] === 'object' && produtosOrigem[0] !== null ? produtosOrigem[0].IDPRODUTO : produtosOrigem[0];
+        const destinoId = typeof produtosDestino[0] === 'object' && produtosDestino[0] !== null ? produtosDestino[0].IDPRODUTO : produtosDestino[0];
+        if (origemId !== destinoId) {
+          
           Swal.fire({
             position: 'center',
             icon: 'error',

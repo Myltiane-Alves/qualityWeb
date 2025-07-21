@@ -10,8 +10,6 @@ export const ActionProdutoOrigemModal = ({
     handleClose,
     novoProdutoOrigem,
     setNovoProdutoOrigem, 
-    statusProdutoOrigem,
-    setStatusProdutoOrigem,
     setProdutoOrigem
 }) => {
     return (
@@ -39,8 +37,7 @@ export const ActionProdutoOrigemModal = ({
                         dadosProdutosPesquisa={dadosProdutosPesquisa} 
                         novoProdutoOrigem={novoProdutoOrigem}
                         setNovoProdutoOrigem={setNovoProdutoOrigem}    
-                        statusProdutoOrigem={statusProdutoOrigem}
-                        setStatusProdutoOrigem={setStatusProdutoOrigem}
+                
                     />
                     <FooterModal
                         ButtonTypeFechar={ButtonTypeModal}
