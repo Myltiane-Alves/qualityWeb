@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // const BASE_URL = "http://164.152.244.96:6001";
 
-const BASE_URL = "https://api-quality.vercel.app";
+const BASE_URL = "https://backend-producao.vercel.app";
 // const BASE_URL = "http://localhost:6001";
 
 
