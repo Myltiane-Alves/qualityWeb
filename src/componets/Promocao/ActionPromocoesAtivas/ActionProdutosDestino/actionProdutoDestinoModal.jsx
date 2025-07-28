@@ -41,7 +41,7 @@ export const ActionProdutoDestinoModal = ({
                     />
                     <FooterModal
                         ButtonTypeFechar={ButtonTypeModal}
-                        onClickButtonFechar={handleClose}
+                        onClickButtonFechar={() => {handleClose(), setProdutoDestino('')}}
                         textButtonFechar={"Fechar"}
                         corFechar={"secondary"}
                     />

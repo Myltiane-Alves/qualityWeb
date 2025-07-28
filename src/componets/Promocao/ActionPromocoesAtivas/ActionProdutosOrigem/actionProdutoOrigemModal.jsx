@@ -41,7 +41,7 @@ export const ActionProdutoOrigemModal = ({
                     />
                     <FooterModal
                         ButtonTypeFechar={ButtonTypeModal}
-                        onClickButtonFechar={handleClose}
+                        onClickButtonFechar={() => {handleClose(), setProdutoOrigem('')}}
                         textButtonFechar={"Fechar"}
                         corFechar={"secondary"}
                     />
