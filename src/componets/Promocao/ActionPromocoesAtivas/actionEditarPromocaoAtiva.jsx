@@ -318,6 +318,7 @@ export const ActionEditarPromocaoAtiva = ({ dadosPromocao, handleClickIncluir })
     setModalDocumentacao(true);
   }, []);
 
+  
 
   return (
     <Fragment>
