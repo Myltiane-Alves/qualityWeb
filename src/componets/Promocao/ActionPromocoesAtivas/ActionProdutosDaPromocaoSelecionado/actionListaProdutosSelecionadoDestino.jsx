@@ -152,6 +152,7 @@ export const ActionListaProdutosSelecionadoDestino = ({
         ? prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
         : []
     );
+    
 
     setFileProdutoDestino(prevState => {
       let ids = [];
