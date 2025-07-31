@@ -521,7 +521,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
         return;
       }
 
-      if (descricao.length < 20 || descricao.length > 200) {
+      if (descricao.length < 2 || descricao.length > 200) {
         Swal.fire({
           position: 'center',
           icon: 'error',

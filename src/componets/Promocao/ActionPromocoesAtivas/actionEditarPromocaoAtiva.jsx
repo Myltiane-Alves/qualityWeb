@@ -284,8 +284,8 @@ export const ActionEditarPromocaoAtiva = ({ dadosPromocao, handleClickIncluir })
       }
     }
 
-    if (optionsEmpresasPromocoes?.length > 0) {
-      const idsEmpresasPromocao = optionsEmpresasPromocoes.map(emp => emp.IDEMPRESA);
+    if (dadosEmpresasPromocoes?.length > 0) {
+      const idsEmpresasPromocao = dadosEmpresasPromocoes.map(emp => emp.IDEMPRESA);
       return filtradas.map(emp => ({
         ...emp,
         selected: idsEmpresasPromocao.includes(emp.IDEMPRESA),
@@ -298,11 +298,11 @@ export const ActionEditarPromocaoAtiva = ({ dadosPromocao, handleClickIncluir })
       ...emp,
       status: emp.STATIVO
     }));
-  }, [optionsEmpresas, marcaSelecionada, optionsEmpresasPromocoes]);
+  }, [optionsEmpresas, marcaSelecionada, dadosEmpresasPromocoes]);
 
   useEffect(() => {
-    if (optionsEmpresasPromocoes?.length > 0 && empresasSelecionadas.length === 0) {
-      const defaults = optionsEmpresasPromocoes.map(emp => ({
+    if (dadosEmpresasPromocoes?.length > 0 && empresasSelecionadas.length === 0) {
+      const defaults = dadosEmpresasPromocoes.map(emp => ({
         value: emp.IDEMPRESA,
         label: emp.NOFANTASIA,
         status: emp.STATIVO
