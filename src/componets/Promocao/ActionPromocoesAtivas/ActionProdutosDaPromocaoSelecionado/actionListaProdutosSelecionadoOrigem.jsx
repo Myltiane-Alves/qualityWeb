@@ -152,7 +152,9 @@ export const ActionListaProdutosSelecionadoOrigem = ({
     );
 
     setNovoProdutoOrigem(prevState =>
-      prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+      Array.isArray(prevState)
+        ? prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+        : []
     );
 
     setFileProdutoOrigem(prevState => {
