@@ -171,8 +171,7 @@ export const ActionListaProdutosSelecionadoDestino = ({
           ids = [];
         }
       }
-      // Retorna sempre no formato que o hook espera (string JSON)
-      return JSON.stringify(ids);
+      return ids.length > 0 ? JSON.stringify(ids) : '';
     })
   };
 

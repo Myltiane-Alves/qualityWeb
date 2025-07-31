@@ -445,13 +445,12 @@ export const ActionPesquisaPromocao = ({ }) => {
         valueInputFieldProdutoDestino={produtoDestino}
         onChangeInputFieldProdutoDestino={(e) => setProdutoDestino(e.target.value)}
         readOnlyProdutoDestino={fileProdutoDestino.length > 0 ? true : false}
-
         ButtonTypeProdutoPesquisadoDestino={ButtonType}
         linkNomeProdutoPesquisadoDestino={"Visualizar Produto Pesquisado Destino"}
         onButtonClickProdutoPesquisadoDestino={handlePesquisarProdutoDestino}
         corProdutoPesquisadoDestino={"secondary"}
         IconProdutoPesquisadoDestino={GrView}
-
+        
         InputFileProdutoDestino={InputFieldAction}
         labelInputFileProdutoDestino={"Produto Destino"}
         acceptFileProdutoDestino=".csv, .xls, .xlsx"
@@ -464,7 +463,7 @@ export const ActionPesquisaPromocao = ({ }) => {
           }
         }}
         readOnlyFileProdutoDestino={produtoDestino.length > 0 ? true : false}
-
+        
         ButtonTypeCadastro={ButtonType}
         linkNome={"Visualizar Produtos Destino"}
         onButtonClickCadastro={() => {
@@ -474,14 +473,15 @@ export const ActionPesquisaPromocao = ({ }) => {
         corCadastro={"success"}
         IconCadastro={GrView}
 
-
+        
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Cadastrar Promoção"}
         onButtonClickSearch={handleCadastrar}
         corSearch={"primary"}
         IconSearch={IoIosSend}
-      />
+        />
 
+        {console.log(fileProdutoDestino.length > 0 ? true : false)}
       <ActionCadastrarPromocaoModal
         dadosPromocoesAtivas={dadosPromocoesAtivas}
         show={modalVisivel}
