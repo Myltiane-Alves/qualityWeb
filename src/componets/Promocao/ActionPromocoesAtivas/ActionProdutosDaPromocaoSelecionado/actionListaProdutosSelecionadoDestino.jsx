@@ -8,13 +8,16 @@ import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
 import { IoMdClose } from "react-icons/io";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
+import { get } from "../../../../api/funcRequest";
 
 
 export const ActionListaProdutosSelecionadoDestino = ({ 
   produtoDestinoSelecionado,
   setProdutoDestinoSelecionado,
   novoProdutoDestino,
-  setNovoProdutoDestino
+  setNovoProdutoDestino,
+  fileProdutoDestino,
+  setFileProdutoDestino
 }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
@@ -58,7 +61,28 @@ export const ActionListaProdutosSelecionadoDestino = ({
     XLSX.writeFile(workbook, 'produtos_promocoes.xlsx');
   };
 
-
+  useEffect(() => {
+    const fetchProdutosCompletos = async () => {
+      if (
+        Array.isArray(produtoDestinoSelecionado) &&
+        produtoDestinoSelecionado.length > 0 &&
+        typeof produtoDestinoSelecionado[0] !== "object"
+      ) {
+        try {
+          // Exemplo: /produto-promocao-ativa?idProduto=1,2,3
+          const ids = produtoDestinoSelecionado.join(',');
+          const response = await get(`/produto-promocao-ativa?idProduto=${ids}`);
+          if (response?.data) {
+            // Se a API retorna um array de produtos
+            setProdutoDestinoSelecionado(response.data);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar produtos:', error);
+        }
+      }
+    };
+    fetchProdutosCompletos();
+  }, [produtoDestinoSelecionado, setProdutoDestinoSelecionado, fileProdutoDestino]);
 
   const dados = produtoDestinoSelecionado.map((item, index) => {
     let contador = index + 1;
@@ -118,11 +142,38 @@ export const ActionListaProdutosSelecionadoDestino = ({
 
   const handleRemoverProduto = (row) => {
     setProdutoDestinoSelecionado(prevState =>
-      prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+      Array.isArray(prevState)
+        ? prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+        : []
     );
-    setNovoProdutoDestino(prevState =>
-      prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+
+    setNovoProdutoDestino(prevState => 
+      Array.isArray(prevState)
+        ? prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+        : []
     );
+
+    setFileProdutoDestino(prevState => {
+      let ids = [];
+        if (Array.isArray(prevState)) {
+      // Se for array de objetos ou IDs
+      ids = prevState
+          .map(item => typeof item === "object" && item !== null ? item.IDPRODUTO : item)
+          .filter(id => String(id) !== String(row.IDPRODUTO));
+      } else if (typeof prevState === "string" && prevState.length > 0) {
+        // Se for string JSON
+        try {
+          const arr = JSON.parse(prevState);
+          ids = arr
+            .map(item => typeof item === "object" && item !== null ? item.IDPRODUTO : item)
+            .filter(id => String(id) !== String(row.IDPRODUTO));
+        } catch {
+          ids = [];
+        }
+      }
+      // Retorna sempre no formato que o hook espera (string JSON)
+      return JSON.stringify(ids);
+    })
   };
 
   return (

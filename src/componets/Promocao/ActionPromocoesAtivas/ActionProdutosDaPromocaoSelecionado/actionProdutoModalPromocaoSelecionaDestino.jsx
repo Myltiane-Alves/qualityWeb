@@ -11,7 +11,9 @@ export const ActionProdutoModalPromocaoSelecionadoDestino = ({
     produtoDestinoSelecionado,
     setProdutoDestinoSelecionado, 
     novoProdutoDestino,
-    setNovoProdutoDestino
+    setNovoProdutoDestino,
+    fileProdutoDestino,
+    setFileProdutoDestino
 }) => {
     return (
         <Fragment>
@@ -39,6 +41,8 @@ export const ActionProdutoModalPromocaoSelecionadoDestino = ({
                         setProdutoDestinoSelecionado={setProdutoDestinoSelecionado}
                         novoProdutoDestino={novoProdutoDestino}
                         setNovoProdutoDestino={setNovoProdutoDestino}
+                        fileProdutoDestino={fileProdutoDestino}
+                        setFileProdutoDestino={setFileProdutoDestino}
                     />
                     <FooterModal
                         ButtonTypeFechar={ButtonTypeModal}

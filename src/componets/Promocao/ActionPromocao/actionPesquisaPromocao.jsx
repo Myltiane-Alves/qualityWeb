@@ -525,6 +525,8 @@ export const ActionPesquisaPromocao = ({ }) => {
         setProdutoOrigemSelecionado={setProdutoOrigemSelecionado}
         novoProdutoOrigem={novoProdutoOrigem}
         setNovoProdutoOrigem={setNovoProdutoOrigem}
+        fileProdutoOrigem={fileProdutoOrigem}
+        setFileProdutoOrigem={setFileProdutoOrigem}
       />
       
       <ActionProdutoModalPromocaoSelecionadoDestino
@@ -534,6 +536,8 @@ export const ActionPesquisaPromocao = ({ }) => {
         setProdutoDestinoSelecionado={setProdutoDestinoSelecionado}
         novoProdutoDestino={novoProdutoDestino}
         setNovoProdutoDestino={setNovoProdutoDestino}
+        fileProdutoDestino={fileProdutoDestino}
+        setFileProdutoDestino={setFileProdutoDestino}
       />
   
     </Fragment>

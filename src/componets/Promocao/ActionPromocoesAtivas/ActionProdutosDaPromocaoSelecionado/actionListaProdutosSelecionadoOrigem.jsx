@@ -6,7 +6,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import HeaderTable from "../../../Tables/headerTable";
-import { post, put } from "../../../../api/funcRequest";
+import { get, post, put } from "../../../../api/funcRequest";
 import Swal from "sweetalert2";
 import { ButtonTable } from "../../../ButtonsTabela/ButtonTable";
 import { IoMdClose } from "react-icons/io";
@@ -20,6 +20,8 @@ export const ActionListaProdutosSelecionadoOrigem = ({
   setProdutoOrigemSelecionado,
   novoProdutoOrigem,
   setNovoProdutoOrigem,
+  fileProdutoOrigem,
+  setFileProdutoOrigem
 }) => {
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const dataTableRef = useRef();
@@ -63,6 +65,28 @@ export const ActionListaProdutosSelecionadoOrigem = ({
     XLSX.writeFile(workbook, 'produtos_promocoes.xlsx');
   };
 
+   useEffect(() => {
+    const fetchProdutosCompletos = async () => {
+      if (
+        Array.isArray(produtoOrigemSelecionado) &&
+        produtoOrigemSelecionado.length > 0 &&
+        typeof produtoOrigemSelecionado[0] !== "object"
+      ) {
+        try {
+          // Exemplo: /produto-promocao-ativa?idProduto=1,2,3
+          const ids = produtoOrigemSelecionado.join(',');
+          const response = await get(`/produto-promocao-ativa?idProduto=${ids}`);
+          if (response?.data) {
+            // Se a API retorna um array de produtos
+            setProdutoOrigemSelecionado(response.data);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar produtos:', error);
+        }
+      }
+    };
+    fetchProdutosCompletos();
+  }, [produtoOrigemSelecionado, setProdutoOrigemSelecionado, fileProdutoOrigem]);
 
   const dados = produtoOrigemSelecionado?.map((item, index) => {
     let contador = index + 1;
@@ -122,11 +146,36 @@ export const ActionListaProdutosSelecionadoOrigem = ({
 
   const handleRemoverProduto = (row) => {
     setProdutoOrigemSelecionado(prevState =>
-      prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
-    ); 
+      Array.isArray(prevState)
+        ? prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
+        : []
+    );
+
     setNovoProdutoOrigem(prevState =>
       prevState.filter(item => item.IDPRODUTO !== row.IDPRODUTO)
     );
+
+    setFileProdutoOrigem(prevState => {
+      let ids = [];
+      if (Array.isArray(prevState)) {
+        // Se for array de objetos ou IDs
+        ids = prevState
+          .map(item => typeof item === "object" && item !== null ? item.IDPRODUTO : item)
+          .filter(id => String(id) !== String(row.IDPRODUTO));
+      } else if (typeof prevState === "string" && prevState.length > 0) {
+        // Se for string JSON
+        try {
+          const arr = JSON.parse(prevState);
+          ids = arr
+            .map(item => typeof item === "object" && item !== null ? item.IDPRODUTO : item)
+            .filter(id => String(id) !== String(row.IDPRODUTO));
+        } catch {
+          ids = [];
+        }
+      }
+      // Retorna sempre no formato que o hook espera (string JSON)
+      return JSON.stringify(ids);
+    });
   }
 
  

@@ -11,7 +11,9 @@ export const ActionProdutoModalPromocaoSelecionado = ({
     produtoOrigemSelecionado,
     setProdutoOrigemSelecionado, 
     novoProdutoOrigem,
-  setNovoProdutoOrigem,
+    setNovoProdutoOrigem,
+    fileProdutoOrigem,
+    setFileProdutoOrigem
 }) => {
     return (
         <Fragment>
@@ -39,6 +41,8 @@ export const ActionProdutoModalPromocaoSelecionado = ({
                         setProdutoOrigemSelecionado={setProdutoOrigemSelecionado}    
                         novoProdutoOrigem={novoProdutoOrigem}
                         setNovoProdutoOrigem={setNovoProdutoOrigem}
+                        fileProdutoOrigem={fileProdutoOrigem}
+                        setFileProdutoOrigem={setFileProdutoOrigem}
                     /> 
 
                    
