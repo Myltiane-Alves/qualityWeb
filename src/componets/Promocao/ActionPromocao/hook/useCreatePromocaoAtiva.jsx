@@ -521,19 +521,19 @@ export const useCreatePromocaoAtiva = ({ }) => {
         return;
       }
 
-      if (descricao.length < 2 || descricao.length > 200) {
-        Swal.fire({
-          position: 'center',
-          icon: 'error',
-          title: 'Descrição deve ter entre 20 e 200 caracteres!',
-          customClass: {
-            container: 'custom-swal',
-          },
-          showConfirmButton: false,
-          timer: 3000,
-        })
-        return;
-      }
+      // if (descricao.length < 2 || descricao.length > 200) {
+      //   Swal.fire({
+      //     position: 'center',
+      //     icon: 'error',
+      //     title: 'Descrição deve ter entre 20 e 200 caracteres!',
+      //     customClass: {
+      //       container: 'custom-swal',
+      //     },
+      //     showConfirmButton: false,
+      //     timer: 3000,
+      //   })
+      //   return;
+      // }
 
       // Considera produtos de origem e destino vindos do arquivo, input ou seleção manual
       const produtosOrigem = 
