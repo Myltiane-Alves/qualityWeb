@@ -5,7 +5,7 @@ import { InputFieldAction } from "../../Buttons/InputAction";
 import { InputSelectActionPromocao } from "../../Inputs/InputSelectActionPromocao";
 import { useCreatePromocaoAtiva } from "./hook/useCreatePromocaoAtiva";
 import { MultSelectAction } from "../../Select/MultSelectAction";
-import { GrView } from "react-icons/gr";
+import { GrFormView, GrView } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
 import { ActionCadastrarPromocaoModal } from "./ActionCadastrarPromocao/actionCadastrarPromocaoModal";
 import { ActionProdutoDestinoModal } from "../ActionPromocoesAtivas/ActionProdutosDestino/actionProdutoDestinoModal";
@@ -13,6 +13,7 @@ import { ActionProdutoOrigemModal } from '../ActionPromocoesAtivas/ActionProduto
 import { set } from "date-fns";
 import { ActionProdutoModalPromocaoSelecionado } from "../ActionPromocoesAtivas/ActionProdutosDaPromocaoSelecionado/actionProdutoModalPromocaoSelecionado";
 import { ActionProdutoModalPromocaoSelecionadoDestino } from "../ActionPromocoesAtivas/ActionProdutosDaPromocaoSelecionado/actionProdutoModalPromocaoSelecionaDestino";
+import { ActionDocumentacaoCriar } from "../ActionPromocoesAtivas/ActionDocumentacao/documentacaoCriar";
 
 
 
@@ -115,6 +116,8 @@ export const ActionPesquisaPromocao = ({ }) => {
     refetchProdutosPromocoes,
     dadosEmpresasPromocoes,
     setDadosEmpresasPromocoes,
+    modalDocumentacao,
+    setModalDocumentacao,
     mostrarProdutosSelecionadosOrigem,
     mostrarProdutosSelecionadosDestino,
     onSubmit
@@ -549,7 +552,11 @@ export const ActionPesquisaPromocao = ({ }) => {
         fileProdutoDestino={fileProdutoDestino}
         setFileProdutoDestino={setFileProdutoDestino}
       />
-  
+
+      <ActionDocumentacaoCriar
+        show={modalDocumentacao}
+        handleClose={() => setModalDocumentacao(false)}
+      />
     </Fragment>
   )
 }

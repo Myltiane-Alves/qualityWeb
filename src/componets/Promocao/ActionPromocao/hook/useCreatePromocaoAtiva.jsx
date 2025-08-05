@@ -55,7 +55,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
   const [modalPodutoSelecionadoOrigem, setModalPodutoSelecionadoOrigem] = useState(false);
   const [modalEmpresasPromocao, setModalEmpresasPromocao] = useState(false);
   const [dadosEmpresasPromocoes, setDadosEmpresasPromocoes] = useState([]);
-
+  const [modalDocumentacao, setModalDocumentacao] = useState(false);
 
   const navigate = useNavigate();
 
@@ -1025,5 +1025,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
     dadosEmpresasPromocoes,
     mostrarProdutosSelecionadosOrigem,
     mostrarProdutosSelecionadosDestino,
+    modalDocumentacao,
+    setModalDocumentacao
   }
 }
