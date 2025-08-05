@@ -37,7 +37,8 @@ export const DashBoardPromocao = ({ }) => {
           <div className="page-content-wrapper">
   
 
-            <main id="js-page-content" role="main" className="page-content">
+            {/* <main id="js-page-content" role="main" className="page-content"> */}
+            <main id="js-page-content" role="main" className="">
               <div className="row">
                 <div className="col-xl-12">
                   <div id="panel-1" className="panel">
