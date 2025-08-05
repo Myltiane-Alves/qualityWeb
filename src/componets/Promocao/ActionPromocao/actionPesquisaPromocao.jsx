@@ -121,6 +121,9 @@ export const ActionPesquisaPromocao = ({ }) => {
 
   } = useCreatePromocaoAtiva({});
 
+  const mostrarDocumentacao = useCallback(() => {
+    setModalDocumentacao(true);
+  }, []);
 
   const customStyles = {
     option: (provided, state) => ({
@@ -445,6 +448,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         valueInputFieldProdutoDestino={produtoDestino}
         onChangeInputFieldProdutoDestino={(e) => setProdutoDestino(e.target.value)}
         readOnlyProdutoDestino={fileProdutoDestino.length > 0 ? true : false}
+      
         ButtonTypeProdutoPesquisadoDestino={ButtonType}
         linkNomeProdutoPesquisadoDestino={"Visualizar Produto Pesquisado Destino"}
         onButtonClickProdutoPesquisadoDestino={handlePesquisarProdutoDestino}
@@ -479,9 +483,15 @@ export const ActionPesquisaPromocao = ({ }) => {
         onButtonClickSearch={handleCadastrar}
         corSearch={"primary"}
         IconSearch={IoIosSend}
-        />
 
-        {console.log(fileProdutoDestino.length > 0 ? true : false)}
+        ButtonTypeTXT={ButtonType}
+        linkTXT={"Documentação"}
+        onButtonClickTXT={mostrarDocumentacao}
+        corTXT={"success"}
+        IconTXT={GrFormView}
+      />
+
+ 
       <ActionCadastrarPromocaoModal
         dadosPromocoesAtivas={dadosPromocoesAtivas}
         show={modalVisivel}
