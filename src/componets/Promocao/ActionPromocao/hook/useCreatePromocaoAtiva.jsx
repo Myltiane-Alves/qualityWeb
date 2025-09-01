@@ -535,6 +535,20 @@ export const useCreatePromocaoAtiva = ({ }) => {
       //   return;
       // }
 
+        if (descricao.replace(/\s/g, '').length > 80) {
+          Swal.fire({
+            position: 'center',
+            icon: 'error',
+            title: 'Descrição deve ter no máximo 80 caracteres!',
+            customClass: {
+              container: 'custom-swal',
+            },
+            showConfirmButton: false,
+            timer: 3000,
+          })
+          return;
+      }
+      
       // Considera produtos de origem e destino vindos do arquivo, input ou seleção manual
       const produtosOrigem = 
         (fileProdutoOrigem && fileProdutoOrigem.length > 0)

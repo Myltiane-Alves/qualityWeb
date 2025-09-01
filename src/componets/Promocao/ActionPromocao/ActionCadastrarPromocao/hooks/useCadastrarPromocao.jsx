@@ -223,6 +223,20 @@ export const useCadastrarPromocao = (refetchPromocao) => {
 
 
   const onSubmit = async (data) => {
+    if (descricao.length > 80) {
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Descrição deve ter no máximo 80 caracteres (sem contar espaços)!',
+          customClass: {
+            container: 'custom-swal',
+          },
+          showConfirmButton: false,
+          timer: 3000,
+        })
+        return;
+    }
+
     if (!descricao || !percentDesconto || !empresaSelecionada) {
       Swal.fire({
         position: 'top-end',
