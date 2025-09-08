@@ -84,13 +84,23 @@ export const ActionDocumentacaoAtualizar = ({ show, handleClose }) => {
                                 Para adicionar produtos, use o campo de pesquisa ou faça upload de arquivo CSV/Excel
                             </li>
                             <li style={{ marginBottom: "8px" }}>
-                                Para remover produtos, clique no botão de visualizar e remova individualmente
+                                    Se os produtos forem inseridos via CSV/Excel, o arquivo deve conter apenas uma coluna com o número de itens.
+                                     Não funciona com Código de Barras.
+                            </li>
+                            <li style={{ marginBottom: "8px" }}>
+                                Para remover produtos, clique no botão de visualizar Produtos da Promoção Ativa e remova individualmente
+                            </li>
+                            <li style={{ marginBottom: "8px" }}>
+                                Para remover Empresa da Promoção, clique no botão de visualizar Empresas e remova individualmente
                             </li>
                             <li style={{ marginBottom: "8px" }}>
                                 Alterações em empresas afetam onde a promoção será aplicada
                             </li>
                             <li style={{ marginBottom: "8px" }}>
-                                A data fim não pode ser anterior à data atual
+                                A data fim não pode ser anterior à data atual 
+                            </li>
+                            <li style={{ marginBottom: "8px" }}>
+                                Quando for alterar a data de uma promoção e ela estiver inativa, altere a data e o status para ativar a data fim, ativa no PDV e o status ativa para pesquisar a promoção.
                             </li>
                         </ol>
                     </div>
