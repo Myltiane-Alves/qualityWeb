@@ -58,9 +58,9 @@ export const ActionDocumentacaoCriar = ({ show, handleClose }) => {
                         <li style={{ color: "#000", fontWeight: "500" }}>
                             O usuário pode adicionar ou remover empresas conforme necessário.
                         </li>
-                        <li style={{ color: "#000", fontWeight: "500" }}>
+                        {/* <li style={{ color: "#000", fontWeight: "500" }}>
                             Não é permitido cadastrar mais de 3 promoções ativas para a mesma empresa.
-                        </li>
+                        </li> */}
                     </ul>
 
                     <ul>
@@ -69,15 +69,21 @@ export const ActionDocumentacaoCriar = ({ show, handleClose }) => {
                             É obrigatório preencher a descrição da promoção.
                         </li>
                         <li style={{ color: "#000", fontWeight: "500" }}>
-                            A descrição deve ter entre **20 e 200 caracteres**.
+                            A descrição deve ter entre **20 e 80 caracteres**.
                         </li>
                     </ul>
 
                     <ul>
                         <h2 style={{ color: "#7453A6", fontWeight: "bold" }}>  4. Produtos Origem e Destino  </h2>
-                        <li style={{ color: "#000", fontWeight: "600" }}>
-                            Os produtos podem ser informados manualmente ou via upload de arquivo (.csv, .xls, .xlsx).
-                        </li>
+                        {/* <h3 style={{ color: "red", fontWeight: "600" }}>
+                           Observação: via upload de arquivo, somente pelo N.Item serão inseridos(.csv, .xls, .xlsx).
+                            
+                        </h3> */}
+                        <h4 style={{ color: "red", fontWeight: "600" }}>
+                            Observação: via upload de arquivo, somente pelo N.Item serão inseridos(.csv, .xls, .xlsx).
+                            Não funciona com o código de barras.
+                            
+                        </h4>
                         <li style={{ color: "#000", fontWeight: "600" }}>
                             Para algumas mecânicas, os produtos de origem e destino devem ser iguais:
                             <ul>
