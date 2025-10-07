@@ -535,7 +535,7 @@ export const useCreatePromocaoAtiva = ({ }) => {
       //   return;
       // }
 
-        if (descricao.replace(/\s/g, '').length > 80) {
+        if (descricao.length > 80) {
           Swal.fire({
             position: 'center',
             icon: 'error',
