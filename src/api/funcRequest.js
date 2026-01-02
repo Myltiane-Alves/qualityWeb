@@ -3,7 +3,6 @@ import api from "./api";
 export const post = async (endpoint, data) => {
   try {
     // const token = localStorage.getItem('token');
-
     const response = await api.post(endpoint, data, {
       headers: {
         // Authorization: `Bearer ${token}`,
