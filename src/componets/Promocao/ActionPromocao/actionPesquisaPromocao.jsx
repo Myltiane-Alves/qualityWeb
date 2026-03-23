@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useMemo } from "react"
+import React, { Fragment, useCallback, useEffect, useState, useMemo } from "react"
 import { ButtonType } from "../../Buttons/ButtonType";
 import { ActionMainPromocao } from "../../Actions/ActionMainPromocao";
 import { InputFieldAction } from "../../Buttons/InputAction";
@@ -10,11 +10,11 @@ import { IoIosSend } from "react-icons/io";
 import { ActionCadastrarPromocaoModal } from "./ActionCadastrarPromocao/actionCadastrarPromocaoModal";
 import { ActionProdutoDestinoModal } from "../ActionPromocoesAtivas/ActionProdutosDestino/actionProdutoDestinoModal";
 import { ActionProdutoOrigemModal } from '../ActionPromocoesAtivas/ActionProdutosOrigem/actionProdutoOrigemModal'
-import { set } from "date-fns";
+import { MenuTreeSelect } from "../../Inputs/menuTreeSelect";
 import { ActionProdutoModalPromocaoSelecionado } from "../ActionPromocoesAtivas/ActionProdutosDaPromocaoSelecionado/actionProdutoModalPromocaoSelecionado";
 import { ActionProdutoModalPromocaoSelecionadoDestino } from "../ActionPromocoesAtivas/ActionProdutosDaPromocaoSelecionado/actionProdutoModalPromocaoSelecionaDestino";
 import { ActionDocumentacaoCriar } from "../ActionPromocoesAtivas/ActionDocumentacao/documentacaoCriar";
-
+import { InputFieldActionRadio } from "../../Buttons/InputActionRadio";
 
 
 export const ActionPesquisaPromocao = ({ }) => {
@@ -66,6 +66,7 @@ export const ActionPesquisaPromocao = ({ }) => {
     setPrecoProduto,
     dadosFornecedorProduto,
     dadosGrupo,
+    dadosSubGrupo,
     optionsMarcas,
     optionsEmpresas,
     optionsMecanica,
@@ -116,11 +117,22 @@ export const ActionPesquisaPromocao = ({ }) => {
     refetchProdutosPromocoes,
     dadosEmpresasPromocoes,
     setDadosEmpresasPromocoes,
-    modalDocumentacao,
-    setModalDocumentacao,
     mostrarProdutosSelecionadosOrigem,
     mostrarProdutosSelecionadosDestino,
-    onSubmit
+    modalDocumentacao,
+    setModalDocumentacao,
+    modalPodutoSelecionadoDestinoCSV, setModalPodutoSelecionadoDestinoCSV,
+    modalPodutoSelecionadoOrigemCSV, setModalPodutoSelecionadoOrigemCSV,
+    isCheckedGrupo, 
+    setIsCheckedGrupo,
+    isCheckedProduto,
+    setIsCheckedProduto,
+    subGrupoDestino,
+    setSubGrupoDestino,
+    subGrupoOrigem,
+    setSubGrupoOrigem,
+    onSubmit,
+    onSubmitEstrutura
 
   } = useCreatePromocaoAtiva({});
 
@@ -190,6 +202,10 @@ export const ActionPesquisaPromocao = ({ }) => {
 
   }, [mecanicaSelecionada, tipoDescontoSelecionado, setPrecoProduto, setVrDesconto, setValorInicio, setPorcentoDesconto]);
 
+  const handleCadastrarEstrutura = () => {
+    onSubmitEstrutura();
+  }
+  
   const handleCadastrar = () => {
     onSubmit();
   }
@@ -213,6 +229,114 @@ export const ActionPesquisaPromocao = ({ }) => {
     const val = Math.max(0, Math.min(Number(value), 99));
     setPorcentoDesconto(val);
   }
+
+  const [treeData, setTreeData] = useState([]);
+  const [selectedNodesOrigem, setSelectedNodesOrigem] = useState({});
+  const [selectedNodesDestino, setSelectedNodesDestino] = useState({});
+
+  useEffect(() => {
+  if (dadosSubGrupo.length) {
+    // 1. Agrupar subgrupos por IDGRUPOESTRUTURA
+    const gruposMap = new Map();
+    
+    dadosSubGrupo.forEach(subgrupo => {
+      const grupoId = subgrupo.IDGRUPOESTRUTURA; // ID do grupo (não do subgrupo)
+      const grupoDescricao = subgrupo.DSGRUPOESTRUTURA; // Nome do grupo
+      
+      // Se o grupo ainda não existe no Map, criar
+      if (!gruposMap.has(grupoId)) {
+        gruposMap.set(grupoId, {
+          key: `grupo_${grupoId}`, // Chave única para o grupo com prefixo
+          label: grupoDescricao,    // Nome do grupo
+          children: [],             // Array dos subgrupos
+        });
+      }
+      
+      // Adicionar o subgrupo como filho do grupo
+      gruposMap.get(grupoId).children.push({
+        key: `subgrupo_${subgrupo.IDSUBGRUPOESTRUTURA}`, // Chave do subgrupo com prefixo
+        label: subgrupo.DSSUBGRUPOESTRUTURA,              // Nome do subgrupo
+        data: subgrupo // Opcional: dados completos do subgrupo
+      });
+    });
+    
+    // 2. Converter o Map em array para o TreeSelect
+    const formattedTreeData = Array.from(gruposMap.values());
+    setTreeData(formattedTreeData);
+    
+  }
+}, [dadosSubGrupo]);
+
+  // UseEffect para inicializar seleções baseado nos dados existentes
+  useEffect(() => {
+    if (treeData.length && (grupoSelecionado.length || subGrupoDestino.length)) {
+      const initialSelection = {};
+      
+      // Marcar grupos selecionados
+      grupoSelecionado.forEach(grupoId => {
+        const chaveGrupo = `grupo_${grupoId}`;
+        initialSelection[chaveGrupo] = true;
+      });
+      
+      // Marcar subgrupos selecionados
+      subGrupoDestino.forEach(subgrupoId => {
+        const chaveSubgrupo = `subgrupo_${subgrupoId}`;
+        initialSelection[chaveSubgrupo] = true;
+      });
+      
+      setSelectedNodesOrigem(initialSelection);
+      setSelectedNodesDestino(initialSelection);
+      
+    }
+  }, [treeData]);
+
+  const handleTreeSelectOrigemChange = (e) => {
+    const selectedValue = e.value;
+    setSelectedNodesOrigem(selectedValue);
+
+    const selectedGrupo = [];
+    const selectedSubGrupo = [];
+
+    // Processar as chaves selecionadas
+    Object.keys(selectedValue).forEach(key => {
+      if (key.startsWith('grupo_')) {
+        // Extrair o ID do grupo (remove o prefixo 'grupo_')
+        const grupoId = key.replace('grupo_', '');
+        selectedGrupo.push(grupoId);
+      } else if (key.startsWith('subgrupo_')) {
+        // Extrair o ID do subgrupo (remove o prefixo 'subgrupo_')
+        const subgrupoId = Number(key.replace('subgrupo_', ''));
+        selectedSubGrupo.push(subgrupoId);
+      }
+    });
+
+    setGrupoSelecionado(selectedGrupo);
+    setSubGrupoOrigem(selectedSubGrupo);
+  };
+
+  const handleTreeSelectDestinoChange = (e) => {
+    const selectedValue = e.value;
+    setSelectedNodesDestino(selectedValue);
+
+    const selectedGrupo = [];
+    const selectedSubGrupo = [];
+
+    // Processar as chaves selecionadas
+    Object.keys(selectedValue).forEach(key => {
+      if (key.startsWith('grupo_')) {
+        // Extrair o ID do grupo (remove o prefixo 'grupo_')
+        const grupoId = key.replace('grupo_', '');
+        selectedGrupo.push(grupoId);
+      } else if (key.startsWith('subgrupo_')) {
+        // Extrair o ID do subgrupo (remove o prefixo 'subgrupo_')
+        const subgrupoId = Number(key.replace('subgrupo_', ''));
+        selectedSubGrupo.push(subgrupoId);
+      }
+    });
+
+    setGrupoSelecionado(selectedGrupo);
+    setSubGrupoDestino(selectedSubGrupo);
+  };
 
   return (
     <Fragment>
@@ -311,7 +435,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         readOnlyDesconto1={tipoDescontoSelecionado == 1 ? false : true}
         // styleDesconto1={styleDesconto1}
 
-        
+
         InputFieldDescontoComponent2={InputFieldAction}
         labelInputFieldDesconto2={"Desconto %"}
         valueInputFieldDesconto2={porcentoDesconto}
@@ -324,7 +448,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         valueInputFieldVrInicio={precoProduto}
         onChangeInputFieldVrInicio={(e) => {
           let valor = e.target.value.replace(/,/g, '.');
-        
+
           valor = valor.replace(/[^0-9.]/g, '');
           const firstDotIndex = valor.indexOf('.');
           if (firstDotIndex !== -1) {
@@ -332,7 +456,7 @@ export const ActionPesquisaPromocao = ({ }) => {
               valor.substring(0, firstDotIndex + 1) +
               valor.substring(firstDotIndex + 1).replace(/\./g, '');
           }
-          
+
           if (
             valor.length > 1 &&
             valor.startsWith('0') &&
@@ -411,6 +535,105 @@ export const ActionPesquisaPromocao = ({ }) => {
             }))
         }
 
+        InputSelectSubGrupoOrigemComponentAync={MultSelectAction}
+        labelSelectSubGrupoOrigemAsync={"Sub Grupo Origem"}
+        optionsSubGrupoOrigemAsync={[
+          { value: "all", label: "Selecionar Todas" },
+          ...(dadosGrupo?.map((item) => ({
+            value: item.IDSUBGRUPOESTRUTURA,
+            label:  `${item.IDSUBGRUPOESTRUTURA} - ${item.DSGRUPOESTRUTURA} - ${item.TPSECAO} `
+          })) || [])
+        ]}
+
+        valueSelectSubGrupoOrigemAsync={
+          Array.isArray(subGrupoOrigem) && Array.isArray(dadosGrupo)
+            ? dadosGrupo
+                .filter(item => subGrupoOrigem.includes(String(item.IDSUBGRUPOESTRUTURA)))
+                .map(item => ({
+                  value: item.IDSUBGRUPOESTRUTURA,
+                  label: `${item.IDSUBGRUPOESTRUTURA} - ${item.DSGRUPOESTRUTURA} - ${item.TPSECAO} `
+                }))
+            : []
+        }
+        onChangeSelectSubGrupoOrigemAsync={(e) => {
+          if (e.some((option) => option.value === "all")) {
+            const allValues = dadosGrupo.map((grupo) => String(grupo.IDSUBGRUPOESTRUTURA));
+            setSubGrupoOrigem(allValues);
+          } else {            
+            handleChangeSubGrupoOrigem(e);
+          }
+        }}
+
+        MenuTreeSelectOrigemComponent={MenuTreeSelect}
+        valueTreeSelectOrigem={selectedNodesOrigem}
+        onChangeTreeSelectOrigem={handleTreeSelectOrigemChange}
+        optionsTreeSelectOrigem={treeData}
+        placeholderTreeSelectOrigem={"Selecione"}
+
+        InputSelectSubGrupoDestinoComponentAync={MultSelectAction}
+        labelSelectSubGrupoDestinoAsync={"Sub Grupo Destino"}
+        optionsSubGrupoDestinoAsync={[
+          { value: "all", label: "Selecionar Todas" },
+          ...(dadosGrupo?.map((item) => ({
+            value: item.IDSUBGRUPOESTRUTURA,
+            label:  `${item.IDSUBGRUPOESTRUTURA} - ${item.DSGRUPOESTRUTURA} - ${item.TPSECAO} `
+          })) || [])
+        ]}
+
+        valueSelectSubGrupoDestinoAsync={
+          Array.isArray(subGrupoDestino) && Array.isArray(dadosGrupo)
+            ? dadosGrupo
+                .filter(item => subGrupoDestino.includes(String(item.IDSUBGRUPOESTRUTURA)))
+                .map(item => ({
+                  value: item.IDSUBGRUPOESTRUTURA,
+                  label: `${item.IDSUBGRUPOESTRUTURA} - ${item.DSGRUPOESTRUTURA} - ${item.TPSECAO} `
+                }))
+            : []
+        }
+        onChangeSelectSubGrupoDestinoAsync={(e) => {
+          if (e.some((option) => option.value === "all")) {
+            const allValues = dadosGrupo.map((grupo) => String(grupo.IDSUBGRUPOESTRUTURA));
+            setSubGrupoDestino(allValues);
+          } else {            
+            handleChangeSubGrupoDestino(e);
+          }
+        }}
+
+        MenuTreeSelectDestinoComponent={MenuTreeSelect}
+        valueTreeSelectDestino={selectedNodesDestino}
+        onChangeTreeSelectDestino={handleTreeSelectDestinoChange}
+        optionsTreeSelectDestino={treeData}
+        placeholderTreeSelectDestino={"Selecione"}
+    
+     
+        InputGrupoEstrutura={InputFieldActionRadio}
+        labelInputGrupoEstrutura={"Estrutura Mercadológica"}
+        valueInputGrupoEstrutura={isCheckedGrupo}
+        onChangeInputGrupoEstrutura={(e) => {
+          if (e.checked) {
+            setIsCheckedGrupo(true);
+            setIsCheckedProduto(false); // Desmarca o outro
+          } else {
+            setIsCheckedGrupo(false);
+          }
+        }}
+      
+        InputProduto={InputFieldActionRadio}
+        labelInputProduto={"Por Produtos"}
+        valueInputProduto={isCheckedProduto}
+        onChangeInputProduto={(e) => {
+          if (e.checked) {
+            setIsCheckedProduto(true);
+            setIsCheckedGrupo(false); // Desmarca o outro
+          } else {
+            setIsCheckedProduto(false);
+          }
+        }}
+
+
+        styleProduto={{ display: isCheckedGrupo ? 'none' : 'block' }}
+        styleEstrutura={{ display: isCheckedProduto ? 'none' : 'block' }}
+
         InputFieldProdutoOigem={InputFieldAction}
         labelInputFieldProdutoOigem={"Produto Origem"}
         valueInputFieldProdutoOigem={produtoOrigem}
@@ -440,7 +663,7 @@ export const ActionPesquisaPromocao = ({ }) => {
         linkCancelar={"Visualizar Produtos Origem"}
         onButtonClickCancelar={() => {
           mostrarProdutosSelecionadosOrigem('origem');
-          setProdutoOrigem(''); 
+          setProdutoOrigem('');
         }}
         corCancelar={"danger"}
         IconCancelar={GrView}
@@ -451,13 +674,13 @@ export const ActionPesquisaPromocao = ({ }) => {
         valueInputFieldProdutoDestino={produtoDestino}
         onChangeInputFieldProdutoDestino={(e) => setProdutoDestino(e.target.value)}
         readOnlyProdutoDestino={fileProdutoDestino.length > 0 ? true : false}
-      
+
         ButtonTypeProdutoPesquisadoDestino={ButtonType}
         linkNomeProdutoPesquisadoDestino={"Visualizar Produto Pesquisado Destino"}
         onButtonClickProdutoPesquisadoDestino={handlePesquisarProdutoDestino}
         corProdutoPesquisadoDestino={"secondary"}
         IconProdutoPesquisadoDestino={GrView}
-        
+
         InputFileProdutoDestino={InputFieldAction}
         labelInputFileProdutoDestino={"Produto Destino"}
         acceptFileProdutoDestino=".csv, .xls, .xlsx"
@@ -470,22 +693,30 @@ export const ActionPesquisaPromocao = ({ }) => {
           }
         }}
         readOnlyFileProdutoDestino={produtoDestino.length > 0 ? true : false}
-        
+
         ButtonTypeCadastro={ButtonType}
         linkNome={"Visualizar Produtos Destino"}
         onButtonClickCadastro={() => {
           mostrarProdutosSelecionadosDestino('destino');
-          setProdutoDestino(''); 
+          setProdutoDestino('');
         }}
         corCadastro={"success"}
         IconCadastro={GrView}
 
-        
+
         ButtonSearchComponent={ButtonType}
         linkNomeSearch={"Cadastrar Promoção"}
         onButtonClickSearch={handleCadastrar}
         corSearch={"primary"}
         IconSearch={IoIosSend}
+        styleButtonSearch={isCheckedProduto ? false : true}
+
+        ButtonTypePedido={ButtonType}
+        linkPedido={"Cadastrar Promoção Mercadologica"}
+        onButtonClickPedido={handleCadastrarEstrutura}
+        corPedido={"info"}
+        IconPedido={IoIosSend}
+        disabledBTBPedido={isCheckedGrupo ? false : true}
 
         ButtonTypeTXT={ButtonType}
         linkTXT={"Documentação"}
